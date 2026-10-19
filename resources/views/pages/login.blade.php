@@ -26,14 +26,6 @@
 
 <body class="login-bg">
 
-  <a
-    href="landing.html"
-    class="btn btn-light shadow-sm position-fixed top-0 start-0 m-3 z-3 d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 text-decoration-none"
-  >
-    <i class="bi bi-arrow-left" aria-hidden="true"></i>
-    Back to Home
-  </a>
-
   <main class="form-shell">
 
     <div
@@ -41,10 +33,20 @@
       style="max-width:560px;background:rgba(255,255,255,.96);"
     >
 
+      <a
+        href="landing.html"
+        class="btn btn-link p-0 text-brand position-absolute"
+        style="top:1.5rem; left:1.5rem;"
+        aria-label="Back to home"
+        title="Back to home"
+      >
+        <i class="bi bi-arrow-left fs-3" aria-hidden="true"></i>
+      </a>
+
       <button
         type="button"
         class="btn btn-link p-0 text-brand position-absolute cvr-fade-toggle cvr-fade-hidden"
-        style="top:1.5rem; left:1.5rem;"
+        style="top:1.5rem; right:1.5rem;"
         id="loginBackToSavedBtn"
         aria-label="Back to saved accounts"
       >
