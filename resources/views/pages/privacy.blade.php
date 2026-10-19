@@ -31,10 +31,10 @@
         <h1 class="legal-rise" style="--i:1">Privacy Policy</h1>
         <p class="legal-hero-lead legal-rise" style="--i:2">How we collect, use, and protect your information when you book with Casa Vergara Resort.</p>
         <div class="legal-switch legal-rise" style="--i:3">
+          <a href="privacy.html" aria-current="page"><i class="bi bi-shield-check" aria-hidden="true"></i>Privacy Policy</a>
+          <a href="terms.html"><i class="bi bi-file-earmark-text" aria-hidden="true"></i>Terms &amp; Conditions</a>
           <a href="user-manual.html"><i class="bi bi-book" aria-hidden="true"></i>User Manual</a>
           <a href="sitemap.html"><i class="bi bi-diagram-3" aria-hidden="true"></i>Site Map</a>
-          <a href="terms.html"><i class="bi bi-file-earmark-text" aria-hidden="true"></i>Terms &amp; Conditions</a>
-          <a href="privacy.html" aria-current="page"><i class="bi bi-shield-check" aria-hidden="true"></i>Privacy Policy</a>
         </div>
       </div>
     </div>
