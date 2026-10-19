@@ -713,13 +713,9 @@ function send_app_email(
 
 function build_email_html(string $title, string $bodyHtml): string
 {
-    // Logo is embedded in the email itself (CID) by send_app_email(), so it shows
-    // even when the site runs on localhost and Gmail can't reach a hosted URL.
-    // Optional: a public https:// link to the logo (CVR_MAIL_LOGO_URL). If empty, the embedded copy is used.
-    $publicLogo = trim((string) config('cvr.mail_logo_url', ''));
-    $logoUrl = $publicLogo !== ''
-        ? htmlspecialchars($publicLogo)
-        : 'cid:' . config('cvr.mail_logo_cid', 'casa_vergara_logo');
+    // The image is embedded by send_app_email() so mail clients don't need to
+    // fetch it from the website.
+    $logoUrl = 'cid:' . config('cvr.mail_logo_cid', 'casa_vergara_logo');
 
     return '
     <!-- cvr-mail-v2 -->
