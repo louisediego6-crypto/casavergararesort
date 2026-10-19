@@ -55,7 +55,7 @@ return [
     'admin_notify_name'  => env('CVR_ADMIN_NOTIFY_NAME', 'Casa Vergara Admin'),
     'mail_from_email'    => env('CVR_MAIL_FROM_EMAIL', env('MAIL_FROM_ADDRESS', env('CVR_ADMIN_NOTIFY_EMAIL', 'casavergararesort@gmail.com'))),
     'mail_debug'         => false,
-    'mail_logo_cid'      => 'casa_vergara_logo',
+    'mail_logo_url'      => 'https://casavergararesort.online/images/logo-email.png',
 
     // Email the admin about every user activity (register, login, booking, review...). false = off.
     'activity_emails_enabled' => filter_var(env('CVR_ACTIVITY_EMAILS', true), FILTER_VALIDATE_BOOLEAN),

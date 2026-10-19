@@ -692,13 +692,6 @@ function send_app_email(
                 }
             }
 
-            // Embed the logo inline when the email references it via cid:
-            $logoCid  = (string) config('cvr.mail_logo_cid', 'casa_vergara_logo');
-            $logoPath = public_path('images/logo-email.png');
-            if (str_contains($htmlBody, 'cid:' . $logoCid) && is_file($logoPath)) {
-                $message->getSymfonyMessage()->embedFromPath($logoPath, $logoCid, 'image/png');
-            }
-
             $message->html($htmlBody);
             $message->text($plain);
         });
@@ -713,15 +706,13 @@ function send_app_email(
 
 function build_email_html(string $title, string $bodyHtml): string
 {
-    // The image is embedded by send_app_email() so mail clients don't need to
-    // fetch it from the website.
-    $logoUrl = 'cid:' . config('cvr.mail_logo_cid', 'casa_vergara_logo');
+    $logoUrl = (string) config('cvr.mail_logo_url');
 
     return '
     <!-- cvr-mail-v2 -->
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color:#3d4963;">
         <div style="background:#0c3b5d; padding:22px 24px; border-radius:8px 8px 0 0; text-align:center;">
-            <img src="' . $logoUrl . '" alt="Casa Vergara Resort" width="52" height="52"
+            <img src="' . htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') . '" alt="Casa Vergara Resort" width="52" height="52"
                  style="display:block; margin:0 auto 10px; width:52px; height:52px; border-radius:10px; background:#ffffff; padding:4px; object-fit:cover;" />
             <h2 style="color:#ffffff; margin:0; font-family: Georgia, serif; letter-spacing:0.02em;">Casa Vergara Resort</h2>
         </div>
