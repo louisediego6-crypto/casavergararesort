@@ -26,6 +26,14 @@
 
 <body class="login-bg">
 
+  <a
+    href="landing.html"
+    class="btn btn-light shadow-sm position-fixed top-0 start-0 m-3 z-3 d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 text-decoration-none"
+  >
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    Back to Home
+  </a>
+
   <main class="form-shell">
 
     <div
