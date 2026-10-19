@@ -43,16 +43,6 @@
         <i class="bi bi-arrow-left fs-3" aria-hidden="true"></i>
       </a>
 
-      <button
-        type="button"
-        class="btn btn-link p-0 text-brand position-absolute cvr-fade-toggle cvr-fade-hidden"
-        style="top:1.5rem; right:1.5rem;"
-        id="loginBackToSavedBtn"
-        aria-label="Back to saved accounts"
-      >
-        <i class="bi bi-chevron-left fs-3"></i>
-      </button>
-
       <div class="text-center mb-4">
 
         <img
