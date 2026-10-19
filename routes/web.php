@@ -1,11 +1,14 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PublicUploadController;
 use App\Http\Controllers\ReminderJobController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/pages/landing.html');
 Route::redirect('/index.html', '/pages/landing.html');
+
+Route::get('/uploads/{path}', [PublicUploadController::class, 'show'])->where('path', '.+');
 
 Route::get('/pages/{page}.html', [PageController::class, 'show'])->where('page', '[A-Za-z0-9-]+');
 Route::get('/pages/admin/{page}.html', [PageController::class, 'admin'])->where('page', '[A-Za-z0-9-]+');

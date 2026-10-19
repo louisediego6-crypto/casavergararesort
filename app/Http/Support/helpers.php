@@ -41,8 +41,8 @@ function cvr_release_session(): void
 function cvr_path(string $relative = ''): string
 {
     $relative = ltrim(str_replace('\\', '/', $relative), '/');
-    if ($relative === 'uploads/chat' || str_starts_with($relative, 'uploads/chat/')) {
-        return storage_path('app/' . $relative);   // private chat attachments
+    if (str_starts_with($relative, 'uploads/')) {
+        return storage_path('app/public/' . $relative);
     }
     return public_path($relative);
 }

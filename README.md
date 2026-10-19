@@ -17,8 +17,11 @@ php artisan serve          # http://localhost:8000
 ```
 
 Edit `.env` for the database password, `APP_URL`, and the keys that used to live in `config/secrets.php`
-(`MAIL_USERNAME` / `MAIL_PASSWORD` for Gmail SMTP, `CVR_AI_API_KEY`, `CVR_GIPHY_API_KEY`, …). Make sure `storage/` and `public/uploads/` are writable.
+(`MAIL_USERNAME` / `MAIL_PASSWORD` for Gmail SMTP, `CVR_AI_API_KEY`, `CVR_GIPHY_API_KEY`, …). Make sure `storage/` is writable.
 If you serve it over HTTPS set `SESSION_SECURE_COOKIE=true`.
+
+On Railway, mount a persistent volume at `/app/storage/app/public`. Uploaded files are written under
+`storage/app/public/uploads` and served from `/uploads/...`; chat attachments stay private behind the chat API.
 
 `php artisan migrate --seed` gives you the same starter data as the old SQL import (admin + event-manager logins,
 FAQs, terms, packages, site content, team).
@@ -30,7 +33,7 @@ FAQs, terms, packages, site content, team).
 | `api/<group>/<name>.php` | `POST/GET /api/<group>/<name>` → `app/Http/Controllers/Api/...` (routes in `routes/cvr_api.php`) |
 | `pages/*.html` | `resources/views/pages/*.blade.php`, served at the same URLs (`/pages/login.html`, `/pages/admin/dashboard.html`) |
 | `css/ js/ images/` | `public/css`, `public/js`, `public/images` (JS only changed to drop `.php` from API URLs) |
-| `uploads/` | `public/uploads/` (chat attachments are now private: `storage/app/uploads/chat/`) |
+| `uploads/` | `storage/app/public/uploads/` (chat attachments are served privately through the chat API) |
 | `config/config.php`, `mail.php`, `secrets.php` | `config/cvr.php` + `.env` |
 | `includes/functions.php`, `live_chat.php`, reminders, catalogs | `app/Support/*.php` (autoloaded helpers, same function names) |
 | `database/*.sql` | `database/migrations/*` + `database/seeders` |
@@ -47,5 +50,5 @@ FAQs, terms, packages, site content, team).
 * The SQL layer is still parameterised SQL through Laravel's PDO connection (same queries as before) so behaviour stays identical.
 * Database sessions use `strict => false` and a `+08:00` time zone to match the original XAMPP behaviour.
 * Like the original, API POSTs have no CSRF token (session cookie is `SameSite=Lax`).
-* Existing chat files from an old install must be moved from `uploads/chat/` to `storage/app/uploads/chat/`.
+* Existing chat files from an old install must be moved into `storage/app/public/uploads/chat/`.
 * Gemini model default is the value from your `secrets.php` (`gemini-3.8-flash`); change `CVR_AI_MODEL` if Google rejects it.
