@@ -1,0 +1,135 @@
+/* =============================================================================
+   Casa Vergara - responsive hardening layer (loaded LAST on every page).
+   Goal: no sideways scrolling, comfortable touch targets, and a sensible layout
+   from 320px phones up to 2560px+ monitors. Delete this file (and its <link>
+   lines) to go back to the previous CSS.
+   ========================================================================== */
+
+/* ---- 0. Foundation ------------------------------------------------------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, video, canvas, iframe { max-width: 100%; }
+img, video { height: auto; }
+body { overflow-wrap: break-word; }
+pre, code { max-width: 100%; }
+pre { overflow-x: auto; }
+
+/* grid / flex children may shrink below their content width
+   (this is what made the User Manual 644px wide on a 375px phone) */
+.row > *, .man-layout > *, .man-step-body > *, .d-flex > .flex-grow-1, .d-flex > .flex-fill,
+.soft-card, .modal-content { min-width: 0; }
+.table-responsive { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---- 1. Login / register blurred background no longer widens the page ---- */
+.login-bg::before { position: fixed; }
+.login-bg::after  { position: fixed; }
+body.login-bg.auth-page-visible { transform: none; }
+
+/* ---- 2. Safe areas (notches, rounded corners, iOS home bar) -------------- */
+.site-header { padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.admin-topbar { padding-top: env(safe-area-inset-top, 0px); }
+.footer-main { padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+.cvr-live-chat-dock, .cvr-write-review-fab, #cvrGuestChatRoot, #cvrFaqBotRoot {
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ---- 3. Tablets and phones (< 992px) ------------------------------------- */
+@media (max-width: 991.98px) {
+  .man-layout, .man-step-body { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* ---- 4. Phones (< 768px) ------------------------------------------------- */
+@media (max-width: 767.98px) {
+  /* Bootstrap g-4/g-5 gutters were wider than the container padding -> rows poked out */
+  .row.g-4, .row.g-5, .row.gx-4, .row.gx-5 { --bs-gutter-x: 1.5rem; }
+  .container, .container-fluid { padding-left: max(0.875rem, env(safe-area-inset-left, 0px)); padding-right: max(0.875rem, env(safe-area-inset-right, 0px)); }
+
+  /* 16px stops iOS Safari zooming the page when a field is focused */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select, textarea, .form-control, .form-select { font-size: 16px; }
+
+  /* toolbars / segmented buttons wrap instead of running off screen */
+  .btn-group, .btn-toolbar { flex-wrap: wrap; max-width: 100%; }
+  .btn-group[data-role="tabs"] { width: 100%; }
+  .btn-group[data-role="tabs"] > .btn { flex: 1 1 auto; }
+
+  /* charts never exceed their card */
+  canvas { max-width: 100% !important; }
+
+  /* modals: nearly full screen, scroll inside */
+  .modal-dialog { margin: 0.5rem; max-width: calc(100% - 1rem); }
+  .modal-dialog-scrollable .modal-content { max-height: calc(100dvh - 1rem); }
+  .modal-body { max-height: calc(100dvh - 10rem); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .dropdown-menu { max-width: calc(100vw - 1.5rem); }
+  .offcanvas { max-width: 100vw; }
+
+  /* floating chat panel */
+  .cvr-chat-panel { width: calc(100vw - 2rem); max-height: calc(100dvh - 7rem); }
+  .cvr-faqbot-panel { max-height: min(78dvh, 560px); }
+
+  /* hover lift does nothing useful on touch */
+  .room-card:hover, .soft-card:hover, .feature-card:hover, .hl-card:hover { transform: none; }
+}
+
+/* toasts: the old rule kept width:100% AND left/right offsets -> 24px overflow */
+@media (max-width: 575.98px) {
+  .cvr-toast-container { width: auto; left: 0.75rem; right: 0.75rem; max-width: none; }
+}
+
+/* ---- 5. Very small phones (<= 360px) ------------------------------------- */
+@media (max-width: 359.98px) {
+  html { font-size: 15px; }
+  .container, .container-fluid { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .modal-dialog { margin: 0.25rem; max-width: calc(100% - 0.5rem); }
+  .figma-brand-title, .brand-title { font-size: 0.85rem; }
+}
+
+/* ---- 6. Touch devices: comfortable tap targets --------------------------- */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 38px; }
+  .btn-close { min-width: 2.25rem; min-height: 2.25rem; }
+  .form-control, .form-select { min-height: 44px; }
+  textarea.form-control { min-height: 0; }
+  .dropdown-item { min-height: 2.5rem; display: flex; align-items: center; }
+  .page-link { min-width: 2.5rem; min-height: 2.5rem; display: inline-flex; align-items: center; justify-content: center; }
+  a, button, .btn, label { -webkit-tap-highlight-color: rgba(12, 59, 93, 0.12); }
+  .btn, button, [role="button"] { touch-action: manipulation; }
+}
+
+/* ---- 7. Phones in landscape / very short windows ------------------------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .landing-hero, .hero, .about-hero { min-height: 0 !important; }
+  .form-shell, .login-bg, .login-page, .register-page { min-height: 0 !important; }
+  .form-shell { padding-block: 1rem; }
+  .site-header .navbar-collapse { max-height: calc(100dvh - 4.5rem); overflow-y: auto; }
+  .modal-dialog { margin-block: 0.25rem; }
+  .modal-body { max-height: calc(100dvh - 8rem); }
+  .cvr-chat-panel { max-height: calc(100dvh - 5.5rem); }
+  body { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+}
+
+/* ---- 8. Mobile browser toolbars: use the dynamic viewport height --------- */
+@supports (height: 100dvh) {
+  .form-shell, .login-bg, .login-page, .register-page, .admin-wrap, .booking-cal-main.admin-main { min-height: 100dvh; }
+  .site-header .navbar-collapse { max-height: calc(100dvh - 5.5rem); }
+}
+
+/* ---- 9. Wide screens: 1920 / 2560 / 3200+ -------------------------------- */
+/* Bootstrap fixes container widths in px, so on QHD/4K monitors the site stays a
+   narrow strip of tiny text. Scale the root size and let containers grow with it. */
+@media (min-width: 1920px) {
+  html { font-size: 17px; }
+  body .container, body .container-xxl { max-width: 78rem; }
+}
+@media (min-width: 2560px) {
+  html { font-size: 20px; }
+  body .container, body .container-xxl { max-width: 80rem; }
+}
+@media (min-width: 3200px) {
+  html { font-size: 24px; }
+}
+
+@media print {
+  html { font-size: 16px !important; }
+}
