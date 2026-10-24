@@ -1,5 +1,3 @@
-
-
 (function () {
   const MS_DAY = 86400000;
 
@@ -318,14 +316,33 @@
     // Fresh guest picker for this room: one adult by default, and the room's allowed total shown plainly.
     const roomAdultsEl = modalEl.querySelector("#roomAdults");
     const roomChildrenEl = modalEl.querySelector("#roomChildren");
-    if (roomAdultsEl) roomAdultsEl.value = "1";
+    const capMin = pkg.capacity?.min ?? 1;
+    const capMax = pkg.capacity?.max ?? 1;
+    modalEl.dataset.pkgId = String(pkg.id);
+    // Start at the room's minimum (e.g. Family Room = 2) so the default is always a valid choice.
+    if (roomAdultsEl) roomAdultsEl.value = String(Math.max(1, capMin));
     if (roomChildrenEl) roomChildrenEl.value = "0";
     const guestHint = modalEl.querySelector("#roomGuestHint");
-    if (guestHint) {
-      const min = pkg.capacity?.min ?? 1;
-      const max = pkg.capacity?.max ?? 1;
-      guestHint.textContent = `This room holds ${min}–${max} guest${max !== 1 ? "s" : ""} in total (adults + kids).`;
-    }
+    const hintText = `This room holds ${capMin}–${capMax} guest${capMax !== 1 ? "s" : ""} in total (adults + kids).`;
+    const guestTotal = () =>
+      Math.max(0, parseInt(roomAdultsEl?.value, 10) || 0) + Math.max(0, parseInt(roomChildrenEl?.value, 10) || 0);
+    const syncGuestHint = (showError) => {
+      if (!guestHint) return true;
+      const total = guestTotal();
+      const ok = total >= capMin && total <= capMax && (parseInt(roomAdultsEl?.value, 10) || 0) >= 1;
+      const bad = !ok && showError;
+      guestHint.textContent = bad
+        ? `Please enter ${capMin}–${capMax} guests in total for this room (you have ${total}).`
+        : hintText;
+      guestHint.classList.toggle("text-danger", bad);
+      guestHint.classList.toggle("fw-semibold", bad);
+      roomAdultsEl?.classList.toggle("is-invalid", bad);
+      roomChildrenEl?.classList.toggle("is-invalid", bad);
+      return ok;
+    };
+    syncGuestHint(false);
+    if (roomAdultsEl) roomAdultsEl.oninput = () => syncGuestHint(true);
+    if (roomChildrenEl) roomChildrenEl.oninput = () => syncGuestHint(true);
 
     const staff = typeof isStaffSession === "function" && isStaffSession(getCustomerSession?.());
     const calendarLink = modalEl.querySelector("#roomDetailsCalendarLink");
@@ -334,6 +351,10 @@
     bookBtn?.classList.toggle("d-none", staff);
     if (bookBtn) {
       bookBtn.onclick = () => {
+        if (!syncGuestHint(true)) {
+          roomAdultsEl?.focus();
+          return;
+        }
         bootstrap.Modal.getOrCreateInstance(modalEl).hide();
         window.cvrBookRoom?.(pkg.id);
       };
@@ -341,6 +362,10 @@
 
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   }
+  window.cvrRoomDetailsGuestsReady = (id) => {
+    const m = document.getElementById("roomDetailsModal");
+    return !!m && m.dataset.pkgId === String(id);
+  };
 
   function initStaffRoomsView() {
     const staff = typeof isStaffSession === "function" && isStaffSession(getCustomerSession?.());

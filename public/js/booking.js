@@ -312,7 +312,16 @@ function initBookingPage() {
     });
 
     grid.querySelectorAll(".room-book-btn").forEach((button) => {
-      button.addEventListener("click", () => bookRoom(button.dataset.packageId));
+      button.addEventListener("click", () => {
+        const id = button.dataset.packageId;
+        // Guests are chosen in the room dialog. If it was not set up for THIS room yet
+        // (it would still hold another room's 1 adult), open it so the guest can confirm.
+        if (typeof window.cvrRoomDetailsGuestsReady === "function" && !window.cvrRoomDetailsGuestsReady(id)) {
+          window.cvrShowRoomDetails?.(id);
+          return;
+        }
+        bookRoom(id);
+      });
     });
 
     const params = new URLSearchParams(window.location.search);
