@@ -6,7 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <script src="../js/theme.js?v=20261024a"></script>
+  <script src="../js/theme.js?v=20261024f"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - FAQs</title>
   <meta name="description" content="Answers to common questions about rooms, rates, bookings and payments at Casa Vergara Resort." />

@@ -2,12 +2,24 @@
    Loaded in <head> on every page so the saved theme is applied before first paint (no flash).
    The toggle buttons are rendered by js/main.js (navbar + admin top bar) and carry [data-cvr-theme-toggle]. */
 (function () {
-  var KEY = "cvrTheme";
+  var PREFIX = "cvrTheme:";
   var root = document.documentElement;
+
+  /* The choice is remembered per account (by login email) on this browser.
+     Visitors who aren't logged in share a "guest" setting. */
+  function key() {
+    try {
+      var sess = JSON.parse(localStorage.getItem("cvrCustomerSession") || "null");
+      var email = sess && sess.email ? String(sess.email).trim().toLowerCase() : "";
+      return PREFIX + (email || "guest");
+    } catch (e) {
+      return PREFIX + "guest";
+    }
+  }
 
   function read() {
     try {
-      var v = localStorage.getItem(KEY);
+      var v = localStorage.getItem(key());
       return v === "dark" || v === "light" ? v : "light";
     } catch (e) {
       return "light";
@@ -29,7 +41,7 @@
   }
 
   function set(theme, animate) {
-    try { localStorage.setItem(KEY, theme); } catch (e) {}
+    try { localStorage.setItem(key(), theme); } catch (e) {}
     if (animate) {
       root.classList.add("cvr-theme-anim");
       setTimeout(function () { root.classList.remove("cvr-theme-anim"); }, 400);
@@ -55,6 +67,9 @@
 
   /* keep other open tabs in sync */
   window.addEventListener("storage", function (e) {
-    if (e.key === KEY) apply(read());
+    if (e.key === key() || e.key === "cvrCustomerSession") apply(read());
   });
+
+  /* back/forward cache or account switch: re-read this account's setting */
+  window.addEventListener("pageshow", function () { apply(read()); });
 })();
