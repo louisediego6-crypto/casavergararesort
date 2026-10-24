@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Reservation Details</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -17,6 +18,7 @@
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -227,7 +229,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20260830i"></script>
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/main.js?v=20261024c"></script>
   <script>
     (async () => {
 

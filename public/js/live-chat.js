@@ -133,6 +133,14 @@ function cvrChatLinkify(escaped) {
  * Round profile picture with an initials fallback (also used if the photo fails to load).
  * cls: extra classes, e.g. "cvr-chat-avatar--lg"
  */
+const CVR_CHAT_BRAND_NAME = "Casa Vergara Resort";
+const CVR_CHAT_BRAND_AVATAR = (typeof assetUrl === "function" ? assetUrl("images/casa-vergara-avatar.jpg") : "/images/casa-vergara-avatar.jpg");
+
+/** The resort's own chat profile (logo + name) shown on the guest side. */
+function cvrChatBrandAvatar(cls = "") {
+  return cvrChatAvatarMarkup(CVR_CHAT_BRAND_AVATAR, "CV", cls);
+}
+
 function cvrChatAvatarMarkup(url, initials, cls = "") {
   const text = escapeHtml(initials || "G");
   if (url) {
@@ -216,8 +224,8 @@ function cvrChatRenderBubbles(messages, opts = {}) {
   }
   if (!messages.length) {
     return `<div class="cvr-chat-empty">
-      <span class="cvr-chat-avatar cvr-chat-avatar--lg">CV</span>
-      <strong>Casa Vergara</strong>
+      ${cvrChatBrandAvatar("cvr-chat-avatar--lg")}
+      <strong>${CVR_CHAT_BRAND_NAME}</strong>
       <p>Send us a message for reservation inquiries and concerns. You can share photos and files, and send emoji.</p>
     </div>`;
   }
@@ -249,9 +257,11 @@ function cvrChatRenderBubbles(messages, opts = {}) {
     const showWho = first && (!mine || viewer === "staff");
     const who = mine
       ? `${escapeHtml(m.senderLabel || "Resort team")} · Team`
-      : escapeHtml(m.senderLabel || (viewer === "staff" ? "Guest" : "Resort team"));
+      : viewer === "staff"
+        ? escapeHtml(m.senderLabel || "Guest")
+        : CVR_CHAT_BRAND_NAME;
     // Their profile photo: the sender's own picture, else the guest's (staff view), else initials / resort logo
-    const photo = m.senderAvatarUrl || (viewer === "staff" ? opts.theirAvatarUrl : "") || "";
+    const photo = viewer === "staff" ? (m.senderAvatarUrl || opts.theirAvatarUrl || "") : CVR_CHAT_BRAND_AVATAR;
     const avatar = mine
       ? ""
       : last
@@ -842,9 +852,9 @@ function initLiveChatWidget() {
     <div id="cvrLiveChatPanel" class="cvr-chat-panel d-none" role="dialog" aria-labelledby="cvrLiveChatTitle">
       <div class="cvr-chat-panel-head">
         <div class="d-flex align-items-center gap-2">
-          <span class="cvr-chat-avatar cvr-chat-avatar--head">CV</span>
+          ${cvrChatBrandAvatar("cvr-chat-avatar--head")}
           <div class="flex-grow-1 min-w-0">
-            <h2 class="h6 text-brand mb-0" id="cvrLiveChatTitle">Casa Vergara</h2>
+            <h2 class="h6 text-brand mb-0" id="cvrLiveChatTitle">${CVR_CHAT_BRAND_NAME}</h2>
             <p class="small mb-0" id="cvrLiveChatStatus"><span class="cvr-chat-status-dot is-offline"></span> Checking availability…</p>
           </div>
           <button type="button" class="btn-close" id="cvrLiveChatClose" aria-label="Close chat"></button>

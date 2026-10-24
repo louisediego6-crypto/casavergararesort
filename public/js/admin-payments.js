@@ -128,7 +128,7 @@ async function initAdminSubmittedProofs() {
               <div class="d-flex gap-2 flex-wrap">
                 ${approveBtn}
                 <button class="btn btn-sm btn-outline-danger proof-action-btn" data-action="Rejected">Reject</button>
-                <button class="btn btn-sm btn-outline-secondary proof-delete-btn" title="Delete submission" aria-label="Delete submission"><i class="bi bi-trash3"></i></button>
+                <button class="btn btn-sm btn-outline-secondary proof-delete-btn admin-only-action" title="Delete submission" aria-label="Delete submission"><i class="bi bi-trash3"></i></button>
               </div>
             </td>
           </tr>

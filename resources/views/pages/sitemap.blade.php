@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Site Map</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -26,6 +27,7 @@
     }
     .sitemap-intro a { font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--accent); }
   </style>
+  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -236,7 +238,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20260926c"></script>
+  <script src="../js/main.js?v=20261024c"></script>
   <script>
     renderNavbar("");
     renderFooter();

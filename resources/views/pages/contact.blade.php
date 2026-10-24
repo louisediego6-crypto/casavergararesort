@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Contact</title>
   <meta name="description" content="Send a message to the Casa Vergara Resort team, find our phone, email and address, and see us on the map." />
@@ -20,6 +21,7 @@
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/contact-booking-fixes.css?v=20261018a" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
 </head>
 <body data-page="contact">
   <div id="site-navbar"></div>
@@ -172,7 +174,7 @@
   <div id="site-footer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20260926b"></script>
+  <script src="../js/main.js?v=20261024c"></script>
   <script>
     renderNavbar("contact");
     renderFooter();

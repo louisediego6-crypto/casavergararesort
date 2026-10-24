@@ -64,7 +64,7 @@ class PaymentController extends Controller
             json_response(false, 'Invalid request method.', [], 405);
         }
 
-        require_role(['admin']);
+        require_role(['admin', 'event_manager']);
 
         $pdo = get_db_connection();
 
@@ -192,7 +192,7 @@ class PaymentController extends Controller
             json_response(false, 'Invalid request method.', [], 405);
         }
 
-        $session = require_role(['admin']);
+        $session = require_role(['admin', 'event_manager']);
 
         $body = get_json_body();
         $id = (int) ($body['id'] ?? 0);

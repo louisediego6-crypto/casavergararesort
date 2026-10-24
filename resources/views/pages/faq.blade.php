@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - FAQs</title>
   <meta name="description" content="Answers to common questions about rooms, rates, bookings and payments at Casa Vergara Resort." />
@@ -19,6 +20,7 @@
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
 </head>
 <body data-page="faq">
   <div id="site-navbar"></div>
@@ -108,7 +110,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20260930a"></script>
+  <script src="../js/main.js?v=20261024c"></script>
   <script src="../js/faq-page.js?v=20260830i"></script>
   <script>
     renderNavbar("faq");

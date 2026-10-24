@@ -256,7 +256,7 @@ function isFullAdminSession(session) {
 }
 window.isFullAdminSession = isFullAdminSession;
 
-const CVR_ADMIN_ONLY_SECTIONS = ["payments", "users", "settings"];
+const CVR_ADMIN_ONLY_SECTIONS = ["users", "settings"];
 
 function setCustomerSession(profile) {
   if (!profile?.email) return;
@@ -1606,6 +1606,13 @@ function applyCustomerAvatarElements(session) {
   if (rm) rm.classList.toggle("d-none", !photo);
 }
 
+/** Light / dark mode switch. Behaviour lives in js/theme.js (click handler is delegated on [data-cvr-theme-toggle]). */
+function cvrThemeToggleMarkup(extraClass = "") {
+  const dark = (document.documentElement.getAttribute("data-theme") || "light") === "dark";
+  const label = dark ? "Switch to light mode" : "Switch to dark mode";
+  return `<button type="button" class="cvr-theme-toggle ${extraClass}" data-cvr-theme-toggle aria-pressed="${dark ? "true" : "false"}" aria-label="${label}" title="${label}"><i class="bi bi-moon-stars-fill cvr-theme-icon-moon" aria-hidden="true"></i><i class="bi bi-sun-fill cvr-theme-icon-sun" aria-hidden="true"></i></button>`;
+}
+
 function renderNavbar(active = "") {
   const smart = getSmartNavUrls();
   const links = [
@@ -1686,6 +1693,7 @@ function renderNavbar(active = "") {
             </ul>
           </div>
           <span class="badge ${staffBadgeClass} px-3 py-2 d-none d-lg-inline-flex" title="Staff accounts oversee the site and can't create bookings"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
+          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
 
@@ -1714,9 +1722,11 @@ function renderNavbar(active = "") {
             </ul>
           </div>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
+          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
     : `
+          ${cvrThemeToggleMarkup()}
           <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex">Log in</a>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
         `;
@@ -2292,7 +2302,7 @@ function bootLiveChatWidget() {
   if (location.pathname.includes("/pages/admin/")) return;
   if (document.querySelector("script[data-cvr-live-chat]")) return;
   const script = document.createElement("script");
-  script.src = `${assetUrl("js/live-chat.js")}?v=20261024b`;
+  script.src = `${assetUrl("js/live-chat.js")}?v=20261024c`;
   script.dataset.cvrLiveChat = "1";
   document.body.appendChild(script);
 }
@@ -2351,6 +2361,7 @@ function renderAdminSidebar(active = "") {
             <span class="admin-role-pill ${isFullAdmin ? "" : "is-staff"}">${isFullAdmin ? "Admin Portal" : "Staff Portal"}</span>
           </span>
         </a>
+        ${cvrThemeToggleMarkup()}
         <span class="admin-topbar-divider" aria-hidden="true"></span>
         <span class="admin-topbar-section">
           <span class="admin-topbar-section-eyebrow">You're viewing</span>
@@ -5716,7 +5727,7 @@ const SITEMAP_PAGE_INFO = {
   "admin/dashboard.html": ["Admin Dashboard", "Operational overview: today's arrivals, pending payments, revenue snapshot and recent activity.", "Staff only"],
   "admin/reservations.html": ["Reservations", "Full reservation list with filters, status changes, guest details and approvals.", "Staff only"],
   "admin/calendar.html": ["Booking Calendar", "Month and day view of every booking, blocked date and holiday.", "Staff only"],
-  "admin/payments.html": ["Payment Verification", "Review uploaded payment proofs and approve or reject them.", "Admin only"],
+  "admin/payments.html": ["Payment Verification", "Review uploaded payment proofs and approve or reject them.", "Staff only"],
   "admin/packages.html": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/site-content.html?tab=packages": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/messages.html": ["Messages", "Inbox for guest enquiries, plus a composer for messaging clients directly.", "Staff only"],
@@ -5874,10 +5885,6 @@ function enforceRouteGuards() {
       return false;
     }
 
-    if (session && !isFullAdminSession(session) && path.includes("/pages/admin/payments.html")) {
-      window.location.replace(pageUrl("admin/dashboard.html"));
-      return false;
-    }
   }
 
   cvrVerifyServerSession(onAdminProtectedPage);

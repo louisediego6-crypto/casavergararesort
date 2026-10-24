@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
 
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024a"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
@@ -26,6 +27,7 @@
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
 
+  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
 </head>
 
 <body class="login-bg">
@@ -449,7 +451,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/main.js?v=20261024c"></script>
 
   <script src="../js/legal-doc.js?v=20260830i"></script>
 

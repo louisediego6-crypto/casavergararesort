@@ -65,7 +65,7 @@ class PublicUploadController extends Controller
         $stmt = get_db_connection()->prepare('SELECT role, status FROM users WHERE id = ?');
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
-        if (!$user || $user['status'] === 'suspended' || $user['role'] !== 'admin') {
+        if (!$user || $user['status'] === 'suspended' || !in_array($user['role'], ['admin', 'event_manager'], true)) {
             return response('Not found.', 404);
         }
 
