@@ -1,0 +1,192 @@
+import re, colorsys, sys, glob, os
+
+SRC = ['style','landing','enhance','polish','laravel-ui','modern','admin-modern','casa-refresh','live-chat','contact-booking-fixes','cvr-responsive']
+BASE = '/home/claude/proj/casavergararesort/public/css/'
+
+def strip_comments(s): return re.sub(r'/\*.*?\*/','',s,flags=re.S)
+
+def split_top(s, sep):
+    out=[];depth=0;q=None;cur=''
+    for ch in s:
+        if q:
+            cur+=ch
+            if ch==q: q=None
+            continue
+        if ch in '"\'': q=ch; cur+=ch; continue
+        if ch=='(': depth+=1
+        elif ch==')': depth-=1
+        if ch==sep and depth==0:
+            out.append(cur);cur=''
+        else: cur+=ch
+    if cur.strip(): out.append(cur)
+    return out
+
+def parse_blocks(s):
+    """yield ('rule', selector, body) or ('at', header, [children])"""
+    i=0;n=len(s);res=[]
+    while i<n:
+        j=s.find('{',i)
+        if j<0: break
+        head=s[i:j].strip()
+        depth=1;k=j+1;q=None
+        while k<n and depth:
+            ch=s[k]
+            if q:
+                if ch==q:q=None
+            elif ch in '"\'':q=ch
+            elif ch=='{':depth+=1
+            elif ch=='}':depth-=1
+            k+=1
+        body=s[j+1:k-1]
+        if head.startswith('@'):
+            res.append(('at',head,body))
+        else:
+            res.append(('rule',head,body))
+        i=k
+    return res
+
+HEX=re.compile(r'#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b')
+RGB=re.compile(r'rgba?\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)\s*(?:[,/]\s*([\d.]+%?)\s*)?\)')
+NAMED={'white':'#ffffff','black':'#000000'}
+
+def to_rgb(h):
+    h=h.lstrip('#')
+    if len(h)==3: h=''.join(c*2 for c in h)
+    r,g,b=int(h[0:2],16),int(h[2:4],16),int(h[4:6],16)
+    a=int(h[6:8],16)/255 if len(h)==8 else None
+    return r,g,b,a
+
+def hls(r,g,b):
+    h,l,s=colorsys.rgb_to_hls(r/255,g/255,b/255); return h,l,s
+
+def from_hls(h,l,s):
+    r,g,b=colorsys.hls_to_rgb(h,max(0,min(1,l)),max(0,min(1,s)))
+    return round(r*255),round(g*255),round(b*255)
+
+def fmt(r,g,b,a=None):
+    if a is None or a>=1: return '#%02x%02x%02x'%(r,g,b)
+    return 'rgba(%d, %d, %d, %s)'%(r,g,b,('%.3f'%a).rstrip('0').rstrip('.'))
+
+def map_bg(r,g,b,a=None):
+    h,l,s=hls(r,g,b)
+    if l<0.6: return None
+    if l<0.8 and s>0.5: return None   # bright accent colours (gold, sky blue) stay as they are
+    if s<0.15: h,s=209/360,0.28
+    else: s=min(s*0.65,0.55)
+    nl=0.13+(1-l)*0.9
+    return fmt(*from_hls(h,nl,s),a)
+
+def map_border(r,g,b,a=None):
+    h,l,s=hls(r,g,b)
+    if l<0.7: return None
+    if s<0.15: h,s=209/360,0.25
+    else: s=min(s*0.6,0.5)
+    nl=0.2+(1-l)*0.9
+    return fmt(*from_hls(h,nl,s),a)
+
+def map_text(r,g,b,a=None):
+    h,l,s=hls(r,g,b)
+    if l>=0.38: return None
+    if s<0.12: h,s=209/360,0.25
+    else: s=min(s,0.6)
+    nl=0.95-0.8*l
+    return fmt(*from_hls(h,nl,s),a)
+
+def convert_colors(val, fn):
+    changed=[False]
+    def rep_hex(m):
+        r,g,b,a=to_rgb(m.group(0))
+        o=fn(r,g,b,a)
+        if o: changed[0]=True; return o
+        return m.group(0)
+    def rep_rgb(m):
+        r,g,b=int(m.group(1)),int(m.group(2)),int(m.group(3))
+        a=m.group(4)
+        if a is None: af=None
+        else: af=float(a[:-1])/100 if a.endswith('%') else float(a)
+        o=fn(r,g,b,af)
+        if o: changed[0]=True; return o
+        return m.group(0)
+    val=HEX.sub(rep_hex,val)
+    val=RGB.sub(rep_rgb,val)
+    val=re.sub(r'\bwhite\b',lambda m:(changed.__setitem__(0,True) or fn(255,255,255,None)) if fn(255,255,255,None) else m.group(0),val)
+    return val,changed[0]
+
+def prefix_selector(sel):
+    sel=sel.strip()
+    if not sel: return None
+    if sel.startswith(('@','from','to')) or re.match(r'^\d+%',sel): return None
+    P='html[data-theme="dark"]'
+    if re.match(r'^:root\b',sel): return re.sub(r'^:root',P,sel,1)
+    if re.match(r'^html\b',sel): return re.sub(r'^html',P,sel,1)
+    return P+' '+sel
+
+SKIP_SEL=re.compile(r'btn-accent|nav-book-btn|btn-gold|\.btn-brand|bg-warning|btn-warning|::-webkit|cvr-theme-toggle|\.btn-primary\b|\.btn-success|\.btn-danger')
+
+def process_decls(body, selector):
+    decls=[d for d in split_top(body,';') if ':' in d]
+    props=[]
+    for d in decls:
+        k,v=d.split(':',1); props.append((k.strip().lower(), v.strip()))
+    # does this rule set a non-light, non-transparent background? (then dark text on it must stay)
+    has_dark_bg=False
+    for k,v in props:
+        if k in ('background','background-color','background-image'):
+            if re.search(r'#[0-9a-fA-F]{3,8}\b|rgba?\(',v):
+                cols=[]
+                for m in HEX.finditer(v): cols.append(to_rgb(m.group(0))[:3])
+                for m in RGB.finditer(v):
+                    a=m.group(4); 
+                    af=1 if a is None else (float(a[:-1])/100 if a.endswith('%') else float(a))
+                    if af>0.5: cols.append((int(m.group(1)),int(m.group(2)),int(m.group(3))))
+                if cols and any(hls(*c)[1]<0.6 for c in cols): has_dark_bg=True
+            elif 'var(' in v and ('accent' in v or 'primary' in v or 'secondary' in v or 'gradient' in v): has_dark_bg=True
+    out=[]
+    for k,v in props:
+        if '!important' in v: v2=v.replace('!important','').strip()
+        else: v2=v
+        if k in ('background','background-color','background-image'):
+            nv,ch=convert_colors(v2,map_bg)
+            if ch: out.append(f'{k}: {nv} !important')
+        elif k in ('border','border-color','border-top','border-bottom','border-left','border-right','border-top-color','border-bottom-color','border-left-color','border-right-color','outline-color'):
+            nv,ch=convert_colors(v2,map_border)
+            if ch: out.append(f'{k}: {nv} !important')
+        elif k in ('color','fill','stroke','caret-color','-webkit-text-fill-color','text-decoration-color'):
+            if has_dark_bg or SKIP_SEL.search(selector): continue
+            nv,ch=convert_colors(v2,map_text)
+            nv2=re.sub(r'var\(--(?:primary|primary-700|am-navy)(?:\s*,[^)]*)?\)','#a5d0f0',nv)
+            if nv2!=nv: nv=nv2; ch=True
+            if ch: out.append(f'{k}: {nv} !important')
+    return out
+
+def gen(css, indent=''):
+    out=[]
+    for kind,head,body in parse_blocks(css):
+        if kind=='at':
+            h=head.lower()
+            if h.startswith(('@media','@supports')):
+                inner=gen(body)
+                if inner.strip(): out.append(f'{head} {{\n{inner}}}\n')
+            continue
+        sels=[prefix_selector(x) for x in split_top(head,',')]
+        sels=[x for x in sels if x and not SKIP_SEL.search(x)]
+        if not sels: continue
+        decls=process_decls(body, head)
+        if decls:
+            out.append(',\n'.join(sels)+' {\n  '+';\n  '.join(decls)+';\n}\n')
+    return '\n'.join(out)
+
+if __name__=='__main__':
+    final=['/* AUTO-GENERATED dark counterpart of every light surface / dark text rule in the site CSS.\n   Generated by tools/gen_dark.py from style, landing, enhance, polish, laravel-ui, modern, admin-modern,\n   casa-refresh, live-chat, contact-booking-fixes. Hand-tuned rules live in theme.css (loaded after this file). */']
+    for name in SRC:
+        css=strip_comments(open(BASE+name+'.css').read())
+        g=gen(css)
+        final.append(f'\n/* ---- {name}.css ---- */\n'+g)
+    import re as _re
+    for pg in ['sitemap','user-manual','admin/site-content']:
+        sx=open('/home/claude/proj/casavergararesort/resources/views/pages/%s.blade.php'%pg).read()
+        css=''.join(_re.findall(r'<style[^>]*>(.*?)</style>',sx,flags=_re.S))
+        final.append('\n/* ---- inline <style> of %s ---- */\n'%pg+gen(strip_comments(css)))
+    open(BASE+'theme-auto.css','w').write('\n'.join(final))
+    t=open(BASE+'theme-auto.css').read()
+    print(len(t), t.count('{'))

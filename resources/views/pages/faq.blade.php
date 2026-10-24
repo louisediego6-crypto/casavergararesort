@@ -20,7 +20,8 @@
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
-  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body data-page="faq">
   <div id="site-navbar"></div>

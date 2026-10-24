@@ -36,7 +36,8 @@
     .site-text-card { display: flex; flex-direction: column; gap: .5rem; }
     #siteContentTabs .nav-link { display: flex; align-items: center; gap: .4rem; }
   </style>
-  <link href="../../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body>
   <div class="admin-wrap admin-page">

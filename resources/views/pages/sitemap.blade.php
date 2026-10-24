@@ -27,7 +27,8 @@
     }
     .sitemap-intro a { font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--accent); }
   </style>
-  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>

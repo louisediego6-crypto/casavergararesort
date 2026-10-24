@@ -228,7 +228,24 @@ html[data-theme="dark"] body .admin-topbar.is-scrolled {
   border-color: #27384a !important;
 }
 html[data-theme="dark"] body .site-header .navbar-collapse,
-html[data-theme="dark"] body .site-navbar .navbar-collapse { background: #16212c !important; }
+html[data-theme="dark"] body .site-navbar .navbar-collapse { background: transparent !important; box-shadow: none !important; border: 0 !important; }
+@media (max-width: 991.98px) {
+  html[data-theme="dark"] body .site-header .navbar-collapse,
+  html[data-theme="dark"] body .site-navbar .navbar-collapse { background: #16212c !important; border: 1px solid #27384a !important; border-radius: 0 0 1rem 1rem; }
+}
+/* desktop nav links: no light hover chip, gold underline stays */
+html[data-theme="dark"] body .nav-link-luxury,
+html[data-theme="dark"] body .site-navbar .nav-link,
+html[data-theme="dark"] body .figma-navbar .nav-link { background: transparent !important; color: #c6d3df !important; }
+html[data-theme="dark"] body .nav-link-luxury:hover,
+html[data-theme="dark"] body .site-navbar .nav-link:hover,
+html[data-theme="dark"] body .figma-navbar .nav-link:hover,
+html[data-theme="dark"] body .nav-link-luxury.text-brand,
+html[data-theme="dark"] body .site-navbar .nav-link.text-brand { background: rgba(255, 255, 255, 0.07) !important; color: #fff !important; }
+@media (min-width: 992px) {
+  html[data-theme="dark"] body .figma-navbar .nav-link:hover,
+  html[data-theme="dark"] body .figma-navbar .nav-link.text-brand { background: transparent !important; }
+}
 html[data-theme="dark"] body .admin-drawer,
 html[data-theme="dark"] body .admin-sidebar-desktop { background: #121c26 !important; border-color: #27384a !important; }
 html[data-theme="dark"] .admin-drawer .nav-link { color: #c6d3df; }
@@ -261,10 +278,6 @@ html[data-theme="dark"] .nav-profile-btn:hover,
 html[data-theme="dark"] .nav-bell-btn:hover,
 html[data-theme="dark"] .cvr-theme-toggle:hover { background: #1f3042 !important; }
 html[data-theme="dark"] .navbar-toggler-icon { filter: invert(1) brightness(1.4); }
-html[data-theme="dark"] body .nav-link-luxury,
-html[data-theme="dark"] .navbar .nav-link { color: #c6d3df; }
-html[data-theme="dark"] body .nav-link-luxury:hover,
-html[data-theme="dark"] body .nav-link-luxury.fw-semibold { color: #fff !important; }
 html[data-theme="dark"] .admin-role-pill { background: #1f3a52; color: #cfe6f8; }
 html[data-theme="dark"] .admin-role-pill.is-staff { background: #3a3114; color: #f2cf4a; }
 html[data-theme="dark"] .nav-staff-badge--staff,

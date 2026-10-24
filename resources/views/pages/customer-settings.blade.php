@@ -28,7 +28,8 @@
       }
     })();
   </script>
-  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body id="customerSettingsRoot">
   <div id="site-navbar"></div>

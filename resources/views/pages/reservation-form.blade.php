@@ -18,7 +18,8 @@
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>

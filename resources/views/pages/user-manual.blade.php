@@ -64,7 +64,8 @@
     @media (max-width: 991px) { .man-layout { grid-template-columns: 1fr; } .man-toc { display: none; } .man-step-body { grid-template-columns: 1fr; } }
     @media print { #site-navbar, #site-footer, .man-toc, .man-actions, #liveChatWidget { display: none !important; } .man-layout { display: block; } .man-step { break-inside: avoid; box-shadow: none; } }
   </style>
-  <link href="../css/theme.css?v=20261024a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
