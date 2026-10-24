@@ -3976,12 +3976,14 @@ function updateRoomFormSummary(cat, pkg) {
   const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "24hr";
   const checkIn = checkInEl?.value || "";
 
-  const guestInput = document.getElementById("resGuestCount");
-  let guests = guestInput ? parseInt(guestInput.value, 10) : flow?.guestCount ?? 2;
-  if (!Number.isFinite(guests)) guests = 2;
-  guests = Math.min(Math.max(guests, pkg.capacity.min), pkg.capacity.max);
-  if (guestInput) guestInput.value = String(guests);
-  if (flow) flow.guestCount = guests;
+  const split = readResGuestSplit();
+  const guests = split.total;
+  writeResGuestTotal(split);
+  if (flow) {
+    flow.guestCount = guests;
+    flow.adults = split.adults;
+    flow.children = split.children;
+  }
 
   const selectedAddOns = getSelectedAddOnIds();
   const nights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
@@ -4039,11 +4041,12 @@ function updateRoomFormSummary(cat, pkg) {
 
 function updateEventFormSummary(cat, pending) {
   const fmt = (n) => cat.formatMoney(n, pending.currency || "PHP");
-  const guestInput = document.getElementById("resGuestCount");
-  let guests = guestInput ? parseInt(guestInput.value, 10) : pending.eventGuests || 1;
-  if (!Number.isFinite(guests)) guests = pending.eventGuests || 1;
-  if (guestInput) guestInput.value = String(guests);
+  const split = readResGuestSplit();
+  const guests = Math.max(1, split.total);
+  writeResGuestTotal(split);
   pending.eventGuests = guests;
+  pending.adults = split.adults;
+  pending.children = split.children;
 
   const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
   const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
@@ -4115,6 +4118,38 @@ function updateEventFormSummary(cat, pending) {
   persistPendingReservation(pending);
 }
 
+// Adults and kids are entered separately; the total (adults + kids) is what pricing and capacity use.
+function readResGuestSplit() {
+  const adults = Math.max(0, parseInt(document.getElementById("resAdultCount")?.value, 10) || 0);
+  const children = Math.max(0, parseInt(document.getElementById("resChildCount")?.value, 10) || 0);
+  return { adults, children, total: adults + children };
+}
+
+function guestSplitLabel(split) {
+  const adultText = `${split.adults} adult${split.adults !== 1 ? "s" : ""}`;
+  const kidText = split.children ? `, ${split.children} kid${split.children !== 1 ? "s" : ""}` : "";
+  return `${adultText}${kidText}`;
+}
+
+function writeResGuestTotal(split) {
+  const totalInput = document.getElementById("resGuestCount");
+  if (totalInput) totalInput.value = String(split.total);
+  const text = document.getElementById("resGuestTotalText");
+  if (text) text.textContent = `${guestSplitLabel(split)} · ${split.total} guest${split.total !== 1 ? "s" : ""} in total`;
+}
+
+// Prefill the adult/kid fields from a saved record or the pending booking; older records only have a total.
+function populateResGuestSplit(source) {
+  const legacyTotal = Number(source?.guests ?? source?.eventGuests ?? 0) || 0;
+  const children = Math.max(0, Number(source?.children) || 0);
+  const adults = Math.max(1, Number(source?.adults) || Math.max(1, legacyTotal - children));
+  const adultInput = document.getElementById("resAdultCount");
+  const childInput = document.getElementById("resChildCount");
+  if (adultInput) adultInput.value = String(adults);
+  if (childInput) childInput.value = String(children);
+  writeResGuestTotal({ adults, children, total: adults + children });
+}
+
 function populateGuestFieldsFromSessionOrRecord(record) {
   const session = getCustomerSession();
   const nameParts = (record?.customerName || "").trim().split(/\s+/);
@@ -4148,9 +4183,15 @@ function buildReservationFromForm(cat, pending, flow) {
   const selectedAddOns = getSelectedAddOnIds();
   const excludeId = flow?.editId || "";
 
-  let guestsNum = parseInt(document.getElementById("resGuestCount")?.value, 10) || 2;
-  if (pending.bookingType === "event") {
-    guestsNum = parseInt(document.getElementById("resGuestCount")?.value, 10) || pending.eventGuests || 1;
+  const guestSplit = readResGuestSplit();
+  const guestsNum = guestSplit.total;
+  if (guestSplit.adults < 1) return { error: "Please enter at least one adult." };
+  if (guestsNum < 1) return { error: "Please enter the number of guests." };
+  if (pending.bookingType !== "event") {
+    const cap = flow?.pkg?.capacity;
+    if (cap && (guestsNum < cap.min || guestsNum > cap.max)) {
+      return { error: `This room holds ${cap.min}–${cap.max} guest${cap.max !== 1 ? "s" : ""} in total (adults + kids). Please adjust the number of guests.` };
+    }
   }
 
   if (!window.CVRDuration?.buildWindow || !window.CVRDuration?.isCustomCheckInTimeAllowed || !window.CVRDuration?.parse12HourTime) {
@@ -4176,7 +4217,9 @@ function buildReservationFromForm(cat, pending, flow) {
     checkIn,
     checkOut,
     guests: guestsNum,
-    guestsLabel: `${guestsNum} guest${guestsNum !== 1 ? "s" : ""}`,
+    adults: guestSplit.adults,
+    children: guestSplit.children,
+    guestsLabel: guestSplitLabel(guestSplit),
     arrivalTime: "",
     specialRequests,
     selectedAddOns,
@@ -4610,12 +4653,13 @@ function initReservationFormPage() {
   layout.classList.remove("d-none");
   populateGuestFieldsFromSessionOrRecord(editRecord);
 
-  const guestInput = document.getElementById("resGuestCount");
-  if (guestInput) {
-    guestInput.addEventListener("input", () => {
+  populateResGuestSplit(editRecord || pending);
+  ["resAdultCount", "resChildCount"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", () => {
+      writeResGuestTotal(readResGuestSplit());
       if (typeof window.__cvrRecalcReservationSummary === "function") window.__cvrRecalcReservationSummary();
     });
-  }
+  });
 
   const excludeId = editRecord?.id || "";
 
@@ -4648,10 +4692,11 @@ function initReservationFormPage() {
     document.getElementById("summaryPackageMeta").innerHTML = `${pkg.areaSqm} m² · ${pkg.bed} · ${pkg.capacity.min}–${pkg.capacity.max} guests · Standard check-in ${pkg.standardCheckIn}`;
     document.getElementById("summaryPackageInclusions").innerHTML = `<span class="fw-semibold text-brand">Includes:</span> ${pkg.inclusions.join(", ")}`;
 
-    if (guestInput) {
-      guestInput.min = String(pkg.capacity.min);
-      guestInput.max = String(pkg.capacity.max);
-      guestInput.value = String(pending.guests || editRecord?.guests || 2);
+    // Room guests: adults and kids are typed separately; the room's total limit is shown next to them.
+    const roomCapHint = document.getElementById("resGuestCapacityNote");
+    if (roomCapHint) {
+      roomCapHint.textContent = `This room holds ${pkg.capacity.min}–${pkg.capacity.max} guests in total.`;
+      roomCapHint.classList.remove("d-none");
     }
 
     renderPackageAddOnsUI(cat, "room", pkg.id, pending.selectedAddOns || editRecord?.selectedAddOns || []);
@@ -4666,7 +4711,7 @@ function initReservationFormPage() {
     const recalc = () => updateRoomFormSummary(cat, pkg);
     window.__cvrRecalcReservationSummary = recalc;
 
-    window.__cvrReservationFlow = { type: "room", pkg, pending, guestCount: parseInt(guestInput?.value, 10) || 2, editId: excludeId, mode: editCtx?.mode || "new", original: editRecord };
+    window.__cvrReservationFlow = { type: "room", pkg, pending, guestCount: readResGuestSplit().total || 1, editId: excludeId, mode: editCtx?.mode || "new", original: editRecord };
     if (typeof window.initReservationAvailabilityCalendars === "function") {
       window.initReservationAvailabilityCalendars({ packageId: pending.packageId, roomTitle: pkg.title, excludeReservationId: excludeId, onChange: recalc });
     } else {
@@ -4710,12 +4755,7 @@ function initReservationFormPage() {
     const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
     pending.durationKey = initialDuration;
 
-    if (guestInput) {
-      const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
-      guestInput.min = "1";
-      guestInput.max = String(pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999);
-      guestInput.value = String(pending.eventGuests || editRecord?.guests || 1);
-    }
+    populateResGuestSplit(editRecord || pending);
 
     document.getElementById("resCheckIn").value = pending.preferredDate;
     document.getElementById("resCheckOut").value = pending.preferredDate;

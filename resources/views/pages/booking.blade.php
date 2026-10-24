@@ -158,8 +158,19 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label for="eventGuests" class="form-label text-brand">Number of Guests</label>
-              <input id="eventGuests" type="number" min="1" class="form-control" placeholder="Enter number of guests" required>
+              <span class="form-label text-brand d-block">Number of Guests <span class="text-danger">*</span></span>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="eventAdults" class="small text-muted-brand mb-1">Adults</label>
+                  <input id="eventAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+                </div>
+                <div class="col-6">
+                  <label for="eventChildren" class="small text-muted-brand mb-1">Kids</label>
+                  <input id="eventChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
+                </div>
+              </div>
+              <input id="eventGuests" type="hidden" value="1">
+              <div class="small text-muted-brand mt-2" id="eventGuestTotalText">1 guest in total</div>
             </div>
             <div class="col-12 booking-event-date-col">
               <label class="form-label text-brand">Preferred Date <span class="text-danger">*</span></label>
@@ -303,6 +314,20 @@
           </div>
           <p class="small text-muted-brand fst-italic mb-2">Reviews from guests who've stayed in this specific room, shown here so you can see what to expect before booking it.</p>
           <div id="roomDetailsReviews" class="room-details-reviews"></div>
+          <div class="room-guest-picker mt-3 p-3 rounded-3 border">
+            <h6 class="text-brand mb-2">Guests for this stay</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="roomAdults" class="small text-muted-brand mb-1">Adults</label>
+                <input id="roomAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+              </div>
+              <div class="col-6">
+                <label for="roomChildren" class="small text-muted-brand mb-1">Kids</label>
+                <input id="roomChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
+              </div>
+            </div>
+            <div class="small text-muted-brand mt-2" id="roomGuestHint"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>

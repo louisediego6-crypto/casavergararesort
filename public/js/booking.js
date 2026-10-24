@@ -186,10 +186,14 @@ function initBookingPage() {
     const nights = durationKey === "extended" ? getSelectedNights() : 1;
     const checkInSelection = getCheckInTimeSelection();
     const checkOutSelection = durationKey === "extended" ? getCheckOutTimeSelection() : { time: null, incomplete: false, outOfRange: false };
-    const guestsNum = Math.min(
-      Math.max(pkg.capacity?.min ?? 1, 1),
-      Math.max(pkg.capacity?.max ?? 1, 1)
-    );
+    // Guests are what the visitor typed in the room dialog: adults and kids are counted separately.
+    const roomAdults = Math.max(0, parseInt(document.getElementById("roomAdults")?.value, 10) || 0);
+    const roomChildren = Math.max(0, parseInt(document.getElementById("roomChildren")?.value, 10) || 0);
+    const guestsNum = roomAdults + roomChildren;
+    if (roomAdults < 1) {
+      showMessage("Please enter at least one adult.", true);
+      return;
+    }
 
     const err = validateRoomBooking(pkg, checkIn, durationKey, guestsNum, nights, checkInSelection, checkOutSelection);
     if (err) {
@@ -213,6 +217,8 @@ function initBookingPage() {
       checkInLabel: win.checkInLabel,
       checkOutLabel: win.checkOutLabel,
       guests: guestsNum,
+      adults: roomAdults,
+      children: roomChildren,
       createdAt: new Date().toISOString(),
     });
     window.location.href = "reservation-form.html";
@@ -573,6 +579,20 @@ function initBookingPage() {
     document.getElementById("eventDuration")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("input", renderPackageDetails);
+    // Adults + kids feed the hidden total that pricing reads.
+    const syncEventGuestTotal = () => {
+      const a = Math.max(0, parseInt(document.getElementById("eventAdults")?.value, 10) || 0);
+      const c = Math.max(0, parseInt(document.getElementById("eventChildren")?.value, 10) || 0);
+      const hidden = document.getElementById("eventGuests");
+      if (hidden) hidden.value = String(a + c);
+      const text = document.getElementById("eventGuestTotalText");
+      if (text) {
+        text.textContent = `${a} adult${a !== 1 ? "s" : ""}${c ? `, ${c} kid${c !== 1 ? "s" : ""}` : ""} · ${a + c} guest${a + c !== 1 ? "s" : ""} in total`;
+      }
+      renderPackageDetails();
+    };
+    document.getElementById("eventAdults")?.addEventListener("input", syncEventGuestTotal);
+    document.getElementById("eventChildren")?.addEventListener("input", syncEventGuestTotal);
     document.getElementById("eventGuests")?.addEventListener("input", renderPackageDetails);
     syncBirthdayPackageVisibility();
     syncOtherSpecifyVisibility();
@@ -618,6 +638,12 @@ function initBookingPage() {
       }
       if (rawEventType === "Others" && !otherSpecifyVal) {
         showMessage("Please specify your event type.", true);
+        return;
+      }
+      const eventAdults = Math.max(0, parseInt(document.getElementById("eventAdults")?.value, 10) || 0);
+      const eventChildren = Math.max(0, parseInt(document.getElementById("eventChildren")?.value, 10) || 0);
+      if (eventAdults < 1) {
+        showMessage("Please enter at least one adult.", true);
         return;
       }
       if (!eventGuests || Number(eventGuests) < 1) {
@@ -677,6 +703,8 @@ function initBookingPage() {
         bookingType: "event",
         eventType,
         eventGuests: Number(eventGuests),
+        adults: eventAdults,
+        children: eventChildren,
         preferredDate: win.checkInDateOnly,
         durationKey,
         extendedNights: isExtended ? eventNights : null,

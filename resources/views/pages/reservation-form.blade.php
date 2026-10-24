@@ -92,8 +92,20 @@
             <p class="small text-muted-brand mb-3 d-none" id="eventStayDateHint"></p>
             <div class="row g-4 align-items-start" id="stayDetailsFieldsRow">
               <div class="col-md-6" id="resGuestCountWrap">
-                <label class="form-label" for="resGuestCount">Number of guests <span class="text-danger">*</span></label>
-                <input id="resGuestCount" type="number" min="1" class="form-control" value="2">
+                <span class="form-label d-block">Number of guests <span class="text-danger">*</span></span>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="small text-muted-brand mb-1" for="resAdultCount">Adults</label>
+                    <input id="resAdultCount" type="number" min="1" class="form-control" value="1" inputmode="numeric">
+                  </div>
+                  <div class="col-6">
+                    <label class="small text-muted-brand mb-1" for="resChildCount">Kids</label>
+                    <input id="resChildCount" type="number" min="0" class="form-control" value="0" inputmode="numeric">
+                  </div>
+                </div>
+                <input id="resGuestCount" type="hidden" value="1">
+                <div class="small text-muted-brand mt-2" id="resGuestTotalText">1 guest in total</div>
+                <div class="small text-danger mt-1 d-none" id="resGuestCapacityNote"></div>
               </div>
               <div class="col-12 d-none" id="eventDateRescheduleWrap">
                 <label class="form-label">Event date <span class="text-danger">*</span></label>

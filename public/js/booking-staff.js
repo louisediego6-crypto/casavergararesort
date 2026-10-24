@@ -315,6 +315,18 @@
 
     renderRoomDetailsReviews(modalEl, pkg.id);
 
+    // Fresh guest picker for this room: one adult by default, and the room's allowed total shown plainly.
+    const roomAdultsEl = modalEl.querySelector("#roomAdults");
+    const roomChildrenEl = modalEl.querySelector("#roomChildren");
+    if (roomAdultsEl) roomAdultsEl.value = "1";
+    if (roomChildrenEl) roomChildrenEl.value = "0";
+    const guestHint = modalEl.querySelector("#roomGuestHint");
+    if (guestHint) {
+      const min = pkg.capacity?.min ?? 1;
+      const max = pkg.capacity?.max ?? 1;
+      guestHint.textContent = `This room holds ${min}–${max} guest${max !== 1 ? "s" : ""} in total (adults + kids).`;
+    }
+
     const staff = typeof isStaffSession === "function" && isStaffSession(getCustomerSession?.());
     const calendarLink = modalEl.querySelector("#roomDetailsCalendarLink");
     const bookBtn = modalEl.querySelector("#roomDetailsBookBtn");
