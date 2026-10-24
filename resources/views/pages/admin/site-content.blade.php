@@ -94,7 +94,15 @@
       <div class="tab-content" id="siteContentTabContent">
 
         <div class="tab-pane fade show active" id="tab-text" role="tabpanel">
-          <p class="text-muted-brand small mb-3">Headlines, intro paragraphs and shared details (like the footer's address and phone number) that appear on the public pages. Fields under "Global (Footer)" appear on every page at once, so there's only one place to fix them.</p>
+          <p class="text-muted-brand small mb-3">Headlines, intro paragraphs and shared details (like the footer's address and phone number) that appear on the public pages. Fields under "Global (Footer)" and "Global (Navigation Bar)" appear on every page at once, so there's only one place to fix them. Use the search box to jump to any wording.</p>
+          <div class="mb-4" style="max-width:28rem;">
+            <label class="visually-hidden" for="siteTextSearch">Search page text</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="search" class="form-control" id="siteTextSearch" placeholder="Search by label, page or wording (e.g. footer, hero, Book now)" autocomplete="off">
+            </div>
+            <div class="form-text d-none" id="siteTextSearchEmpty">No text fields match that search.</div>
+          </div>
           <div id="siteTextAlert" class="alert d-none small mb-4" role="alert"></div>
           <div id="siteTextLoading" class="text-center text-muted-brand py-5">
             <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading page text&hellip;
@@ -103,7 +111,7 @@
         </div>
 
         <div class="tab-pane fade" id="tab-photos" role="tabpanel">
-          <p class="text-muted-brand small mb-3">Swap out the photos shown on your public website — no code changes needed.</p>
+          <p class="text-muted-brand small mb-3">Swap out the photos shown on your public website — including the logo and the About page banner — no code changes needed. Room, event and team photos are changed in their own tabs.</p>
           <div id="siteContentAlert" class="alert d-none small mb-4" role="alert"></div>
           <div id="siteContentLoading" class="text-center text-muted-brand py-5">
             <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading photos&hellip;

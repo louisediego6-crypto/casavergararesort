@@ -25,7 +25,7 @@
     <div class="auth-card card shadow-lg p-4 p-md-5 border-0 rounded-5" style="max-width:560px;background:rgba(255,255,255,.96);">
 
       <div class="text-center mb-4">
-        <img src="../images/logo.png" alt="Casa Vergara" class="brand-logo mb-2">
+        <img src="../images/logo.png" alt="Casa Vergara" class="brand-logo mb-2" data-site-image-slot="site_logo">
         <h2 class="text-brand mb-1">Reset Your Password</h2>
         <p class="text-muted-brand mb-0" id="fpSubtitle">Enter your email to receive a verification code</p>
       </div>
@@ -146,6 +146,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script src="../js/main.js?v=20261024c"></script>
+  <script>applySiteText(); applySiteImages();</script>
 
   <script src="../js/forgot-password.js?v=20260830i"></script>
 </body>

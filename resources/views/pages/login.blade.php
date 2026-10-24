@@ -56,15 +56,12 @@
           src="../images/logo.png"
           alt="Casa Vergara"
           class="brand-logo mb-2"
+          data-site-image-slot="site_logo"
         >
 
-        <h2 class="text-brand mb-1">
-          Welcome Back
-        </h2>
+        <h2 class="text-brand mb-1" data-site-text-key="login_title">Welcome Back</h2>
 
-        <p class="text-muted-brand mb-0">
-          Sign in to your account
-        </p>
+        <p class="text-muted-brand mb-0" data-site-text-key="login_subtitle">Sign in to your account</p>
 
       </div>
 
@@ -372,6 +369,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script src="../js/main.js?v=20261024c"></script>
+  <script>applySiteText(); applySiteImages();</script>
 
   <script src="../js/legal-doc.js?v=20260830i"></script>
 

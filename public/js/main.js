@@ -1616,11 +1616,11 @@ function cvrThemeToggleMarkup(extraClass = "") {
 function renderNavbar(active = "") {
   const smart = getSmartNavUrls();
   const links = [
-    { id: "home", label: "Home", href: pageUrl("landing.html") },
-    { id: "about", label: "About Us", href: pageUrl("about.html") },
-    { id: "booking", label: "Booking", href: pageUrl("booking.html") },
-    { id: "faq", label: "FAQs", href: pageUrl("faq.html") },
-    { id: "contact", label: "Contacts", href: pageUrl("contact.html") },
+    { id: "home", label: "Home", href: pageUrl("landing.html"), key: "nav_home" },
+    { id: "about", label: "About Us", href: pageUrl("about.html"), key: "nav_about" },
+    { id: "booking", label: "Booking", href: pageUrl("booking.html"), key: "nav_booking" },
+    { id: "faq", label: "FAQs", href: pageUrl("faq.html"), key: "nav_faq" },
+    { id: "contact", label: "Contacts", href: pageUrl("contact.html"), key: "nav_contact" },
   ];
 
   if (isStaffSession(getCustomerSession())) {
@@ -1628,6 +1628,7 @@ function renderNavbar(active = "") {
     if (contactLink) {
       contactLink.href = pageUrl("contact-clients.html");
       contactLink.label = "Contact Clients";
+      contactLink.key = "";
     }
   }
 
@@ -1721,14 +1722,14 @@ function renderNavbar(active = "") {
               <li><button type="button" class="dropdown-item text-danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
             </ul>
           </div>
-          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
           ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
     : `
           ${cvrThemeToggleMarkup()}
-          <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex">Log in</a>
-          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
+          <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex" data-site-text-key="nav_login">Log in</a>
+          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
 
   const mobileActions = session
@@ -1737,11 +1738,11 @@ function renderNavbar(active = "") {
           <span class="badge ${staffBadgeClass} w-100 justify-content-center py-2"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
         `
       : `
-          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `
     : `
-          <a class="btn btn-outline-brand nav-auth-link-mobile w-100" href="${pageUrl("login.html")}">Log in</a>
-          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-outline-brand nav-auth-link-mobile w-100" href="${pageUrl("login.html")}" data-site-text-key="nav_login">Log in</a>
+          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
 
   nav.innerHTML = `
@@ -1749,9 +1750,9 @@ function renderNavbar(active = "") {
     <nav class="navbar navbar-expand-lg site-navbar figma-navbar py-2" id="mainSiteNavbar">
       <div class="container nav-main-wrap">
         <a class="navbar-brand d-flex align-items-center gap-2 me-lg-4 figma-brand order-lg-1" href="${pageUrl("landing.html")}">
-          <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="brand-logo figma-brand-logo rounded-3 border p-1 shadow-sm" />
+          <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="brand-logo figma-brand-logo rounded-3 border p-1 shadow-sm" data-site-image-slot="site_logo" />
           <span class="brand-text-wrap">
-            <strong class="text-brand d-block brand-title figma-brand-title">Casa Vergara Resort</strong>
+            <strong class="text-brand d-block brand-title figma-brand-title" data-site-text-key="footer_copyright_name">Casa Vergara Resort</strong>
           </span>
         </a>
         <div class="d-flex align-items-center gap-2 gap-md-3 nav-auth-row order-lg-3 ms-auto ms-lg-0 justify-content-lg-end">
@@ -1763,7 +1764,7 @@ function renderNavbar(active = "") {
         <div class="collapse navbar-collapse order-lg-2" id="mainNav">
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 nav-links-row">
             ${links
-              .map((l) => `<li class="nav-item"><a class="nav-link nav-link-luxury ${active === l.id ? "fw-semibold text-brand" : ""}" href="${l.href}"${l.attrs || ""}>${l.label}</a></li>`)
+              .map((l) => `<li class="nav-item"><a class="nav-link nav-link-luxury ${active === l.id ? "fw-semibold text-brand" : ""}" href="${l.href}"${l.attrs || ""}${l.key ? ` data-site-text-key="${l.key}"` : ""}>${l.label}</a></li>`)
               .join("")}
           </ul>
           <div class="nav-mobile-actions d-lg-none">
@@ -1784,6 +1785,8 @@ function renderNavbar(active = "") {
   });
 
   applySmartNavLinks(nav);
+  applySiteText();
+  applySiteImages();
   initNavbarScrollEffect();
   initAutoCloseMobileNav();
   initMobileNavState();
@@ -2229,10 +2232,10 @@ function renderFooter() {
         <div class="footer-top-grid">
           <div class="footer-brand-col">
             <div class="footer-brand-stack">
-              <img src="${assetUrl("images/logo.png")}" alt="" width="44" height="44" class="footer-brand-logo brand-logo rounded-3 p-1" />
+              <img src="${assetUrl("images/logo.png")}" alt="" width="44" height="44" class="footer-brand-logo brand-logo rounded-3 p-1" data-site-image-slot="site_logo" />
               <div class="footer-brand-heading">
                 <h5 class="mb-0 text-brand" data-site-text-key="footer_copyright_name">Casa Vergara Resort</h5>
-                <small class="text-uppercase text-muted-brand d-block footer-brand-kicker">Luxury Resort</small>
+                <small class="text-uppercase text-muted-brand d-block footer-brand-kicker" data-site-text-key="footer_kicker">Luxury Resort</small>
               </div>
               <p class="text-muted-brand mb-0 footer-brand-text" data-site-text-key="footer_tagline">Experience luxury and tranquility at our exclusive pool resort. Where every moment becomes a cherished memory.</p>
               <div class="footer-brand-social d-flex gap-2 flex-wrap">
@@ -2247,17 +2250,17 @@ function renderFooter() {
             </div>
           </div>
           <div class="footer-links-col">
-            <h6 class="footer-title">Quick Links</h6>
+            <h6 class="footer-title" data-site-text-key="footer_links_title">Quick Links</h6>
             <ul class="list-unstyled small mb-0 footer-link-list">
-              <li><a href="${pageUrl("landing.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Home</span></a></li>
-              <li><a href="${pageUrl("booking.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Rooms and Events</span></a></li>
-              <li><a href="${pageUrl("about.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>About Us</span></a></li>
-              <li><a href="${pageUrl("contact.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Contact</span></a></li>
-              <li><a href="${smart.myBookings}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>My Bookings</span></a></li>
+              <li><a href="${pageUrl("landing.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_home">Home</span></a></li>
+              <li><a href="${pageUrl("booking.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_booking">Rooms and Events</span></a></li>
+              <li><a href="${pageUrl("about.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_about">About Us</span></a></li>
+              <li><a href="${pageUrl("contact.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_contact">Contact</span></a></li>
+              <li><a href="${smart.myBookings}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_mybookings">My Bookings</span></a></li>
             </ul>
           </div>
           <div class="footer-contact-col">
-            <h6 class="footer-title">Contact</h6>
+            <h6 class="footer-title" data-site-text-key="footer_contact_title">Contact</h6>
             <ul class="list-unstyled small mb-0 footer-contact-list text-muted-brand">
               <li class="footer-contact-line is-multiline"><i class="bi bi-geo-alt" aria-hidden="true"></i><span data-site-text-key="footer_address">Purok 3, Barangay Langkiwa, Biñan, Laguna</span></li>
               <li class="footer-contact-line"><i class="bi bi-telephone" aria-hidden="true"></i><a href="tel:+639703236544" id="footerPhoneLink2" data-site-text-key="footer_phone">0970 323 6544</a></li>
@@ -2269,13 +2272,13 @@ function renderFooter() {
       </div>
       <div class="footer-bottom py-3">
         <div class="container footer-bottom-inner">
-          <small>© <span id="year"></span> <span data-site-text-key="footer_copyright_name">Casa Vergara Resort</span>. All rights reserved.</small>
+          <small>© <span id="year"></span> <span data-site-text-key="footer_copyright_name">Casa Vergara Resort</span>. <span data-site-text-key="footer_rights">All rights reserved.</span></small>
           <div class="footer-bottom-right">
             <div class="small footer-bottom-links">
-              <a href="${pageUrl("privacy.html")}" class="text-decoration-none">Privacy Policy</a>
-              <a href="${pageUrl("terms.html")}" class="text-decoration-none">Terms of Service</a>
-              <a href="${pageUrl("user-manual.html")}" class="text-decoration-none">User Manual</a>
-              <a href="${pageUrl("sitemap.html")}" class="text-decoration-none">Sitemap</a>
+              <a href="${pageUrl("privacy.html")}" class="text-decoration-none" data-site-text-key="footer_link_privacy">Privacy Policy</a>
+              <a href="${pageUrl("terms.html")}" class="text-decoration-none" data-site-text-key="footer_link_terms">Terms of Service</a>
+              <a href="${pageUrl("user-manual.html")}" class="text-decoration-none" data-site-text-key="footer_link_manual">User Manual</a>
+              <a href="${pageUrl("sitemap.html")}" class="text-decoration-none" data-site-text-key="footer_link_sitemap">Sitemap</a>
             </div>
             <button type="button" class="footer-back-to-top" id="footerBackToTop" title="Back to top" aria-label="Back to top">
               <i class="bi bi-arrow-up" aria-hidden="true"></i>
@@ -3506,48 +3509,80 @@ function assetUrl(relativeAsset) {
   return `${getSitePathContext().assetPrefix}${relativeAsset}`;
 }
 
+let cvrSiteImagesPromise = null;
+let cvrSiteTextPromise = null;
+
+function cvrLoadSiteImages() {
+  if (!cvrSiteImagesPromise) {
+    cvrSiteImagesPromise = cvrApiGet("content/site-images")
+      .then(({ body }) => (body?.success ? body.data?.images || null : null))
+      .catch(() => null);
+    cvrSiteImagesPromise.then((v) => { if (!v) cvrSiteImagesPromise = null; });
+  }
+  return cvrSiteImagesPromise;
+}
+
+function cvrLoadSiteText() {
+  if (!cvrSiteTextPromise) {
+    cvrSiteTextPromise = cvrApiGet("content/site-text")
+      .then(({ body }) => (body?.success ? body.data?.text || null : null))
+      .catch(() => null);
+    cvrSiteTextPromise.then((v) => { if (!v) cvrSiteTextPromise = null; });
+  }
+  return cvrSiteTextPromise;
+}
+
 function applySiteImages() {
   const nodes = document.querySelectorAll("[data-site-image-slot]");
-  if (!nodes.length) return;
-  cvrApiGet("content/site-images")
-    .then(({ body }) => {
-      const images = body?.data?.images;
-      if (!body?.success || !images) return;
-      nodes.forEach((img) => {
-        const url = images[img.dataset.siteImageSlot];
-        if (url) img.src = url;
-      });
-    })
-    .catch(() => {  });
+  const bgNodes = document.querySelectorAll("[data-site-bg-slot]");
+  if (!nodes.length && !bgNodes.length) return;
+  cvrLoadSiteImages().then((images) => {
+    if (!images) return;
+    nodes.forEach((img) => {
+      const url = images[img.dataset.siteImageSlot];
+      if (url) img.src = url;
+    });
+    bgNodes.forEach((el) => {
+      const url = images[el.dataset.siteBgSlot];
+      if (url) el.style.backgroundImage = `url("${String(url).replace(/"/g, "%22")}")`;
+    });
+  });
 }
 
 function applySiteText() {
   const nodes = document.querySelectorAll("[data-site-text-key]");
-  if (!nodes.length) return;
-  cvrApiGet("content/site-text")
-    .then(({ body }) => {
-      const text = body?.data?.text;
-      if (!body?.success || !text) return;
-      nodes.forEach((el) => {
-        const value = text[el.dataset.siteTextKey];
-        if (value) el.textContent = value;
-      });
+  const linkNodes = document.querySelectorAll("[data-site-href]");
+  if (!nodes.length && !linkNodes.length) return;
+  cvrLoadSiteText().then((text) => {
+    if (!text) return;
+    nodes.forEach((el) => {
+      const value = text[el.dataset.siteTextKey];
+      if (value) el.textContent = value;
+    });
 
-      const fbUrl = text.footer_facebook_url;
-      if (fbUrl) document.getElementById("footerFacebookLink")?.setAttribute("href", fbUrl);
-      const phone = text.footer_phone;
-      if (phone) {
-        const telHref = `tel:${phone.replace(/[^0-9+]/g, "")}`;
-        document.getElementById("footerPhoneLink1")?.setAttribute("href", telHref);
-        document.getElementById("footerPhoneLink2")?.setAttribute("href", telHref);
-      }
-      const email = text.footer_email;
-      if (email) {
-        document.getElementById("footerEmailLink1")?.setAttribute("href", `mailto:${email}`);
-        document.getElementById("footerEmailLink2")?.setAttribute("href", `mailto:${email}`);
-      }
-    })
-    .catch(() => {  });
+    // Links that follow an editable value, e.g. data-site-href="tel:footer_phone"
+    linkNodes.forEach((el) => {
+      const [scheme, key] = String(el.dataset.siteHref || "").split(":");
+      const value = text[key];
+      if (!value) return;
+      if (scheme === "tel") el.setAttribute("href", `tel:${value.replace(/[^0-9+]/g, "")}`);
+      else if (scheme === "mailto") el.setAttribute("href", `mailto:${value.trim()}`);
+    });
+
+    const fbUrl = text.footer_facebook_url;
+    if (fbUrl) document.getElementById("footerFacebookLink")?.setAttribute("href", fbUrl);
+    const phone = text.footer_phone;
+    if (phone) {
+      const telHref = `tel:${phone.replace(/[^0-9+]/g, "")}`;
+      document.getElementById("footerPhoneLink1")?.setAttribute("href", telHref);
+      document.getElementById("footerPhoneLink2")?.setAttribute("href", telHref);
+    }
+    const email = text.footer_email;
+    if (email) {
+      document.getElementById("footerEmailLink1")?.setAttribute("href", `mailto:${email}`);
+      document.getElementById("footerEmailLink2")?.setAttribute("href", `mailto:${email}`);
+    }
+  });
 }
 
 function cvrResolvePackageImage(path) {

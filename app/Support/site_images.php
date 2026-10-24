@@ -85,6 +85,18 @@ const SITE_IMAGE_SLOTS = [
         'page' => 'pages/about.html',
         'default' => 'images/booking-photo-1.png',
     ],
+    'about_hero_bg' => [
+        'label' => 'About page hero background photo',
+        'group' => 'About Page',
+        'page' => 'pages/about.html',
+        'default' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1800&q=80',
+    ],
+    'site_logo' => [
+        'label' => 'Resort logo (navbar, footer, login & register pages)',
+        'group' => 'Global (Logo)',
+        'page' => 'components/navbar.html',
+        'default' => 'images/logo.png',
+    ],
 ];
 
 function site_image_default_url(string $slotKey): ?string

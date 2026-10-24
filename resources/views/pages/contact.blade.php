@@ -31,13 +31,13 @@
     <div class="container">
       <div class="row align-items-center g-4">
         <div class="col-lg-7">
-          <p class="text-uppercase small fw-semibold text-warning mb-2 contact-hero-kicker">Get in touch</p>
-          <h1 class="display-4 fw-bold mb-3">We're here to help</h1>
-          <p class="lead mb-4 opacity-90">Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
+          <p class="text-uppercase small fw-semibold text-warning mb-2 contact-hero-kicker" data-site-text-key="contact_hero_kicker">Get in touch</p>
+          <h1 class="display-4 fw-bold mb-3" data-site-text-key="contact_hero_title">We're here to help</h1>
+          <p class="lead mb-4 opacity-90" data-site-text-key="contact_hero_subtitle">Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
           <div class="d-flex flex-wrap gap-2">
-            <a href="tel:+639703236544" class="btn btn-accent btn-lg"><i class="bi bi-telephone-fill me-2"></i>Call the front desk</a>
-            <button type="button" class="btn btn-outline-light btn-lg" id="contactOpenLiveChat"><i class="bi bi-chat-dots me-2"></i>Live Chat</button>
-            <a href="mailto:starboxresortandhotel@yahoo.com" class="btn btn-outline-light btn-lg"><i class="bi bi-envelope me-2"></i>Email us</a>
+            <a href="tel:+639703236544" class="btn btn-accent btn-lg" data-site-href="tel:footer_phone"><i class="bi bi-telephone-fill me-2"></i><span data-site-text-key="contact_btn_call">Call the front desk</span></a>
+            <button type="button" class="btn btn-outline-light btn-lg" id="contactOpenLiveChat"><i class="bi bi-chat-dots me-2"></i><span data-site-text-key="contact_btn_chat">Live Chat</span></button>
+            <a href="mailto:starboxresortandhotel@yahoo.com" class="btn btn-outline-light btn-lg" data-site-href="mailto:footer_email"><i class="bi bi-envelope me-2"></i><span data-site-text-key="contact_btn_email">Email us</span></a>
           </div>
         </div>
         <div class="col-lg-5">
@@ -45,22 +45,22 @@
             <div class="d-flex align-items-start gap-3 mb-3">
               <span class="contact-hero-icon"><i class="bi bi-lightning-charge-fill"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">How we reply</h6>
-                <p class="small mb-0 opacity-75">Our team will respond as soon as available</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="contact_panel1_title">How we reply</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="contact_panel1_text">Our team will respond as soon as available</p>
               </div>
             </div>
             <div class="d-flex align-items-start gap-3 mb-3">
               <span class="contact-hero-icon"><i class="bi bi-headset"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">Live Chat</h6>
-                <p class="small mb-0 opacity-75">One window for reservation inquiries and concerns</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="contact_panel2_title">Live Chat</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="contact_panel2_text">One window for reservation inquiries and concerns</p>
               </div>
             </div>
             <div class="d-flex align-items-start gap-3">
               <span class="contact-hero-icon"><i class="bi bi-geo-alt-fill"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">Where we are</h6>
-                <p class="small mb-0 opacity-75">Purok 3, Brgy. Langkiwa, Biñan, Laguna</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="contact_panel3_title">Where we are</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="footer_address">Purok 3, Barangay Langkiwa, Biñan, Laguna</p>
               </div>
             </div>
           </div>
@@ -75,32 +75,32 @@
         <div class="col">
           <a class="soft-card contact-info-card p-4 text-decoration-none" href="https://www.google.com/maps/search/?api=1&query=Purok+3+Langkiwa+Binan+Laguna" target="_blank" rel="noopener">
             <span class="contact-info-icon mb-3"><i class="bi bi-geo-alt-fill"></i></span>
-            <h6 class="text-brand mb-1">Visit us</h6>
+            <h6 class="text-brand mb-1" data-site-text-key="contact_card_visit_title">Visit us</h6>
             <p class="small text-muted-brand mb-2" data-site-text-key="footer_address">Purok 3, Barangay Langkiwa, Biñan, Laguna</p>
-            <span class="small fw-semibold text-primary">Open in Maps <i class="bi bi-arrow-up-right"></i></span>
+            <span class="small fw-semibold text-primary"><span data-site-text-key="contact_card_visit_link">Open in Maps</span> <i class="bi bi-arrow-up-right"></i></span>
           </a>
         </div>
         <div class="col">
           <a class="soft-card contact-info-card p-4 text-decoration-none" href="tel:+639703236544">
             <span class="contact-info-icon mb-3"><i class="bi bi-telephone-fill"></i></span>
-            <h6 class="text-brand mb-1">Call us</h6>
+            <h6 class="text-brand mb-1" data-site-text-key="contact_card_call_title">Call us</h6>
             <p class="small text-muted-brand mb-2" data-site-text-key="footer_phone">0970 323 6544</p>
-            <span class="small fw-semibold text-primary">Tap to call <i class="bi bi-arrow-up-right"></i></span>
+            <span class="small fw-semibold text-primary"><span data-site-text-key="contact_card_call_link">Tap to call</span> <i class="bi bi-arrow-up-right"></i></span>
           </a>
         </div>
         <div class="col">
           <a class="soft-card contact-info-card p-4 text-decoration-none" href="mailto:starboxresortandhotel@yahoo.com">
             <span class="contact-info-icon mb-3"><i class="bi bi-envelope-fill"></i></span>
-            <h6 class="text-brand mb-1">Email us</h6>
+            <h6 class="text-brand mb-1" data-site-text-key="contact_card_email_title">Email us</h6>
             <p class="small text-muted-brand mb-2 text-break" data-site-text-key="footer_email">starboxresortandhotel@yahoo.com</p>
-            <span class="small fw-semibold text-primary">Write to us <i class="bi bi-arrow-up-right"></i></span>
+            <span class="small fw-semibold text-primary"><span data-site-text-key="contact_card_email_link">Write to us</span> <i class="bi bi-arrow-up-right"></i></span>
           </a>
         </div>
         <div class="col">
           <div class="soft-card contact-info-card p-4">
             <span class="contact-info-icon mb-3"><i class="bi bi-clock-fill"></i></span>
-            <h6 class="text-brand mb-1">Stay hours</h6>
-            <p class="small text-muted-brand mb-0">Check-in 2:00 PM &middot; Check-out 12:00 NN<br>Pools: 7:00 AM &ndash; 9:00 PM</p>
+            <h6 class="text-brand mb-1" data-site-text-key="contact_card_hours_title">Stay hours</h6>
+            <p class="small text-muted-brand mb-0"><span data-site-text-key="contact_hours_line1">Check-in 2:00 PM · Check-out 12:00 NN</span><br><span data-site-text-key="contact_hours_line2">Pools: 7:00 AM – 9:00 PM</span></p>
           </div>
         </div>
       </div>
@@ -109,8 +109,8 @@
         <div class="col-lg-7">
           <div class="soft-card contact-form-card p-4 p-md-5">
             <div class="contact-form-head mb-4">
-              <h3 class="text-brand mb-1">Send us a message</h3>
-              <p class="text-muted-brand mb-0">Fill in the form and our team will get back to you by email.</p>
+              <h3 class="text-brand mb-1" data-site-text-key="contact_form_title">Send us a message</h3>
+              <p class="text-muted-brand mb-0" data-site-text-key="contact_form_text">Fill in the form and our team will get back to you by email.</p>
             </div>
 
             <form id="contactMessageForm" class="contact-form-grid row g-3" novalidate>
@@ -160,11 +160,11 @@
             </div>
           </div>
           <div class="soft-card contact-support-card p-4">
-            <h6 class="text-brand mb-2"><i class="bi bi-headset me-2"></i>Need a faster answer?</h6>
-            <p class="small text-muted-brand mb-3">Call the front desk or start a live chat. You can also browse our FAQs for common questions.</p>
+            <h6 class="text-brand mb-2"><i class="bi bi-headset me-2"></i><span data-site-text-key="contact_support_title">Need a faster answer?</span></h6>
+            <p class="small text-muted-brand mb-3" data-site-text-key="contact_support_text">Call the front desk or start a live chat. You can also browse our FAQs for common questions.</p>
             <div class="d-flex flex-wrap gap-2">
-              <a href="tel:+639703236544" class="btn btn-outline-primary btn-sm"><i class="bi bi-telephone me-1"></i>0970 323 6544</a>
-              <a href="faq.html" class="btn btn-outline-primary btn-sm"><i class="bi bi-patch-question me-1"></i>FAQs</a>
+              <a href="tel:+639703236544" class="btn btn-outline-primary btn-sm" data-site-href="tel:footer_phone"><i class="bi bi-telephone me-1"></i><span data-site-text-key="footer_phone">0970 323 6544</span></a>
+              <a href="faq.html" class="btn btn-outline-primary btn-sm"><i class="bi bi-patch-question me-1"></i><span data-site-text-key="contact_support_faq_btn">FAQs</span></a>
             </div>
           </div>
         </div>

@@ -32,9 +32,9 @@
         <div class="col-lg-7">
           <p class="text-uppercase small fw-semibold text-warning mb-2 contact-hero-kicker" data-site-text-key="faq_hero_kicker">Help center</p>
           <h1 class="display-4 fw-bold mb-3" data-site-text-key="faq_hero_title">Frequently asked questions</h1>
-          <p class="lead mb-4 opacity-90">Browse the answers our guests ask for most, straight from the resort team.</p>
+          <p class="lead mb-4 opacity-90" data-site-text-key="faq_hero_subtitle">Browse the answers our guests ask for most, straight from the resort team.</p>
           <div class="d-flex flex-wrap gap-2">
-            <a href="contact.html" class="btn btn-outline-light btn-lg"><i class="bi bi-headset me-2"></i>Talk to the front desk</a>
+            <a href="contact.html" class="btn btn-outline-light btn-lg"><i class="bi bi-headset me-2"></i><span data-site-text-key="faq_hero_btn">Talk to the front desk</span></a>
           </div>
         </div>
         <div class="col-lg-5">
@@ -42,22 +42,22 @@
             <div class="d-flex align-items-start gap-3 mb-3">
               <span class="contact-hero-icon"><i class="bi bi-lightning-charge-fill"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">Common questions</h6>
-                <p class="small mb-0 opacity-75">Answers from our published FAQ list</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="faq_panel1_title">Common questions</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="faq_panel1_text">Answers from our published FAQ list</p>
               </div>
             </div>
             <div class="d-flex align-items-start gap-3 mb-3">
               <span class="contact-hero-icon"><i class="bi bi-patch-question-fill"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">Rooms, rates &amp; payments</h6>
-                <p class="small mb-0 opacity-75">Everything you need before booking</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="faq_panel2_title">Rooms, rates &amp; payments</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="faq_panel2_text">Everything you need before booking</p>
               </div>
             </div>
             <div class="d-flex align-items-start gap-3">
               <span class="contact-hero-icon"><i class="bi bi-headset"></i></span>
               <div>
-                <h6 class="fw-semibold mb-1">Still stuck?</h6>
-                <p class="small mb-0 opacity-75">Phone: +63 970 323 6544</p>
+                <h6 class="fw-semibold mb-1" data-site-text-key="faq_panel3_title">Still stuck?</h6>
+                <p class="small mb-0 opacity-75" data-site-text-key="faq_panel3_text">Phone: +63 970 323 6544</p>
               </div>
             </div>
           </div>
@@ -74,7 +74,7 @@
           <div id="faqStaffBanner" class="alert alert-info d-none align-items-center justify-content-between gap-2 flex-wrap mb-3" role="alert"></div>
 
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-            <h2 class="h4 fw-bold text-brand mb-0">Browse questions</h2>
+            <h2 class="h4 fw-bold text-brand mb-0" data-site-text-key="faq_browse_title">Browse questions</h2>
             <span class="faq-count small text-muted-brand" id="faqCount"></span>
           </div>
 
@@ -94,12 +94,12 @@
           <div class="soft-card p-4 mt-4 faq-cta-card">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
               <div>
-                <h6 class="fw-semibold mb-1 text-brand">Didn't find your answer?</h6>
-                <p class="small text-muted-brand mb-0">Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
+                <h6 class="fw-semibold mb-1 text-brand" data-site-text-key="faq_cta_title">Didn't find your answer?</h6>
+                <p class="small text-muted-brand mb-0" data-site-text-key="faq_cta_text">Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
               </div>
               <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-brand" id="faqOpenLiveChat"><i class="bi bi-chat-dots me-2"></i>Live Chat</button>
-                <a href="contact.html" class="btn btn-outline-primary"><i class="bi bi-envelope me-2"></i>Contact us</a>
+                <button type="button" class="btn btn-brand" id="faqOpenLiveChat"><i class="bi bi-chat-dots me-2"></i><span data-site-text-key="faq_cta_btn_chat">Live Chat</span></button>
+                <a href="contact.html" class="btn btn-outline-primary"><i class="bi bi-envelope me-2"></i><span data-site-text-key="faq_cta_btn_contact">Contact us</span></a>
               </div>
             </div>
           </div>
