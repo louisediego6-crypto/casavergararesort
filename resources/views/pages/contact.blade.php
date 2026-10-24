@@ -155,8 +155,8 @@
         <div class="col-lg-5 d-flex flex-column gap-4">
           <div class="soft-card contact-map-card p-0">
             <div class="ratio ratio-4x3 contact-map-ratio">
-              <iframe title="Casa Vergara Resort location" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps?q=Purok+3+Langkiwa+Binan+Laguna&output=embed"></iframe>
+              <iframe title="Casa Vergara Resort location" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d485.0653904950233!2d121.05503256171664!3d14.295730879607866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397d7bdea9c5d67%3A0xc469e6e7c87196fe!2sCasa%20Vergara%20Resort!5e1!3m2!1sen!2sph!4v1792836305481!5m2!1sen!2sph"></iframe>
             </div>
           </div>
           <div class="soft-card contact-support-card p-4">
