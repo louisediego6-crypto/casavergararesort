@@ -348,6 +348,14 @@ function ensureCvrLogoutModal() {
             <div class="cvr-logout-modal-icon mb-3"><i class="bi bi-box-arrow-right"></i></div>
             <h5 class="text-brand mb-2" id="cvrLogoutModalLabel">Log out of Casa Vergara?</h5>
             <p class="text-muted-brand small mb-0">You'll need to sign in again to access your account.</p>
+            <div class="mt-3 d-none" id="cvrLogoutSaveWrap">
+              <button type="button" class="btn btn-outline-primary btn-sm px-3" id="cvrLogoutSaveBtn">
+                <i class="bi bi-person-check me-1 cvr-logout-save-icon"></i>
+                <span class="cvr-logout-save-label">Save account</span>
+                <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
+              </button>
+              <div class="small text-muted-brand mt-2" id="cvrLogoutSaveHint">Save this account to sign back in with one tap next time.</div>
+            </div>
           </div>
           <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-center gap-2">
             <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
@@ -439,12 +447,87 @@ function cvrConfirmLogout(redirectUrl) {
     window.location.href = redirectUrl;
   });
 
+  setupCvrLogoutSaveButton(modalEl);
+
   if (window.bootstrap?.Modal) {
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   } else {
 
     if (window.confirm("Log out of Casa Vergara?")) btn.click();
   }
+}
+
+// Shows a "Save account" button in the log-out dialog when the current account
+// is not already saved on this browser.
+function setupCvrLogoutSaveButton(modalEl) {
+  const wrap = modalEl.querySelector("#cvrLogoutSaveWrap");
+  const oldSaveBtn = modalEl.querySelector("#cvrLogoutSaveBtn");
+  if (!wrap || !oldSaveBtn) return;
+
+  // Reset to the default state every time the dialog opens.
+  wrap.classList.add("d-none");
+  const saveBtn = oldSaveBtn.cloneNode(true);
+  oldSaveBtn.replaceWith(saveBtn);
+  const labelEl = saveBtn.querySelector(".cvr-logout-save-label");
+  const iconEl = saveBtn.querySelector(".cvr-logout-save-icon");
+  const spinnerEl = saveBtn.querySelector(".spinner-border");
+  const hintEl = modalEl.querySelector("#cvrLogoutSaveHint");
+  saveBtn.disabled = false;
+  saveBtn.className = "btn btn-outline-primary btn-sm px-3";
+  if (labelEl) labelEl.textContent = "Save account";
+  if (iconEl) iconEl.className = "bi bi-person-check me-1 cvr-logout-save-icon";
+  spinnerEl?.classList.add("d-none");
+  if (hintEl) {
+    hintEl.className = "small text-muted-brand mt-2";
+    hintEl.textContent = "Save this account to sign back in with one tap next time.";
+  }
+
+  const current = getCustomerSession();
+  if (!current?.email) return;
+
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.disabled = true;
+    spinnerEl?.classList.remove("d-none");
+    try {
+      const { body } = await cvrApiPost("auth/save-account", {});
+      if (body.success) {
+        rememberRecentAccount(current);
+        saveBtn.className = "btn btn-success btn-sm px-3";
+        if (iconEl) iconEl.className = "bi bi-check-circle me-1 cvr-logout-save-icon";
+        if (labelEl) labelEl.textContent = "Account saved";
+        if (hintEl) hintEl.textContent = "You can switch back to it anytime from the login page.";
+      } else {
+        saveBtn.disabled = false;
+        if (hintEl) {
+          hintEl.className = "small text-danger mt-2";
+          hintEl.textContent = body.message || "Could not save this account. Please try again.";
+        }
+      }
+    } catch {
+      saveBtn.disabled = false;
+      if (hintEl) {
+        hintEl.className = "small text-danger mt-2";
+        hintEl.textContent = "Could not reach the server. Please try again.";
+      }
+    } finally {
+      spinnerEl?.classList.add("d-none");
+    }
+  });
+
+  // Only offer the button if this account isn't already saved.
+  (async () => {
+    try {
+      const { body } = await cvrApiGet("auth/saved-accounts");
+      if (!body.success || body.data?.available === false) return;
+      const accounts = Array.isArray(body.data?.accounts) ? body.data.accounts : [];
+      const alreadySaved = accounts.some(
+        (a) => String(a.email || "").toLowerCase() === String(current.email).toLowerCase()
+      );
+      if (!alreadySaved) wrap.classList.remove("d-none");
+    } catch {
+      // If we can't tell, don't show the button.
+    }
+  })();
 }
 
 function ensureCvrSwitchAccountModal() {

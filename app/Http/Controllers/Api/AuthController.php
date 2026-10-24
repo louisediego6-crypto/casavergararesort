@@ -668,6 +668,29 @@ class AuthController extends Controller
         ]);
     }
 
+    /** Save the currently signed-in account on this browser (so it shows up as a saved account). */
+    public function saveAccount(Request $request)
+    {
+        if ($request->method() !== 'POST') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+
+        $userId = (int) session('user_id');
+        if ($userId <= 0) {
+            json_response(false, 'You need to be signed in to save this account.', [], 401);
+        }
+
+        $pdo = get_db_connection();
+
+        if (!cvr_remember_available($pdo)) {
+            json_response(false, 'Saved sign-in is not set up on this site yet.', [], 400);
+        }
+
+        cvr_remember_issue($pdo, $userId);
+
+        json_response(true, 'Account saved on this browser.', ['saved' => true]);
+    }
+
     /** Ported from api/auth/test-mail.php */
     public function testMail(Request $request)
     {

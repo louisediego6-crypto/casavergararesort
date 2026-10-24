@@ -107,6 +107,7 @@ Route::any('auth/remember-login', [AuthController::class, 'rememberLogin']);
 Route::any('auth/resend-verification', [AuthController::class, 'resendVerification']);
 Route::any('auth/reset-password', [AuthController::class, 'resetPassword']);
 Route::any('auth/saved-accounts', [AuthController::class, 'savedAccounts']);
+Route::any('auth/save-account', [AuthController::class, 'saveAccount']);
 Route::any('auth/test-mail', [AuthController::class, 'testMail']);
 Route::any('auth/verify', [AuthController::class, 'verify']);
 Route::any('auth/verify-email-code', [AuthController::class, 'verifyEmailCode']);
