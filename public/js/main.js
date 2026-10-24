@@ -2292,7 +2292,7 @@ function bootLiveChatWidget() {
   if (location.pathname.includes("/pages/admin/")) return;
   if (document.querySelector("script[data-cvr-live-chat]")) return;
   const script = document.createElement("script");
-  script.src = `${assetUrl("js/live-chat.js")}?v=20261004f`;
+  script.src = `${assetUrl("js/live-chat.js")}?v=20261024b`;
   script.dataset.cvrLiveChat = "1";
   document.body.appendChild(script);
 }

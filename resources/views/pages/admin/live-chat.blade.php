@@ -62,8 +62,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../../js/main.js?v=20260930c"></script>
-  <script src="../../js/live-chat.js?v=20261004f"></script>
-  <script src="../../js/admin-live-chat.js?v=20261004f"></script>
+  <script src="../../js/live-chat.js?v=20261024b"></script>
+  <script src="../../js/admin-live-chat.js?v=20261024b"></script>
   <script>renderAdminSidebar("live-chat"); initAdminLiveChatPage();</script>
 </body>
 </html>

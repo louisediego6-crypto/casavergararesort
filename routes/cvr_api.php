@@ -114,7 +114,6 @@ Route::any('auth/verify-reset-code', [AuthController::class, 'verifyResetCode'])
 Route::any('chat/conversation', [ChatController::class, 'conversation']);
 Route::any('chat/delete', [ChatController::class, 'delete']);
 Route::any('chat/file', [ChatController::class, 'file']);
-Route::any('chat/gifs', [ChatController::class, 'gifs']);
 Route::any('chat/heartbeat', [ChatController::class, 'heartbeat']);
 Route::any('chat/inbox', [ChatController::class, 'inbox']);
 Route::any('chat/leave', [ChatController::class, 'leave']);

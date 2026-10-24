@@ -10,12 +10,21 @@ const CVR_CHAT_ALLOWED_EXTS = [...CVR_CHAT_IMAGE_EXTS, "pdf", "doc", "docx", "xl
 const CVR_CHAT_FILE_ACCEPT = CVR_CHAT_ALLOWED_EXTS.map((e) => `.${e}`).join(",");
 const CVR_CHAT_GROUP_GAP_MS = 15 * 60 * 1000;
 
-const CVR_CHAT_STICKERS = [
-  "👍", "❤️", "😂", "😮", "😢", "🙏", "🎉", "🔥",
-  "👏", "😍", "😊", "😎", "🥳", "🤝", "✅", "👌",
-  "🌴", "🏝️", "🏖️", "🌅", "🏊", "🍹", "🛏️", "🍽️",
-  "🚗", "📅", "💳", "⭐", "🎂", "🥂", "🌺", "☀️",
-];
+// Loads the refreshed chat stylesheet next to this script (guest widget and admin inbox both use it).
+(function cvrChatLoadStyles() {
+  try {
+    const src = document.currentScript?.src;
+    if (!src || document.querySelector("link[data-cvr-chat-styles]")) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = new URL("../css/live-chat.css?v=20261024b", src).href;
+    link.dataset.cvrChatStyles = "1";
+    document.head.appendChild(link);
+  } catch (_) {
+    /* cosmetic only: the chat still works without the extra styles */
+  }
+})();
+
 
 const CVR_CHAT_EMOJIS = [
   "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🙂", "😉", "😊", "😍", "😘",
@@ -209,7 +218,7 @@ function cvrChatRenderBubbles(messages, opts = {}) {
     return `<div class="cvr-chat-empty">
       <span class="cvr-chat-avatar cvr-chat-avatar--lg">CV</span>
       <strong>Casa Vergara</strong>
-      <p>Send us a message for reservation inquiries and concerns. You can share photos, files, stickers and GIFs.</p>
+      <p>Send us a message for reservation inquiries and concerns. You can share photos and files, and send emoji.</p>
     </div>`;
   }
 
@@ -535,13 +544,12 @@ function cvrChatCreateScroller(el) {
 }
 
 /**
- * Messenger-style composer: attach file, photo, stickers, GIFs and emoji.
- * Files and GIFs are first added to a preview tray; nothing is sent until the
- * send button (or Enter) is pressed. Stickers send immediately, like Messenger.
+ * Composer: attach files and photos, pick an emoji, and send.
+ * Attachments are staged in a tray first; nothing is sent until the send button
+ * (or Enter) is pressed.
  *
  * opts.send(payload) -> Promise<boolean>
- *   payload: { type: "text", message } | { type: "sticker", sticker }
- *          | { type: "gif", url, title } | { type: "file", file }
+ *   payload: { type: "text", message } | { type: "file", file }
  */
 function cvrChatBuildComposer(mount, opts) {
   const toast = (msg, type = "danger") => {
@@ -550,22 +558,19 @@ function cvrChatBuildComposer(mount, opts) {
 
   mount.innerHTML = `
     <form class="cvr-cmp" autocomplete="off">
-      <div class="cvr-cmp-pop d-none" role="dialog" aria-label="Stickers, GIFs and emoji"></div>
+      <div class="cvr-cmp-pop d-none" role="dialog" aria-label="Emoji"></div>
       <div class="cvr-cmp-tray d-none" aria-label="Attachments ready to send"></div>
       <div class="cvr-cmp-row">
         <button type="button" class="cvr-cmp-ico" data-act="file" title="Attach a file" aria-label="Attach a file"><i class="bi bi-paperclip"></i></button>
-        <button type="button" class="cvr-cmp-ico" data-act="photo" title="Send a photo" aria-label="Send a photo"><i class="bi bi-image-fill"></i></button>
-        <button type="button" class="cvr-cmp-ico" data-act="stickers" title="Stickers" aria-label="Stickers"><i class="bi bi-stickies-fill"></i></button>
-        <button type="button" class="cvr-cmp-ico cvr-cmp-ico--gif" data-act="gif" title="Choose a GIF" aria-label="Choose a GIF"><span>GIF</span></button>
+        <button type="button" class="cvr-cmp-ico" data-act="photo" title="Send a photo" aria-label="Send a photo"><i class="bi bi-image"></i></button>
         <div class="cvr-cmp-pill">
-          <textarea rows="1" maxlength="2000" placeholder="Aa" aria-label="Type your message"></textarea>
-          <button type="button" class="cvr-cmp-emoji" data-act="emoji" title="Emoji" aria-label="Emoji"><i class="bi bi-emoji-smile-fill"></i></button>
+          <textarea rows="1" maxlength="2000" placeholder="Write a message…" aria-label="Type your message"></textarea>
+          <button type="button" class="cvr-cmp-emoji" data-act="emoji" title="Emoji" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
         </div>
         <button type="submit" class="cvr-cmp-send" aria-label="Send"><i class="bi bi-hand-thumbs-up-fill"></i></button>
       </div>
       <input type="file" class="d-none" data-role="file-input" multiple accept="${CVR_CHAT_FILE_ACCEPT}" />
       <input type="file" class="d-none" data-role="photo-input" multiple accept="image/*" />
-      <input type="file" class="d-none" data-role="gif-input" accept="image/gif" />
     </form>`;
 
   const form = mount.querySelector("form");
@@ -573,17 +578,16 @@ function cvrChatBuildComposer(mount, opts) {
   const tray = mount.querySelector(".cvr-cmp-tray");
   const ta = mount.querySelector("textarea");
   const sendBtn = mount.querySelector(".cvr-cmp-send");
+  const emojiBtn = mount.querySelector('[data-act="emoji"]');
   const fileInput = mount.querySelector('[data-role="file-input"]');
   const photoInput = mount.querySelector('[data-role="photo-input"]');
-  const gifInput = mount.querySelector('[data-role="gif-input"]');
 
   const items = [];
   let uid = 0;
   let busy = false;
-  let popTab = null;
-  const gif = { q: "", gifs: [], offset: 0, hasMore: false, loading: false, state: "idle", timer: null, token: 0 };
+  let emojiOpen = false;
 
-  /* ---------- sending state ---------- */
+  /* ---------- send button state ---------- */
   const updateSend = () => {
     const hasContent = ta.value.trim() !== "" || items.length > 0;
     sendBtn.disabled = busy;
@@ -596,13 +600,26 @@ function cvrChatBuildComposer(mount, opts) {
 
   const autosize = () => {
     ta.style.height = "auto";
-    ta.style.height = `${Math.min(ta.scrollHeight, 96)}px`;
+    ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
+  };
+
+  /* ---------- emoji picker ---------- */
+  const setEmojiOpen = (open) => {
+    emojiOpen = open;
+    pop.classList.toggle("d-none", !open);
+    emojiBtn?.classList.toggle("is-active", open);
+    emojiBtn?.setAttribute("aria-expanded", String(open));
+    if (open) {
+      pop.innerHTML = `<div class="cvr-emoji-grid">${CVR_CHAT_EMOJIS.map(
+        (em) => `<button type="button" class="cvr-emoji" data-emoji="${em}" aria-label="Insert ${em}">${em}</button>`
+      ).join("")}</div>`;
+    }
   };
 
   /* ---------- staging tray ---------- */
   const thumbFor = (it) => {
     if (it.previewUrl) {
-      return `<img src="${escapeHtml(it.previewUrl)}" alt="${escapeHtml(it.name)}" />${it.kind === "gif" ? '<span class="cvr-stage-tag">GIF</span>' : ""}`;
+      return `<img src="${escapeHtml(it.previewUrl)}" alt="${escapeHtml(it.name)}" />`;
     }
     return `<div class="cvr-stage-file"><i class="bi ${cvrChatFileIcon(it.name)}"></i><span>${escapeHtml(it.name)}</span></div>`;
   };
@@ -659,7 +676,6 @@ function cvrChatBuildComposer(mount, opts) {
       const objectUrl = isImage ? URL.createObjectURL(file) : "";
       items.push({
         id: ++uid,
-        kind: ext === "gif" ? "gif-file" : isImage ? "image" : "file",
         file,
         name: file.name,
         previewUrl: objectUrl,
@@ -671,171 +687,30 @@ function cvrChatBuildComposer(mount, opts) {
     if (added) renderTray();
   };
 
-  const addGif = (g) => {
-    if (items.length >= CVR_CHAT_MAX_STAGED) {
-      toast(`You can attach up to ${CVR_CHAT_MAX_STAGED} items at a time.`, "info");
-      return;
-    }
-    items.push({
-      id: ++uid,
-      kind: "gif",
-      url: g.url,
-      title: g.title || "GIF",
-      name: g.title || "GIF",
-      previewUrl: g.preview || g.url,
-      status: "ready",
-    });
-    renderTray();
-  };
-
-  /* ---------- sticker / GIF / emoji popover ---------- */
-  const loadGifs = async (reset) => {
-    if (gif.loading) return;
-    gif.loading = true;
-    if (reset) {
-      gif.gifs = [];
-      gif.offset = 0;
-      gif.hasMore = false;
-    }
-    gif.state = "loading";
-    const token = ++gif.token;
-    renderGifBody();
-    try {
-      const qs = `chat/gifs?q=${encodeURIComponent(gif.q)}&offset=${gif.offset}`;
-      const { body } = await cvrApiGet(qs);
-      if (token !== gif.token) return;
-      if (body?.success) {
-        gif.gifs = gif.gifs.concat(body.data.gifs || []);
-        gif.offset = body.data.nextOffset || gif.gifs.length;
-        gif.hasMore = !!body.data.hasMore;
-        gif.state = gif.gifs.length ? "ready" : "empty";
-      } else {
-        gif.state = body?.data?.code === "not_configured" ? "not_configured" : "error";
-      }
-    } catch {
-      gif.state = "error";
-    } finally {
-      gif.loading = false;
-    }
-    if (popTab === "gif") renderGifBody();
-  };
-
-  const renderGifBody = () => {
-    const body = pop.querySelector(".cvr-gif-body");
-    if (!body) return;
-    if (gif.state === "not_configured") {
-      body.innerHTML = `<div class="cvr-pop-note"><i class="bi bi-filetype-gif"></i>
-        <p>GIF search isn't set up yet.<br>You can still send a GIF from your device.</p>
-        <button type="button" class="btn btn-sm btn-brand" data-act="gif-upload">Choose a GIF file</button></div>`;
-      return;
-    }
-    if (gif.state === "error") {
-      body.innerHTML = `<div class="cvr-pop-note"><p>Couldn't load GIFs right now.</p>
-        <button type="button" class="btn btn-sm btn-outline-primary" data-act="gif-retry">Try again</button></div>`;
-      return;
-    }
-    if (gif.state === "empty") {
-      body.innerHTML = `<div class="cvr-pop-note"><p>No GIFs found for "${escapeHtml(gif.q)}".</p></div>`;
-      return;
-    }
-    body.innerHTML =
-      `<div class="cvr-gif-grid">${gif.gifs
-        .map(
-          (g, i) => `<button type="button" class="cvr-gif-item" data-gif="${i}" title="${escapeHtml(g.title)}">
-            <img src="${escapeHtml(g.preview)}" alt="${escapeHtml(g.title)}" loading="lazy" /></button>`
-        )
-        .join("")}</div>` +
-      (gif.state === "loading" ? '<div class="cvr-pop-loading"><span class="spinner-border spinner-border-sm"></span></div>' : "") +
-      '<div class="cvr-pop-credit">Powered by GIPHY</div>';
-  };
-
-  const renderPop = () => {
-    const tabs = [
-      ["stickers", "Stickers"],
-      ["gif", "GIFs"],
-      ["emoji", "Emoji"],
-    ];
-    let bodyHtml = "";
-    if (popTab === "stickers") {
-      bodyHtml = `<div class="cvr-sticker-grid">${CVR_CHAT_STICKERS.map(
-        (st) => `<button type="button" class="cvr-sticker" data-sticker="${st}" aria-label="Send sticker ${st}">${st}</button>`
-      ).join("")}</div>`;
-    } else if (popTab === "emoji") {
-      bodyHtml = `<div class="cvr-emoji-grid">${CVR_CHAT_EMOJIS.map(
-        (em) => `<button type="button" class="cvr-emoji" data-emoji="${em}">${em}</button>`
-      ).join("")}</div>`;
-    } else {
-      bodyHtml = `<div class="cvr-gif-search"><i class="bi bi-search"></i>
-          <input type="search" placeholder="Search GIFs" value="${escapeHtml(gif.q)}" aria-label="Search GIFs" /></div>
-        <div class="cvr-gif-body"></div>`;
-    }
-    pop.innerHTML = `<div class="cvr-pop-tabs" role="tablist">${tabs
-      .map(
-        ([id, label]) =>
-          `<button type="button" role="tab" class="${popTab === id ? "is-active" : ""}" data-tab="${id}" aria-selected="${popTab === id}">${label}</button>`
-      )
-      .join("")}</div><div class="cvr-pop-body">${bodyHtml}</div>`;
-    if (popTab === "gif") {
-      renderGifBody();
-      if (gif.state === "idle") loadGifs(true);
-    }
-  };
-
-  const markActiveButtons = () => {
-    mount.querySelectorAll(".cvr-cmp-row [data-act]").forEach((btn) => {
-      const act = btn.dataset.act;
-      const isActive =
-        (act === "stickers" && popTab === "stickers") ||
-        (act === "gif" && popTab === "gif") ||
-        (act === "emoji" && popTab === "emoji");
-      btn.classList.toggle("is-active", isActive);
-    });
-  };
-
-  const closePop = () => {
-    popTab = null;
-    pop.classList.add("d-none");
-    markActiveButtons();
-  };
-
-  const openPop = (tab) => {
-    if (popTab === tab) {
-      closePop();
-      return;
-    }
-    popTab = tab;
-    pop.classList.remove("d-none");
-    renderPop();
-    markActiveButtons();
-  };
-
   /* ---------- sending ---------- */
   const submit = async () => {
     if (busy) return;
     const text = ta.value.trim();
 
+    // Nothing typed or staged: the button sends a quick thumbs up, as a plain text message.
     if (!items.length && !text) {
       busy = true;
       updateSend();
-      await opts.send({ type: "sticker", sticker: "👍" });
+      await opts.send({ type: "text", message: "👍" });
       busy = false;
       updateSend();
       return;
     }
 
     busy = true;
-    closePop();
+    setEmojiOpen(false);
     renderTray();
 
     // Attachments go first, in the order they were added; the typed text goes last.
     for (const it of [...items]) {
       it.status = "sending";
       renderTray();
-      const payload =
-        it.kind === "gif"
-          ? { type: "gif", url: it.url, title: it.title }
-          : { type: "file", file: it.file };
-      const ok = await opts.send(payload);
+      const ok = await opts.send({ type: "file", file: it.file });
       if (!ok) {
         it.status = "error";
         busy = false;
@@ -877,7 +752,7 @@ function cvrChatBuildComposer(mount, opts) {
       if (ta.value.trim() || items.length) form.requestSubmit();
     }
   });
-  ta.addEventListener("focus", closePop);
+  ta.addEventListener("focus", () => setEmojiOpen(false));
   ta.addEventListener("paste", (e) => {
     const files = e.clipboardData?.files;
     if (files && files.length) {
@@ -896,31 +771,7 @@ function cvrChatBuildComposer(mount, opts) {
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "file") fileInput.click();
     else if (act === "photo") photoInput.click();
-    else if (act === "gif-upload") gifInput.click();
-    else if (act === "gif-retry") loadGifs(true);
-    else if (act === "stickers" || act === "gif" || act === "emoji") openPop(act);
-
-    const tab = e.target.closest("[data-tab]");
-    if (tab) {
-      popTab = tab.dataset.tab;
-      renderPop();
-      markActiveButtons();
-      return;
-    }
-
-    const sticker = e.target.closest("[data-sticker]");
-    if (sticker) {
-      closePop();
-      if (!busy) {
-        busy = true;
-        updateSend();
-        opts.send({ type: "sticker", sticker: sticker.dataset.sticker }).finally(() => {
-          busy = false;
-          updateSend();
-        });
-      }
-      return;
-    }
+    else if (act === "emoji") setEmojiOpen(!emojiOpen);
 
     const emoji = e.target.closest("[data-emoji]");
     if (emoji) {
@@ -931,41 +782,9 @@ function cvrChatBuildComposer(mount, opts) {
       ta.setSelectionRange(pos, pos);
       autosize();
       updateSend();
-      return;
-    }
-
-    const gifBtn = e.target.closest("[data-gif]");
-    if (gifBtn) {
-      const g = gif.gifs[Number(gifBtn.dataset.gif)];
-      if (g) {
-        addGif(g);
-        closePop();
-        ta.focus();
-      }
+      ta.focus();
     }
   });
-
-  pop.addEventListener("input", (e) => {
-    if (e.target.matches('input[type="search"]')) {
-      clearTimeout(gif.timer);
-      const value = e.target.value.trim();
-      gif.timer = setTimeout(() => {
-        gif.q = value;
-        gif.loading = false;
-        loadGifs(true);
-      }, 350);
-    }
-  });
-
-  pop.addEventListener(
-    "scroll",
-    (e) => {
-      const body = e.target;
-      if (popTab !== "gif" || !gif.hasMore || gif.loading) return;
-      if (body.scrollHeight - body.scrollTop - body.clientHeight < 60) loadGifs(false);
-    },
-    true
-  );
 
   const onPicked = (input) => {
     addFiles(input.files);
@@ -973,16 +792,12 @@ function cvrChatBuildComposer(mount, opts) {
   };
   fileInput.addEventListener("change", () => onPicked(fileInput));
   photoInput.addEventListener("change", () => onPicked(photoInput));
-  gifInput.addEventListener("change", () => {
-    onPicked(gifInput);
-    closePop();
-  });
 
   document.addEventListener("click", (e) => {
-    if (popTab && !mount.contains(e.target)) closePop();
+    if (emojiOpen && !mount.contains(e.target)) setEmojiOpen(false);
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && popTab) closePop();
+    if (e.key === "Escape" && emojiOpen) setEmojiOpen(false);
   });
 
   const dropEl = mount.closest(".cvr-chat-panel, .live-chat-main") || mount;
