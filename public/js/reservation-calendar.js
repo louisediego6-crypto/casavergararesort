@@ -163,8 +163,25 @@
     let ranges = getOccupiedRanges(packageId, roomTitle, excludeReservationId);
     let selectedCheckIn = hiddenIn.value || null;
 
+    // Highlights check-in → check-out as one continuous band.
+    function styleStayRange(dayElem, ymd) {
+      const ci = hiddenIn.value;
+      const co = hiddenOut.value;
+      if (!ci || !co || co <= ci) return;
+      if (ymd < ci || ymd > co) return;
+      dayElem.classList.add("cvr-cal-day-stay");
+      if (ymd === ci) dayElem.classList.add("cvr-cal-day-stay-start");
+      if (ymd === co) dayElem.classList.add("cvr-cal-day-stay-end");
+    }
+
+    function redrawStay() {
+      try { if (fpIn) fpIn.redraw(); } catch (e) { /* ignore */ }
+      try { if (fpOut) fpOut.redraw(); } catch (e) { /* ignore */ }
+    }
+
     function styleDayBooked(dayElem, d) {
       const ymd = formatYMD(d);
+      styleStayRange(dayElem, ymd);
       const isBooked = isOccupiedNight(ymd, ranges);
       const isBlocked = blocked.has(ymd);
       const isPast = ymd < todayYmd();
@@ -204,6 +221,7 @@
       onChange: function (selectedDates) {
         if (!selectedDates.length) {
           hiddenOut.value = "";
+          redrawStay();
           onChange();
           return;
         }
@@ -211,10 +229,12 @@
         const ci = selectedCheckIn || hiddenIn.value;
         if (!ci || ymd < ci || (ymd !== ci && stayOverlaps(ci, ymd, ranges))) {
           hiddenOut.value = "";
+          redrawStay();
           onChange();
           return;
         }
         hiddenOut.value = ymd;
+        redrawStay();
         onChange();
       },
       onDayCreate: function (_dObj, _dStr, _fp, dayElem) {
@@ -245,6 +265,7 @@
           selectedCheckIn = null;
           hiddenOut.value = "";
           fpOut.clear();
+          redrawStay();
           onChange();
           return;
         }
@@ -274,7 +295,7 @@
         } else {
           fpOut.setDate(hiddenOut.value, false);
         }
-        fpOut.redraw();
+        redrawStay();
         onChange();
       },
       onDayCreate: function (_dObj, _dStr, _fp, dayElem) {

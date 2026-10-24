@@ -20,6 +20,7 @@
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../../css/calendars.css?v=20261024a" rel="stylesheet">
 </head>
 <body class="booking-cal-body">
   <div class="admin-wrap admin-page booking-cal-wrap">
@@ -208,7 +209,7 @@
   <script src="../../js/duration-pricing.js?v=20260924d"></script>
   <script src="../../js/booking-data.js?v=20261024a"></script>
   <script src="../../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../../js/admin-calendar.js?v=20260830i"></script>
+  <script src="../../js/admin-calendar.js?v=20261024a"></script>
   <script>
     renderAdminSidebar("calendar");
     initAdminCalendarPage();

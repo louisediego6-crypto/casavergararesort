@@ -1,0 +1,1108 @@
+/* ==========================================================================
+   Casa Vergara Resort — Calendar UI refresh
+   Covers every calendar on the site:
+     1. Stay / event date pickers   (.cvr-fp-mount  → reservation form, booking page)
+     2. Search date dropdowns       (.cvr-search-fp → booking page filter bar)
+     3. Admin booking calendar      (.booking-cal-* → admin/calendar)
+   Load this file LAST (after theme.css) so it wins over older rules.
+   Light + dark mode are driven by the tokens below.
+   ========================================================================== */
+
+:root {
+  --cal-ink: #0c3b5d;
+  --cal-text: #3d4963;
+  --cal-muted: #7a8aa0;
+  --cal-surface: #ffffff;
+  --cal-surface-2: #f5f8fc;
+  --cal-line: #e3eaf2;
+  --cal-line-strong: #cfdbe8;
+  --cal-brand: #0c3b5d;
+  --cal-brand-2: #328bc3;
+  --cal-grad: linear-gradient(135deg, #0c3b5d 0%, #1f6a9e 58%, #328bc3 100%);
+  --cal-grad-solid: #1f6a9e;
+  --cal-hover: rgba(50, 139, 195, 0.12);
+
+  --cal-avail-bg: rgba(34, 163, 109, 0.11);
+  --cal-avail-fg: #14684a;
+  --cal-avail-ring: rgba(34, 163, 109, 0.45);
+  --cal-avail-hover: rgba(34, 163, 109, 0.24);
+  --cal-booked-bg: rgba(217, 83, 79, 0.11);
+  --cal-booked-fg: #b4443f;
+  --cal-booked-ring: rgba(217, 83, 79, 0.4);
+  --cal-block-a: rgba(217, 179, 18, 0.26);
+  --cal-block-b: rgba(12, 59, 93, 0.07);
+  --cal-holiday: #d96b1e;
+  --cal-holiday-fg: #b1490c;
+  --cal-range: rgba(50, 139, 195, 0.16);
+  --cal-disabled: #b3bfcc;
+
+  --cal-shadow: 0 12px 32px rgba(12, 59, 93, 0.1);
+  --cal-shadow-pop: 0 22px 50px rgba(12, 59, 93, 0.22);
+  --cal-radius: 20px;
+}
+
+html[data-theme="dark"] {
+  --cal-ink: #a5d0f0;
+  --cal-text: #c6d3df;
+  --cal-muted: #8fa3b6;
+  --cal-surface: #16212c;
+  --cal-surface-2: #1b2835;
+  --cal-line: #27384a;
+  --cal-line-strong: #34495e;
+  --cal-grad: linear-gradient(135deg, #123a56 0%, #1c5780 58%, #2878ad 100%);
+  --cal-grad-solid: #1c5780;
+  --cal-hover: rgba(80, 160, 220, 0.18);
+
+  --cal-avail-bg: rgba(52, 199, 140, 0.14);
+  --cal-avail-fg: #8fe3c3;
+  --cal-avail-ring: rgba(52, 199, 140, 0.45);
+  --cal-avail-hover: rgba(52, 199, 140, 0.28);
+  --cal-booked-bg: rgba(240, 110, 105, 0.15);
+  --cal-booked-fg: #f0958f;
+  --cal-booked-ring: rgba(240, 110, 105, 0.45);
+  --cal-block-a: rgba(217, 179, 18, 0.24);
+  --cal-block-b: rgba(165, 208, 240, 0.08);
+  --cal-holiday-fg: #e8a77c;
+  --cal-range: rgba(80, 160, 220, 0.24);
+  --cal-disabled: #4e5f70;
+
+  --cal-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+  --cal-shadow-pop: 0 22px 54px rgba(0, 0, 0, 0.6);
+}
+
+/* Every rule below is prefixed with "html:not(.cvr-x):not(.cvr-y) body" — a
+   harmless specificity boost so these rules reliably beat the older
+   (!important) light/dark theme sheets without editing them. */
+
+/* ==========================================================================
+   1 + 2.  FLATPICKR  (shared skin for every public calendar)
+   ========================================================================== */
+
+/* --- Card shell for inline pickers (stay + event dates) ------------------ */
+html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: var(--cal-surface) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: var(--cal-radius) !important;
+  box-shadow: var(--cal-shadow);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-cal-pair-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-stay-calendars-wrap .cvr-fp-mount {
+  max-width: 400px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell .cvr-stay-calendars-wrap .cvr-fp-mount {
+  max-width: none;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount > p {
+  margin: 0;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--cal-muted);
+}
+
+/* the event picker lives inside its own shell — the shell becomes the card */
+html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell {
+  max-width: 26rem;
+  background: var(--cal-surface) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: var(--cal-radius) !important;
+  box-shadow: var(--cal-shadow) !important;
+  overflow: hidden;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell .cvr-fp-mount {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* --- Calendar body --------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar {
+  --cal-day-h: 42px;
+  box-sizing: border-box;
+  padding: 0 !important;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  background: var(--cal-surface) !important;
+  color: var(--cal-text);
+  border: 0;
+  border-radius: var(--cal-radius);
+  box-shadow: none;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar.flatpickr-calendar {
+  --cal-day-h: 46px;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-radius: 0;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar {
+  width: 344px !important;
+  max-width: calc(100vw - 24px) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: var(--cal-radius) !important;
+  box-shadow: var(--cal-shadow-pop) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar::before,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar::after {
+  display: none !important;
+}
+
+/* --- Header ---------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-months {
+  position: relative;
+  align-items: center;
+  height: 58px;
+  background-color: var(--cal-grad-solid);
+  background-image: var(--cal-grad);
+  border-radius: 0;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-months .flatpickr-month {
+  height: 58px;
+  background: transparent !important;
+  color: #fff !important;
+  fill: #fff !important;
+  overflow: visible;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month {
+  position: absolute;
+  left: 52px;
+  right: 52px;
+  width: auto;
+  height: 58px;
+  padding: 0;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: #fff !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
+  -webkit-appearance: none;
+  appearance: none;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+  background: rgba(255, 255, 255, 0.26) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months option {
+  background: var(--cal-surface);
+  color: var(--cal-ink);
+  font-weight: 500;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month .numInputWrapper {
+  width: 5.2ch;
+  border-radius: 10px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month .numInputWrapper:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-current-month input.cur-year {
+  padding: 0.35rem 0.2rem;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff !important;
+  background: transparent;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .numInputWrapper span.arrowUp,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .numInputWrapper span.arrowDown {
+  display: none;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month {
+  top: 50% !important;
+  height: 38px;
+  width: 38px;
+  padding: 0;
+  margin-top: -19px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff !important;
+  fill: #fff !important;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month { left: 10px; }
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month { right: 10px; }
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month svg,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month svg {
+  width: 13px;
+  height: 13px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month svg path,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month svg path {
+  fill: #fff !important;
+  stroke: #fff;
+  stroke-width: 1.4px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month:hover,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month:active,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month:active {
+  transform: scale(0.92);
+}
+
+/* flatpickr hides the arrow at the min date — keep it visible but dimmed */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-prev-month.flatpickr-disabled,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-next-month.flatpickr-disabled {
+  display: flex !important;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* --- Grid layout ---------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-innerContainer {
+  display: block;
+  width: 100% !important;
+  padding: 0.35rem 0.7rem 0.75rem;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-rContainer,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-weekdays,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-weekdaycontainer,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-days {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-weekdays {
+  height: 36px;
+  background: transparent;
+  align-items: center;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar span.flatpickr-weekday {
+  background: transparent !important;
+  color: var(--cal-muted) !important;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .dayContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* --- Day cells -------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day {
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 14.2857% !important;
+  width: 14.2857% !important;
+  max-width: 14.2857% !important;
+  height: var(--cal-day-h);
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--cal-text);
+  /* the transparent border + padding-box clip = a clean gap between cells */
+  border: 2px solid transparent !important;
+  background-color: transparent;
+  background-clip: padding-box !important;
+  border-radius: 14px !important;
+  box-shadow: none;
+  transition: background-color 0.14s ease, color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day:hover:not(.flatpickr-disabled):not(.selected):not(.startRange):not(.endRange) {
+  background-color: var(--cal-hover);
+  color: var(--cal-ink);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.prevMonthDay,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.nextMonthDay {
+  color: var(--cal-disabled);
+  opacity: 0.5;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.flatpickr-disabled,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.flatpickr-disabled:hover {
+  color: var(--cal-disabled);
+  background-color: transparent;
+  cursor: not-allowed;
+}
+
+/* Today — a ring, so it stays visible alongside other states */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.today:not(.selected) {
+  color: var(--cal-brand-2);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--cal-brand-2);
+}
+
+/* Available */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-available:not(.selected):not(.flatpickr-disabled) {
+  background-color: var(--cal-avail-bg);
+  color: var(--cal-avail-fg) !important;
+  font-weight: 600;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-available:not(.selected):not(.flatpickr-disabled):hover {
+  background-color: var(--cal-avail-hover);
+  transform: translateY(-1px);
+}
+
+/* Booked */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-booked:not(.selected) {
+  background-color: var(--cal-booked-bg) !important;
+  color: var(--cal-booked-fg) !important;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* Blocked / maintenance */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-blocked:not(.selected) {
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(-45deg, var(--cal-block-a), var(--cal-block-a) 4px, var(--cal-block-b) 4px, var(--cal-block-b) 8px) !important;
+  color: var(--cal-muted) !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* PH holidays */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-holiday:not(.selected):not(.cvr-cal-day-booked) {
+  color: var(--cal-holiday-fg) !important;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-holiday.today:not(.selected) {
+  box-shadow: inset 0 0 0 2px var(--cal-brand-2);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-holiday::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--cal-holiday);
+}
+
+/* Selected / range endpoints */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.selected,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.selected:hover,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.selected.cvr-cal-day-available,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.startRange,
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.endRange {
+  background-color: var(--cal-grad-solid) !important;
+  background-image: var(--cal-grad) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(12, 59, 93, 0.3);
+  text-decoration: none;
+  z-index: 2;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.selected.cvr-cal-day-holiday::after {
+  background: #fff;
+}
+
+/* Stay range highlight (set from JS: check-in → check-out) */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-stay.cvr-cal-day-stay:not(.selected) {
+  background-color: var(--cal-range) !important;
+  background-clip: border-box !important;
+  color: var(--cal-ink) !important;
+  border-radius: 0 !important;
+  text-decoration: none;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-stay.cvr-cal-day-stay.cvr-cal-day-stay-start {
+  border-top-left-radius: 14px !important;
+  border-bottom-left-radius: 14px !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.cvr-cal-day-stay.cvr-cal-day-stay.cvr-cal-day-stay-end {
+  border-top-right-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day.inRange:not(.selected) {
+  background-color: var(--cal-range) !important;
+  background-clip: border-box !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+  color: var(--cal-ink);
+}
+
+/* --- Legend ---------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .cvr-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: 14px;
+  background: var(--cal-surface-2) !important;
+  font-size: 0.78rem;
+  color: var(--cal-text) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-calendar-legend > span {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell .cvr-calendar-legend {
+  margin: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--cal-line) !important;
+  border-radius: 0;
+  justify-content: center;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-swatch {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  border: 0 !important;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-available {
+  background: var(--cal-avail-bg) !important;
+  box-shadow: inset 0 0 0 1.5px var(--cal-avail-ring);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-booked {
+  background: var(--cal-booked-bg) !important;
+  box-shadow: inset 0 0 0 1.5px var(--cal-booked-ring);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-blocked {
+  background: repeating-linear-gradient(-45deg, var(--cal-block-a), var(--cal-block-a) 3px, var(--cal-block-b) 3px, var(--cal-block-b) 6px) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(217, 179, 18, 0.5);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-holiday {
+  background: var(--cal-surface) !important;
+  box-shadow: inset 0 0 0 1.5px var(--cal-line-strong);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-legend-holiday::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--cal-holiday);
+}
+
+/* --- Search dropdown extras (legend + footer buttons) ---------------------- */
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-legend {
+  display: flex;
+  justify-content: center;
+  margin: 0 0.7rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--cal-line) !important;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cal-text) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0.7rem;
+  padding: 0.1rem 0 0.8rem;
+  border-top: 0 !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-btn:active { transform: scale(0.96); }
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-clear {
+  margin-right: auto;
+  background: transparent !important;
+  color: var(--cal-muted) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-clear:hover { background: var(--cal-surface-2) !important; color: var(--cal-ink) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-today {
+  margin-left: 0 !important;
+  background: var(--cal-hover) !important;
+  color: var(--cal-brand-2) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-today:hover { background: var(--cal-avail-hover) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-fp-done {
+  background-color: var(--cal-grad-solid) !important;
+  background-image: var(--cal-grad) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(12, 59, 93, 0.25);
+}
+
+/* --- Search input fields ----------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-date-input {
+  border-radius: 12px;
+  border-color: var(--cal-line-strong);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-date-input:hover,
+html:not(.cvr-x):not(.cvr-y) body .cvr-search-date-input:focus {
+  border-color: var(--cal-brand-2);
+  box-shadow: 0 0 0 4px rgba(50, 139, 195, 0.14);
+}
+
+/* --- Phones: stay picker fills the width; search picker becomes a bottom sheet */
+@media (max-width: 575.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar.flatpickr-calendar { --cal-day-h: 42px; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-stay-calendars-wrap .cvr-fp-mount { max-width: none; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-calendar-legend { gap: 0.45rem 0.85rem; padding: 0.6rem 0.75rem; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell { max-width: 100%; }
+
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar.open {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 12px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(calc(100vw - 24px), 380px) !important;
+    z-index: 2001 !important;
+    animation: cvrCalSheetIn 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  body.cvr-fp-sheet-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(8, 20, 32, 0.52);
+    animation: cvrCalFade 0.2s ease;
+  }
+}
+
+@media (max-width: 359.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar { --cal-day-h: 38px; }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-innerContainer { padding-left: 0.4rem; padding-right: 0.4rem; }
+}
+
+@keyframes cvrCalSheetIn {
+  from { opacity: 0; transform: translate(-50%, 28px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes cvrCalFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ==========================================================================
+   3.  ADMIN BOOKING CALENDAR
+   ========================================================================== */
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-body,
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-wrap.admin-wrap {
+  background: var(--cal-surface-2) !important;
+}
+
+/* --- Top bar ---------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar {
+  padding: 1rem 1.5rem;
+  background: var(--cal-surface) !important;
+  border-bottom: 1px solid var(--cal-line);
+  box-shadow: 0 6px 24px rgba(12, 59, 93, 0.05);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-title { color: var(--cal-ink) !important; font-size: 1.4rem; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-subtitle { color: var(--cal-muted) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-month-nav {
+  gap: 0.15rem;
+  padding: 0.25rem;
+  background: var(--cal-surface-2) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: 999px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-month-label {
+  min-width: 10.5rem;
+  color: var(--cal-ink) !important;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--cal-brand-2) !important;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-icon-btn:hover { background: var(--cal-surface) !important; box-shadow: 0 2px 8px rgba(12, 59, 93, 0.12); }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-icon-btn:active { transform: scale(0.92); }
+
+/* --- Cards ----------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-card {
+  background: var(--cal-surface) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: 20px;
+  box-shadow: var(--cal-shadow);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-card:hover { transform: none; box-shadow: var(--cal-shadow); }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-view-toggle .btn {
+  border-color: var(--cal-line-strong);
+  color: var(--cal-text);
+  font-weight: 600;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-view-toggle .btn:first-of-type { border-radius: 999px 0 0 999px; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-view-toggle .btn:last-of-type { border-radius: 0 999px 999px 0; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-view-toggle .btn-check:checked + .btn {
+  background-color: var(--cal-grad-solid) !important;
+  background-image: var(--cal-grad) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-aside-heading { color: var(--cal-muted) !important; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-filter-label { color: var(--cal-muted) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-select {
+  border-radius: 12px;
+  border-color: var(--cal-line-strong) !important;
+}
+
+/* --- Mini calendar ---------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-month { color: var(--cal-ink) !important; font-size: 0.9rem; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-nav {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--cal-surface-2) !important;
+  color: var(--cal-brand-2) !important;
+  transition: background 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-nav:hover { background: var(--cal-hover) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-dow { color: var(--cal-muted) !important; letter-spacing: 0.03em; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-grid { gap: 2px; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day {
+  max-height: 2.15rem;
+  border-radius: 50%;
+  background: transparent !important;
+  color: var(--cal-text) !important;
+  font-weight: 600;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day:hover:not(.booking-cal-mini-day--selected) { background: var(--cal-hover) !important; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--muted { color: var(--cal-disabled) !important; opacity: 0.6; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--today { box-shadow: inset 0 0 0 2px var(--cal-brand-2); }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--in-main { background: var(--cal-surface-2) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--selected {
+  background-color: var(--cal-grad-solid) !important;
+  background-image: var(--cal-grad) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(12, 59, 93, 0.28);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--holiday { box-shadow: none; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-mini-day--holiday.booking-cal-mini-day--today { box-shadow: inset 0 0 0 2px var(--cal-brand-2); }
+
+/* --- Legend ---------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-legend-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.4rem 0.75rem;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-legend-list li {
+  margin: 0;
+  color: var(--cal-text) !important;
+  font-weight: 500;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-legend-swatch { width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-legend-swatch--conflict { border-radius: 4px; }
+
+/* --- Month grid ------------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-grid-card { padding: 1.1rem 1.1rem 1.25rem; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-dow-row {
+  gap: 8px;
+  margin-bottom: 0.65rem;
+  color: var(--cal-muted) !important;
+  font-size: 0.7rem;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-main-grid { gap: 8px; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  min-height: clamp(104px, 10.5vw, 136px);
+  padding: 0.5rem 0.55rem 0.55rem;
+  background-color: var(--cal-surface) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+/* weekends get a faint tint so the week rhythm is easy to scan */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-wrap:nth-child(7n + 1) .booking-cal-cell:not(.booking-cal-cell--past):not(.booking-cal-cell--faded):not(.booking-cal-cell--holiday),
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-wrap:nth-child(7n) .booking-cal-cell:not(.booking-cal-cell--past):not(.booking-cal-cell--faded):not(.booking-cal-cell--holiday) {
+  background-color: var(--cal-surface-2) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--cal-brand-2) !important;
+  box-shadow: 0 12px 26px rgba(12, 59, 93, 0.16);
+  z-index: 1;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell:focus-visible {
+  outline: 3px solid rgba(50, 139, 195, 0.45);
+  outline-offset: 2px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--faded {
+  background-color: transparent !important;
+  border-style: dashed !important;
+  opacity: 0.55;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--past,
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell:disabled {
+  background-color: var(--cal-surface-2) !important;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--past .booking-cal-cell-num { color: var(--cal-muted) !important; font-weight: 600; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--past .booking-cal-event { opacity: 0.78; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--faded.booking-cal-cell--past { opacity: 0.5; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: 0.35rem;
+  border-radius: 50%;
+  color: var(--cal-ink) !important;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--today {
+  border-color: var(--cal-brand-2) !important;
+  box-shadow: inset 0 0 0 1px var(--cal-brand-2);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--today .booking-cal-cell-num {
+  background-color: var(--cal-grad-solid);
+  background-image: var(--cal-grad);
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(12, 59, 93, 0.3);
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--holiday {
+  background-color: rgba(217, 107, 30, 0.07) !important;
+  border-color: rgba(217, 107, 30, 0.35) !important;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-holiday {
+  margin-bottom: 0.35rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--cal-holiday-fg) !important;
+  background: rgba(217, 107, 30, 0.14);
+}
+
+/* heatmap — driven by --heat (set from JS) so it also works in dark mode */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--heat:not(.booking-cal-cell--faded) {
+  background-image: linear-gradient(rgba(50, 139, 195, var(--heat, 0)), rgba(50, 139, 195, var(--heat, 0))) !important;
+}
+
+/* --- Booking chips inside a cell ---------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-events { gap: 4px; min-width: 0; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event {
+  --ev: #9fb3c6;
+  align-items: center;
+  gap: 0;
+  padding: 3px 6px 3px 7px;
+  border: 0 !important;
+  border-left: 3px solid var(--ev) !important;
+  border-radius: 7px;
+  background-color: var(--cal-surface-2) !important;
+  background-image: linear-gradient(color-mix(in srgb, var(--ev) 14%, transparent), color-mix(in srgb, var(--ev) 14%, transparent));
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event:has(.booking-cal-event-dot--confirmed) { --ev: #22a36d; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event:has(.booking-cal-event-dot--pending)   { --ev: #e9a23b; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event:has(.booking-cal-event-dot--cancelled) { --ev: #d9534f; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event:has(.booking-cal-event-dot--checkin)   { --ev: #328bc3; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event:has(.booking-cal-event-dot--checkout)  { --ev: #46b3d6; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event--conflict {
+  box-shadow: 0 0 0 1px #e49a3c;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event-dot { display: none; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event-name { color: var(--cal-ink) !important; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-event-sub { color: var(--cal-muted) !important; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-more { color: var(--cal-brand-2) !important; font-weight: 700; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-empty-day {
+  border-color: var(--cal-line-strong);
+  background: var(--cal-surface-2);
+  color: var(--cal-muted);
+}
+
+/* --- Day-details modal -------------------------------------------------------- */
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal.modal-content {
+  background: var(--cal-surface) !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  box-shadow: var(--cal-shadow-pop);
+  overflow: hidden;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal .modal-header { padding: 1.25rem 1.5rem 0.5rem; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal .modal-body { padding: 0.5rem 1.5rem 1.5rem; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal-title { color: var(--cal-ink) !important; font-size: 1.2rem; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal-card {
+  background: var(--cal-surface-2) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-left: 4px solid var(--cal-brand-2) !important;
+  border-radius: 14px;
+  transition: box-shadow 0.15s ease;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal-card:hover { box-shadow: 0 8px 20px rgba(12, 59, 93, 0.1); }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal-name { color: var(--cal-ink) !important; }
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-modal-meta { color: var(--cal-muted) !important; }
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-form-card {
+  background: var(--cal-surface) !important;
+  border: 1px solid var(--cal-line) !important;
+  border-radius: 16px;
+}
+
+html:not(.cvr-x):not(.cvr-y) body .booking-cal-pill { padding: 0.25rem 0.6rem; letter-spacing: 0.01em; }
+
+/* ==========================================================================
+   Admin calendar — responsive
+   ========================================================================== */
+
+@media (max-width: 1199.98px) {
+  /* calendar first, tools underneath */
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-workspace { flex-direction: column; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-stage { order: -1; width: 100%; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-aside {
+    order: 1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-aside-block { flex: none; }
+}
+
+@media (max-width: 767.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar { padding: 0.9rem 1rem; gap: 0.75rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-title { font-size: 1.2rem; }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-center { order: 3; width: 100%; justify-content: space-between; flex-wrap: nowrap; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-month-nav { flex: 1; justify-content: space-between; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-month-label { min-width: 0; flex: 1; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-right { width: 100%; justify-content: flex-start; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-workspace { padding: 0.9rem 0.75rem 1.5rem; gap: 0.9rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-grid-card { padding: 0.7rem 0.55rem 0.85rem; border-radius: 18px; }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-dow-row { gap: 4px; font-size: 0.6rem; letter-spacing: 0; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-main-grid { gap: 4px; }
+
+  /* compact cells: number + coloured dots, tap to open the day */
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell {
+    min-height: 58px;
+    padding: 0.3rem 0.2rem 0.35rem;
+    align-items: center;
+    border-radius: 12px;
+  }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-num { align-self: center; width: 1.55rem; height: 1.55rem; margin-bottom: 0.2rem; font-size: 0.78rem; }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-holiday { display: none; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell--holiday::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cal-holiday);
+  }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-events {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+  }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-event {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 50%;
+    background-color: var(--ev) !important;
+    background-image: none;
+  }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-event--conflict { box-shadow: 0 0 0 2px rgba(228, 154, 60, 0.45); }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-event-text { display: none; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-more { font-size: 0.56rem; padding: 0; line-height: 0.5rem; }
+
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-aside { grid-template-columns: 1fr; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-legend-list { grid-template-columns: repeat(2, 1fr); }
+
+  /* day-details modal → bottom sheet */
+  html:not(.cvr-x):not(.cvr-y) body #calendarBookingModal .modal-dialog {
+    max-width: none;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  html:not(.cvr-x):not(.cvr-y) body #calendarBookingModal .modal-content {
+    max-height: 90%;
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  #calendarBookingModal.fade .modal-dialog { transform: translateY(48px); }
+  #calendarBookingModal.show .modal-dialog { transform: none; }
+}
+
+@media (max-width: 479.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-right > .btn-brand { flex: 1 1 100%; order: 5; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell { min-height: 54px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.flatpickr-calendar .flatpickr-day,
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell { transition: none; }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar.open { animation: none; }
+}

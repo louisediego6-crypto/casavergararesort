@@ -533,7 +533,7 @@ function initAdminCalendarPage() {
       if (heatmap && inCurrentMonth) {
         const t = dayBookings.length / maxCount;
         const alpha = 0.06 + t * 0.38;
-        heatStyle = `style="background:rgba(50,139,195,${alpha});"`;
+        heatStyle = `style="--heat:${alpha.toFixed(3)};"`;
       }
 
       const cell = document.createElement("div");

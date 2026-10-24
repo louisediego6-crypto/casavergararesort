@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/calendars.css?v=20261024a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -348,9 +349,9 @@
   <script src="../js/booking-data.js?v=20261024a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20260830i"></script>
+  <script src="../js/reservation-calendar.js?v=20261024a"></script>
   <script src="../js/booking.js?v=20261024a"></script>
-  <script src="../js/booking-search-calendar.js?v=20260830i"></script>
+  <script src="../js/booking-search-calendar.js?v=20261024a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>
     (async () => {
