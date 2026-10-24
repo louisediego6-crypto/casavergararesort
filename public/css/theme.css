@@ -463,3 +463,8 @@ html[data-theme="dark"] .nav-tabs .nav-link.active,
 html[data-theme="dark"] .nav-pills .nav-link.active { background: #1f3a52; color: #fff; }
 html[data-theme="dark"] img.manual-shot,
 html[data-theme="dark"] .man-step img { filter: brightness(0.92); }
+
+/* receipt modal (payment verification) */
+html[data-theme="dark"] #cvrReceiptModal .modal-content { background: #16212c !important; }
+#cvrReceiptModal .modal-title { font-size: 1.05rem; }
+.proof-view-btn:hover { opacity: 0.85; }
