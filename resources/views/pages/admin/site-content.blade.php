@@ -817,7 +817,7 @@
   <script src="../../js/main.js?v=20260926b"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20260924d"></script>
+  <script src="../../js/booking-data.js?v=20261024a"></script>
   <script src="../../js/admin-packages.js?v=20260830i"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>

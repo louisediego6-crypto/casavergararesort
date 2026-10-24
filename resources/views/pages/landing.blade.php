@@ -152,45 +152,60 @@
     <div class="container">
       <div class="text-center mb-5 section-heading">
         <p class="text-uppercase text-primary fw-semibold small mb-2">Accommodations</p>
-        <h2 class="display-5 text-brand fw-bold">Luxury Rooms & Events</h2>
+        <h2 class="display-5 text-brand fw-bold">Rooms & Event Venue</h2>
       </div>
       <div class="row g-4">
 
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-1.png" alt="Deluxe villa room interior" data-site-image-slot="landing_room_deluxe">
+            <img class="room-cover" src="../images/booking-photo-1.png" alt="Standard room interior" data-site-image-slot="landing_room_deluxe">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Deluxe Room</h5>
-              <p class="text-muted-brand small mb-2">Up to 4 guests</p>
+              <h5 class="text-brand">Standard Room</h5>
+              <p class="text-muted-brand small mb-2">Good for 2 pax</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li>3 hours — <strong data-rate-room="3hr">₱250</strong></li>
+                <li>12 hours — <strong data-rate-room="12hr">₱800</strong></li>
+                <li>24 hours — <strong data-rate-room="24hr">₱1,400</strong></li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=deluxe-villa" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?package=standard-room" class="btn btn-brand btn-sm">View Details</a>
               </div>
             </div>
           </article>
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-2.png" alt="Ocean view suite bedroom" data-site-image-slot="landing_room_single">
+            <img class="room-cover" src="../images/booking-photo-2.png" alt="Private venue with pool and function hall" data-site-image-slot="landing_room_single">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Single Room</h5>
-              <p class="text-muted-brand small mb-2">Good for 1 guest</p>
+              <h5 class="text-brand">Private Venue</h5>
+              <p class="text-muted-brand small mb-2">Good for 50 pax · add ₱1,000/head up to 100 pax</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li>Morning (8 AM–5 PM) — <strong data-rate-event="Private Venue – Morning (8:00 AM–5:00 PM)">₱10,000</strong></li>
+                <li>Night (7 PM–5 AM) — <strong data-rate-event="Private Venue – Night (7:00 PM–5:00 AM)">₱12,000</strong></li>
+                <li>2 sessions — <strong data-rate-event="Private Venue – Whole Day (2 Sessions)">₱17,000</strong></li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=single-room" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?type=event&amp;event=Private%20Venue%20%E2%80%93%20Morning%20(8%3A00%20AM%E2%80%935%3A00%20PM)" class="btn btn-brand btn-sm">Reserve Venue</a>
               </div>
             </div>
           </article>
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-3.png" alt="Beach bungalow room setup" data-site-image-slot="landing_room_family">
+            <img class="room-cover" src="../images/booking-photo-3.png" alt="Wedding and debut venue setup" data-site-image-slot="landing_room_family">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Family Room</h5>
-              <p class="text-muted-brand small mb-2">Good for 2 to 6 guests</p>
+              <h5 class="text-brand">Weddings &amp; Debuts</h5>
+              <p class="text-muted-brand small mb-2">Good for 100 pax · 10 hours + 3 hours preparation</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li>Wedding — <strong data-rate-event="Wedding Package">₱20,000</strong></li>
+                <li>Debut — <strong data-rate-event="Debut Package">₱17,000</strong></li>
+                <li>Extended — ₱1,500 per hour</li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=family-suite" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?type=event&amp;event=Wedding%20Package" class="btn btn-brand btn-sm">Reserve Event</a>
               </div>
             </div>
           </article>
@@ -372,7 +387,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/booking-data.js?v=20260924d"></script>
+  <script src="../js/booking-data.js?v=20261024a"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
   <script src="../js/main.js?v=20260930a"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
@@ -386,16 +401,17 @@
       const cat = window.CVRBookingCatalog;
       if (!cat) return;
       await cat.catalogReady;
-      const ids = ["deluxe-villa", "single-room", "family-suite"];
-      ids.forEach((id) => {
-        const el = document.getElementById(`price-${id}`);
-        if (!el) return;
-        const pkg = cat.getRoomPackageById(id);
-        if (!pkg) {
-          el.textContent = "Unavailable";
-          return;
-        }
-        el.textContent = `${cat.formatMoney(pkg.pricePerNight, pkg.currency || "PHP")}/night`;
+      const fmt = (n) => cat.formatMoney(n, "PHP").replace(/\.00$/, "");
+      const room = cat.getRoomPackageById("standard-room");
+      if (room) {
+        document.querySelectorAll("[data-rate-room]").forEach((el) => {
+          const rate = window.CVRDuration?.roomRate(room.pricePerNight, el.dataset.rateRoom, null);
+          if (rate) el.textContent = fmt(rate);
+        });
+      }
+      document.querySelectorAll("[data-rate-event]").forEach((el) => {
+        const pkg = cat.getEventPackageCatalog(el.dataset.rateEvent);
+        if (pkg && pkg.price) el.textContent = fmt(pkg.price);
       });
     })();
 

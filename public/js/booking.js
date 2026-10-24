@@ -507,7 +507,7 @@ function initBookingPage() {
       const durationRate = pkg.flatRate
         ? Math.max(0, Number(pkg.price) || 0)
         : pkg.doubleRateOn24hr && durationKey === "24hr"
-        ? Math.max(0, Number(pkg.price) || 0) * 2
+        ? (cat.cvrWholeDayRate ? cat.cvrWholeDayRate(pkg) : Math.max(0, Number(pkg.price) || 0) * 2)
         : window.CVRDuration
         ? window.CVRDuration.eventRate(pkg.price, durationKey, eventNights)
         : pkg.price;
@@ -579,6 +579,19 @@ function initBookingPage() {
     syncDurationOptionsAvailability();
     syncFixedScheduleVisibility();
     renderPackageDetails();
+
+    // Deep link from the homepage, e.g. booking.html?type=event&event=Wedding%20Package
+    (() => {
+      const qs = new URLSearchParams(window.location.search);
+      if (qs.get("type") !== "event") return;
+      bookingTypeSelect.value = "event";
+      bookingTypeSelect.dispatchEvent(new Event("change"));
+      const wanted = qs.get("event");
+      if (wanted && eventTypeEl && Array.from(eventTypeEl.options).some((o) => o.value === wanted)) {
+        eventTypeEl.value = wanted;
+        eventTypeEl.dispatchEvent(new Event("change"));
+      }
+    })();
 
     eventForm.addEventListener("submit", (event) => {
       event.preventDefault();

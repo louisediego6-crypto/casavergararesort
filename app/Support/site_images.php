@@ -8,19 +8,19 @@ const SITE_IMAGE_SLOTS = [
         'default' => 'images/booking-photo-1.png',
     ],
     'landing_room_deluxe' => [
-        'label' => 'Homepage "Deluxe Room" card photo',
+        'label' => 'Homepage "Standard Room" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-1.png',
     ],
     'landing_room_single' => [
-        'label' => 'Homepage "Single Room" card photo',
+        'label' => 'Homepage "Private Venue" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-2.png',
     ],
     'landing_room_family' => [
-        'label' => 'Homepage "Family Room" card photo',
+        'label' => 'Homepage "Weddings & Debuts" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-3.png',
