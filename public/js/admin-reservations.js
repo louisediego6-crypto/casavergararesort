@@ -9,6 +9,7 @@ function initAdminReservationsPage() {
   const dateTo = document.getElementById("reservationDateTo");
   const exportBtn = document.getElementById("reservationExportBtn");
   const exportPdfBtn = document.getElementById("reservationExportPdfBtn");
+  const exportXlsxBtn = document.getElementById("reservationExportXlsxBtn");
   const exportStatus = document.getElementById("reservationExportStatus");
   const quoteFilter = document.getElementById("quotationStatusFilter");
   const resultCountBadge = document.getElementById("reservationResultCount");
@@ -608,6 +609,14 @@ function initAdminReservationsPage() {
       return;
     }
     window.CVRAdminExport.downloadReservationPageExport("docx", exportBtn, exportStatus);
+  });
+
+  exportXlsxBtn?.addEventListener("click", () => {
+    if (!window.CVRAdminExport) {
+      window.alert("Export module not loaded.");
+      return;
+    }
+    window.CVRAdminExport.downloadReservationPageExport("xlsx", exportXlsxBtn, exportStatus);
   });
 
   exportPdfBtn?.addEventListener("click", () => {

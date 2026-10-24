@@ -77,6 +77,7 @@
           <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <span id="reservationExportStatus" class="small fw-semibold d-none" role="status"></span>
             <div class="d-flex gap-2 flex-wrap ms-md-auto">
+              <button type="button" class="btn btn-outline-success admin-export-btn" id="reservationExportXlsxBtn"><i class="bi bi-file-earmark-excel me-2"></i>Export Excel</button>
               <button type="button" class="btn btn-outline-primary admin-export-btn" id="reservationExportPdfBtn"><i class="bi bi-file-earmark-pdf me-2"></i>Export PDF</button>
               <button type="button" class="btn btn-brand admin-export-btn" id="reservationExportBtn"><i class="bi bi-filetype-docx me-2"></i>Export DOCX</button>
             </div>
@@ -130,8 +131,8 @@
   <script src="../../js/main.js?v=20261024c"></script>
   <script src="../../js/duration-pricing.js?v=20260924d"></script>
   <script src="../../js/booking-data.js?v=20261024a"></script>
-  <script src="../../js/admin-export.js?v=20260830i"></script>
-  <script src="../../js/admin-reservations.js?v=20260830i"></script>
+  <script src="../../js/admin-export.js?v=20261024h"></script>
+  <script src="../../js/admin-reservations.js?v=20261024h"></script>
   <script>renderAdminSidebar("reservations"); initAdminReservationsPage();</script>
 </body>
 </html>

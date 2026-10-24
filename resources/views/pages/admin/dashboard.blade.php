@@ -28,6 +28,7 @@
       <div class="admin-page-head mb-4">
         <h1 class="h2 text-brand mb-1">Dashboard</h1>
         <p class="text-muted-brand mb-0">Overview of reservations and manual payment verification</p>
+        <small class="text-muted-brand d-inline-flex align-items-center gap-1 mt-1"><span class="spinner-grow spinner-grow-sm text-success" style="width:.5rem;height:.5rem" aria-hidden="true"></span><span id="dashLiveStamp">Live</span></small>
       </div>
       <div class="row g-3 mb-4 admin-kpi-grid">
         <div class="col-md-6 col-xl-3"><div class="soft-card p-3"><small class="text-muted-brand">Total Bookings</small><h3 class="text-brand mb-0" id="dashKpiBookings">0</h3></div></div>
@@ -137,8 +138,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../../js/main.js?v=20261024c"></script>
-  <script src="../../js/admin-export.js?v=20261001c"></script>
-  <script src="../../js/admin.js?v=20260830i"></script>
+  <script src="../../js/admin-export.js?v=20261024h"></script>
+  <script src="../../js/admin.js?v=20261024h"></script>
   <script>
     renderAdminSidebar("dashboard"); applyStaffDashboardRestrictions(); initDashboardCharts(); initDashboardFromData(); initDashboardReportDownloads();
 

@@ -1008,7 +1008,12 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         };
       });
       const dataset = { columns, rows: dataRows };
-      if (format === "pdf") {
+      if (format === "xlsx") {
+        loadLogo().then(() => {
+          exportXlsx(dataset, "Reservations Export", "CasaVergara-Reservations");
+          setStatus(statusEl, `Exported ${dataRows.length} reservation(s) as Excel (.xlsx).`, "ok");
+        });
+      } else if (format === "pdf") {
         if (exportPdf(dataset, "Reservations Export", "CasaVergara-Reservations")) {
           setStatus(statusEl, `Exported ${dataRows.length} reservation(s) as PDF.`, "ok");
         }
@@ -1062,11 +1067,14 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
     const csvBtn =
       document.getElementById("paymentExportDocxBtn") || document.getElementById("paymentExportCsvBtn");
     const pdfBtn = document.getElementById("paymentExportPdfBtn");
+    const xlsxBtn = document.getElementById("paymentExportXlsxBtn");
     const statusEl = document.getElementById("paymentExportStatus");
     const fromEl = document.getElementById("paymentExportDateFrom");
     const toEl = document.getElementById("paymentExportDateTo");
     const statusFilterEl = document.getElementById("paymentExportPayFilter");
-    if (!csvBtn && !pdfBtn) return;
+    if (!csvBtn && !pdfBtn && !xlsxBtn) return;
+
+    const formatLabelOf = (f) => (f === "pdf" ? "PDF" : f === "xlsx" ? "Excel (.xlsx)" : "Word (.docx)");
 
     function run(format, btn) {
       withBusy(btn, () => {
@@ -1080,14 +1088,16 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
 
         if (format === "pdf") {
           if (!exportPdf(dataset, "Payment Records", "CasaVergara-Payments")) return;
+        } else if (format === "xlsx") {
+          exportXlsx(dataset, "Payment Records", "CasaVergara-Payments");
         } else {
           exportDocx(dataset, "Payment Records", "CasaVergara-Payments");
         }
         setStatus(
           statusEl,
           dataset.rows.length
-            ? `Exported ${dataset.rows.length} payment record(s) as ${format === "pdf" ? "PDF" : "Word (.docx)"}.`
-            : `No matching records \u2014 downloaded an empty ${format === "pdf" ? "PDF" : "Word (.docx)"} report.`,
+            ? `Exported ${dataset.rows.length} payment record(s) as ${formatLabelOf(format)}.`
+            : `No matching records \u2014 downloaded an empty ${formatLabelOf(format)} report.`,
           dataset.rows.length ? "ok" : "muted",
         );
       });
@@ -1095,6 +1105,7 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
 
     csvBtn?.addEventListener("click", () => run("docx", csvBtn));
     pdfBtn?.addEventListener("click", () => run("pdf", pdfBtn));
+    xlsxBtn?.addEventListener("click", () => loadLogo().then(() => run("xlsx", xlsxBtn)));
   }
   window.initAdminPaymentsExport = initAdminPaymentsExport;
 

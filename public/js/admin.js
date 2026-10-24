@@ -66,44 +66,127 @@ function buildRoomDistribution(rec, max = 5) {
   return { labels: top.map(([n]) => n), data: top.map(([, c]) => c) };
 }
 
+function cvrPeso(n) {
+  return "\u20b1" + Math.round(Number(n) || 0).toLocaleString();
+}
+
+function cvrAnimateNumber(el, to) {
+  if (!el) return;
+  const from = parseInt(String(el.dataset.value ?? el.textContent).replace(/[^0-9-]/g, ""), 10) || 0;
+  el.dataset.value = String(to);
+  if (from === to || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    el.textContent = String(to);
+    return;
+  }
+  const t0 = performance.now();
+  const dur = 600;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    el.textContent = String(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 function initDashboardCharts() {
   const revenueCanvas = document.getElementById("revenueChart");
   const bookingCanvas = document.getElementById("bookingChart");
 
   if (!bookingCanvas || !window.Chart) return;
 
+  const fmtStamp = () => new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
+
+  // Create each chart once; afterwards only the data is swapped and Chart.js animates the change.
   const render = () => {
     const rec = typeof getStoredReservations === "function" ? getStoredReservations() : [];
     const { labels, revenue, bookings } = buildMonthlyTrend(rec);
 
-    if (window.__cvrRevenueChart) window.__cvrRevenueChart.destroy();
-    if (window.__cvrBookingChart) window.__cvrBookingChart.destroy();
-
     if (revenueCanvas) {
-      window.__cvrRevenueChart = new Chart(revenueCanvas, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [{ label: "Revenue", data: revenue, borderColor: "#328bc3", tension: 0.35, fill: false }],
-        },
-        options: { responsive: true, maintainAspectRatio: false },
-      });
+      if (!window.__cvrRevenueChart) {
+        window.__cvrRevenueChart = new Chart(revenueCanvas, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              label: "Revenue",
+              data: revenue,
+              borderColor: "#328bc3",
+              backgroundColor: "rgba(50,139,195,0.15)",
+              pointBackgroundColor: "#328bc3",
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              tension: 0.35,
+              fill: true,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 700, easing: "easeOutCubic" },
+            interaction: { mode: "index", intersect: false },
+            plugins: { tooltip: { callbacks: { label: (c) => ` Revenue: ${cvrPeso(c.parsed.y)}` } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: (v) => cvrPeso(v) } } },
+          },
+        });
+      } else {
+        const c = window.__cvrRevenueChart;
+        c.data.labels = labels;
+        c.data.datasets[0].data = revenue;
+        c.update();
+      }
     }
 
-    window.__cvrBookingChart = new Chart(bookingCanvas, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{ label: "Bookings", data: bookings, backgroundColor: "#0c3b5d" }],
-      },
-      options: { responsive: true, maintainAspectRatio: false },
-    });
+    if (!window.__cvrBookingChart) {
+      window.__cvrBookingChart = new Chart(bookingCanvas, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{ label: "Bookings", data: bookings, backgroundColor: "#0c3b5d", borderRadius: 6 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 700, easing: "easeOutCubic" },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0, stepSize: 1 } } },
+        },
+      });
+    } else {
+      const c = window.__cvrBookingChart;
+      c.data.labels = labels;
+      c.data.datasets[0].data = bookings;
+      c.update();
+    }
+
+    const stamp = document.getElementById("dashLiveStamp");
+    if (stamp) stamp.textContent = `Live \u00b7 updated ${fmtStamp()}`;
   };
 
   render();
+
   if (!window.__cvrDashboardChartsSyncBound) {
     window.__cvrDashboardChartsSyncBound = true;
+
+    // Fires whenever reservations are re-synced from the server.
     document.addEventListener("cvr-reservations-synced", render);
+
+    // Another tab changed the saved reservations (approved a payment, new booking, ...).
+    window.addEventListener("storage", (e) => {
+      if (e.key === "cvrReservations") {
+        render();
+        initDashboardFromData();
+      }
+    });
+
+    // Poll the server so the dashboard keeps moving without a manual refresh.
+    const POLL_MS = 15000;
+    const poll = () => {
+      if (document.hidden) return;
+      if (typeof window.cvrSyncReservationsFromServer === "function") window.cvrSyncReservationsFromServer();
+    };
+    window.__cvrDashboardPoll = setInterval(poll, POLL_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) poll();
+    });
   }
 }
 
@@ -186,10 +269,10 @@ function initDashboardFromData() {
   const payWait = rec.filter((r) => String(r.paymentStatus || "").includes("Waiting")).length;
 
   const el = (id) => document.getElementById(id);
-  if (el("dashKpiBookings")) el("dashKpiBookings").textContent = String(rec.length);
-  if (el("dashKpiVerified")) el("dashKpiVerified").textContent = String(payVerified);
-  if (el("dashKpiPending")) el("dashKpiPending").textContent = String(payPending);
-  if (el("dashKpiWaiting")) el("dashKpiWaiting").textContent = String(payWait);
+  cvrAnimateNumber(el("dashKpiBookings"), rec.length);
+  cvrAnimateNumber(el("dashKpiVerified"), payVerified);
+  cvrAnimateNumber(el("dashKpiPending"), payPending);
+  cvrAnimateNumber(el("dashKpiWaiting"), payWait);
 
   populateReportRoomSelect(el("dashReportRoom"), rec);
 

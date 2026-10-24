@@ -56,6 +56,7 @@
           <div class="col-md-3 d-flex flex-column gap-2 align-items-stretch">
             <span id="paymentExportStatus" class="small fw-semibold d-none" role="status"></span>
             <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-outline-success flex-grow-1" id="paymentExportXlsxBtn"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
               <button type="button" class="btn btn-outline-primary flex-grow-1" id="paymentExportPdfBtn"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
               <button type="button" class="btn btn-brand flex-grow-1" id="paymentExportDocxBtn"><i class="bi bi-filetype-docx me-1"></i>DOCX</button>
             </div>
@@ -113,9 +114,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="../../js/main.js?v=20261024c"></script>
-  <script src="../../js/admin-export.js?v=20260830i"></script>
+  <script src="../../js/admin-export.js?v=20261024h"></script>
   <script src="../../js/admin-payments.js?v=20261024g"></script>
-  <script src="../../js/admin.js?v=20260830i"></script>
+  <script src="../../js/admin.js?v=20261024h"></script>
   <script>
     renderAdminSidebar("payments");
     initAdminPaymentsExport();
