@@ -221,7 +221,8 @@ function initBookingPage() {
       children: roomChildren,
       createdAt: new Date().toISOString(),
     });
-    window.location.href = "reservation-form.html";
+    if (typeof window.cvrGoToReservationForm === "function") window.cvrGoToReservationForm();
+    else window.location.href = "reservation-form.html";
   };
   window.cvrBookRoom = bookRoom;
 
@@ -724,7 +725,8 @@ function initBookingPage() {
         createdAt: new Date().toISOString(),
       });
 
-      window.location.href = "reservation-form.html";
+      if (typeof window.cvrGoToReservationForm === "function") window.cvrGoToReservationForm();
+    else window.location.href = "reservation-form.html";
     });
   }
 }

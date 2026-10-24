@@ -97,6 +97,9 @@ class ReservationController extends Controller
             json_response(false, 'Invalid request method.', [], 405);
         }
 
+        // A booking can only be created or updated by a signed-in account.
+        require_login();
+
         $body = get_json_body();
         $reservation = $body['reservation'] ?? null;
         if (!is_array($reservation) || empty($reservation['id'])) {

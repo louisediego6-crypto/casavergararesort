@@ -5954,9 +5954,13 @@ function initCustomerLoginForm() {
   const showAlert = (message, kind) => {
     if (!alertEl) return;
     alertEl.textContent = message;
-    alertEl.classList.remove("d-none", "alert-success", "alert-danger");
-    alertEl.classList.add(kind === "success" ? "alert-success" : "alert-danger");
+    alertEl.classList.remove("d-none", "alert-success", "alert-danger", "alert-info");
+    alertEl.classList.add(kind === "success" ? "alert-success" : kind === "info" ? "alert-info" : "alert-danger");
   };
+
+  if (cvrPeekPostAuthRedirect()) {
+    showAlert("Please log in to continue your booking. Your selection is saved.", "info");
+  }
 
   const verifyStatus = new URLSearchParams(window.location.search).get("verify");
   const verifyMessages = {
@@ -6038,7 +6042,8 @@ function initCustomerLoginForm() {
         sessionStorage.setItem("cvrLoginToast", JSON.stringify({ name: body.data.user.firstName || "" }));
       } catch {}
 
-      window.location.href = role === "admin" || role === "event_manager" ? "admin/dashboard.html" : "landing.html";
+      window.location.href =
+        role === "admin" || role === "event_manager" ? "admin/dashboard.html" : cvrConsumePostAuthRedirect() || "landing.html";
     } catch (err) {
       showAlert("Could not reach the server. Please make sure the site is running and try again.");
     } finally {
@@ -6158,7 +6163,8 @@ function initCustomerLoginPicker() {
       sessionStorage.setItem("cvrLoginToast", JSON.stringify({ name: user.firstName || "" }));
     } catch {}
     const role = String(user.role || "").toLowerCase();
-    window.location.href = role === "admin" || role === "event_manager" ? "admin/dashboard.html" : "landing.html";
+    window.location.href =
+      role === "admin" || role === "event_manager" ? "admin/dashboard.html" : cvrConsumePostAuthRedirect() || "landing.html";
   }
 
   function renderRows() {
@@ -7542,8 +7548,131 @@ function initAdminMobileTables() {
   });
 }
 
+
+/* ---------- Account required before booking ---------- */
+
+const CVR_POST_AUTH_KEY = "cvrPostAuthRedirect";
+
+function cvrSetPostAuthRedirect(target) {
+  try {
+    sessionStorage.setItem(CVR_POST_AUTH_KEY, String(target || ""));
+  } catch {}
+}
+
+function cvrPeekPostAuthRedirect() {
+  try {
+    return sessionStorage.getItem(CVR_POST_AUTH_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function cvrConsumePostAuthRedirect() {
+  const target = cvrPeekPostAuthRedirect();
+  try {
+    sessionStorage.removeItem(CVR_POST_AUTH_KEY);
+  } catch {}
+  // Only ever return to a booking page of this site (never an arbitrary URL).
+  return /^(reservation-form|quotation|payment|booking)\.html(\?.*)?$/.test(target) ? target : "";
+}
+window.cvrConsumePostAuthRedirect = cvrConsumePostAuthRedirect;
+
+function cvrIsCustomerSignedIn() {
+  const session = getCustomerSession();
+  return !!(session && !isStaffSession(session));
+}
+
+function ensureCvrAuthRequiredModal() {
+  let modalEl = document.getElementById("cvrAuthRequiredModal");
+  if (modalEl) return modalEl;
+
+  modalEl = document.createElement("div");
+  modalEl.className = "modal fade";
+  modalEl.id = "cvrAuthRequiredModal";
+  modalEl.tabIndex = -1;
+  modalEl.setAttribute("aria-labelledby", "cvrAuthRequiredTitle");
+  modalEl.setAttribute("aria-hidden", "true");
+  modalEl.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-body text-center p-4 p-md-5">
+          <div class="mb-3"><i class="bi bi-person-lock text-brand" style="font-size:2.75rem" aria-hidden="true"></i></div>
+          <h5 class="text-brand mb-2" id="cvrAuthRequiredTitle">Account required</h5>
+          <p class="text-muted-brand mb-4" id="cvrAuthRequiredText">
+            Please log in or create an account to book a stay or event at Casa Vergara. It only takes a minute, and your selection will be saved.
+          </p>
+          <div class="d-grid gap-2">
+            <a class="btn btn-brand" id="cvrAuthRequiredLogin" href="${pageUrl("login.html")}"><i class="bi bi-box-arrow-in-right me-2"></i>Log in</a>
+            <a class="btn btn-outline-primary" id="cvrAuthRequiredRegister" href="${pageUrl("register.html")}"><i class="bi bi-person-plus me-2"></i>Create an account</a>
+            <button type="button" class="btn btn-link text-muted-brand" id="cvrAuthRequiredDismiss" data-bs-dismiss="modal">Maybe later</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modalEl);
+  return modalEl;
+}
+
+/**
+ * Shows the "log in or register" popup.
+ * returnTo: booking page (relative to /pages/) to come back to after signing in.
+ * locked:   true on pages that cannot be used without an account (no close / Esc / backdrop click).
+ */
+function cvrShowAuthRequiredModal({ returnTo = "reservation-form.html", locked = false } = {}) {
+  const modalEl = ensureCvrAuthRequiredModal();
+  cvrSetPostAuthRedirect(returnTo);
+
+  const dismiss = modalEl.querySelector("#cvrAuthRequiredDismiss");
+  if (dismiss) {
+    if (locked) {
+      dismiss.removeAttribute("data-bs-dismiss");
+      dismiss.textContent = "Back to rooms & events";
+      dismiss.onclick = () => {
+        window.location.href = pageUrl("booking.html");
+      };
+    } else {
+      dismiss.setAttribute("data-bs-dismiss", "modal");
+      dismiss.textContent = "Maybe later";
+      dismiss.onclick = null;
+    }
+  }
+
+  if (!window.bootstrap?.Modal) {
+    window.location.href = pageUrl("login.html");
+    return;
+  }
+  const existing = window.bootstrap.Modal.getInstance(modalEl);
+  if (existing) existing.dispose();
+  window.bootstrap.Modal.getOrCreateInstance(modalEl, locked ? { backdrop: "static", keyboard: false } : {}).show();
+}
+window.cvrShowAuthRequiredModal = cvrShowAuthRequiredModal;
+
+/** Called by the booking page once the guest has chosen a room/event. */
+function cvrGoToReservationForm() {
+  if (cvrIsCustomerSignedIn()) {
+    window.location.href = "reservation-form.html";
+    return;
+  }
+  cvrShowAuthRequiredModal({ returnTo: "reservation-form.html" });
+}
+window.cvrGoToReservationForm = cvrGoToReservationForm;
+
+/** Direct visits to reservation / quotation / payment pages without an account get a locked popup. */
+function initBookingAuthGate() {
+  const path = window.location.pathname.toLowerCase();
+  const gated = ["reservation-form.html", "quotation.html", "payment.html"].find((p) => path.endsWith("/pages/" + p));
+  if (!gated) return;
+
+  const session = getCustomerSession();
+  if (session) return; // signed in (staff are redirected by enforceRouteGuards)
+
+  const file = path.split("/").pop();
+  cvrShowAuthRequiredModal({ returnTo: file + (window.location.search || ""), locked: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   if (!enforceRouteGuards()) return;
+  initBookingAuthGate();
   initAuthPageTransitions();
   initConnectedNavigation();
   initInteractiveOptions();
