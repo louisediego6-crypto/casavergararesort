@@ -360,6 +360,9 @@ function initAdminCalendarPage() {
     }
 
     formTitle.textContent = "Add booking";
+    // Native date pickers can't go back before today for new bookings.
+    formDate.min = toISODate(new Date());
+    formEndDate.min = toISODate(new Date());
     editIdInput.value = "";
     formType.value = "room";
     formTitleInput.value = "";
@@ -471,6 +474,8 @@ function initAdminCalendarPage() {
   const openDateModal = (isoDate, showAdd = false) => {
     state.selectedDateISO = isoDate;
     renderDateModalList();
+    // Elapsed dates can't take new bookings; their existing entries stay viewable.
+    if (showAdd && isoDate < toISODate(new Date())) showAdd = false;
     if (showAdd) showForm("add");
     else hideForm();
     if (modal) modal.show();
@@ -517,6 +522,7 @@ function initAdminCalendarPage() {
       cellDate.setDate(firstCell.getDate() + i);
       const iso = toISODate(cellDate);
       const inCurrentMonth = cellDate.getMonth() === monthStart.getMonth();
+      const isPast = iso < todayIso;
 
       const dayBookings = allBookings.filter((item) => isOnDate(item, iso));
       const show = dayBookings.slice(0, 4);
@@ -533,7 +539,7 @@ function initAdminCalendarPage() {
       const cell = document.createElement("div");
       cell.className = "booking-cal-cell-wrap";
       cell.innerHTML = `
-        <button type="button" class="booking-cal-cell ${inCurrentMonth ? "" : "booking-cal-cell--faded"} ${iso === todayIso ? "booking-cal-cell--today" : ""} ${heatmap && inCurrentMonth ? "booking-cal-cell--heat" : ""} ${holiday ? "booking-cal-cell--holiday" : ""}" data-date="${iso}" ${heatmap && inCurrentMonth ? heatStyle : ""} ${holiday ? `title="${escapeCalHtml(holiday.name)} (${escapeCalHtml(holiday.typeLabel)})"` : ""}>
+        <button type="button" class="booking-cal-cell ${inCurrentMonth ? "" : "booking-cal-cell--faded"} ${iso === todayIso ? "booking-cal-cell--today" : ""} ${isPast ? "booking-cal-cell--past" : ""} ${heatmap && inCurrentMonth ? "booking-cal-cell--heat" : ""} ${holiday ? "booking-cal-cell--holiday" : ""}" ${isPast ? 'disabled aria-disabled="true" title="This date has already passed"' : ""} data-date="${iso}" ${heatmap && inCurrentMonth ? heatStyle : ""} ${holiday ? `title="${escapeCalHtml(holiday.name)} (${escapeCalHtml(holiday.typeLabel)})"` : ""}>
           <span class="booking-cal-cell-num">${cellDate.getDate()}</span>
           ${holiday ? `<span class="booking-cal-cell-holiday booking-cal-cell-holiday--${holiday.type}">${escapeCalHtml(holiday.name)}</span>` : ""}
           <div class="booking-cal-cell-events">
@@ -706,6 +712,10 @@ function initAdminCalendarPage() {
     const endDate = toISODate(formEndDate.value) || baseDate;
     const title = formTitleInput.value.trim();
     if (!baseDate || !title) return;
+    if (!editIdInput.value && baseDate < toISODate(new Date())) {
+      window.alert("Past dates can't be booked. Please choose today or a future date.");
+      return;
+    }
 
     const existingBooking = getFilteredBookings().find((b) => b.id === id);
     if (existingBooking?.source === "cvr") {

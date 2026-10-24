@@ -2,6 +2,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
   <meta http-equiv="refresh" content="0; url=live-chat.html" />
   <title>Live Chat - Casa Vergara Admin</title>

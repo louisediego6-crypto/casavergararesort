@@ -133,6 +133,14 @@ class PaymentController extends Controller
             ];
         }, $rows);
 
+        // Each receipt is checked against the 50% downpayment of its reservation total.
+        foreach ($proofs as $i => $proofRow) {
+            $check = $this->downpaymentCheck($pdo, (string) $proofRow['reservationId'], $proofRow['amount']);
+            $proofs[$i]['downpaymentRequired'] = $check['required'];
+            $proofs[$i]['declaredAmount'] = $check['declared'];
+            $proofs[$i]['downpaymentVerified'] = $check['verified'];
+        }
+
         $counts = ['waiting' => 0, 'approved' => 0, 'rejected' => 0];
         foreach ($proofs as $proof) {
             if ($proof['status'] === 'Approved') $counts['approved']++;
@@ -141,6 +149,40 @@ class PaymentController extends Controller
         }
 
         json_response(true, 'OK', ['proofs' => $proofs, 'counts' => $counts]);
+    }
+
+    /** Downpayment rule: the guest must pay at least 50% of the reservation total. */
+    private const DOWNPAYMENT_RATE = 0.5;
+
+    /**
+     * Compares the amount a guest declared on their receipt with the required downpayment
+     * (50% of the reservation's total_numeric). Returns null for "required" when the total is unknown.
+     *
+     * @return array{required: ?float, declared: ?float, verified: bool}
+     */
+    private function downpaymentCheck(PDO $pdo, string $reservationRef, ?string $declaredAmount): array
+    {
+        $required = null;
+        try {
+            $stmt = $pdo->prepare('SELECT total_numeric FROM reservations WHERE id = ?');
+            $stmt->execute([$reservationRef]);
+            $total = $stmt->fetchColumn();
+            if ($total !== false && $total !== null && (float) $total > 0) {
+                $required = round((float) $total * self::DOWNPAYMENT_RATE, 2);
+            }
+        } catch (\Throwable $e) {
+            error_log('admin/payments: downpayment lookup failed: ' . $e->getMessage());
+        }
+
+        $declared = null;
+        $digits = preg_replace('/[^0-9.]/', '', (string) $declaredAmount);
+        if ($digits !== '' && is_numeric($digits)) {
+            $declared = round((float) $digits, 2);
+        }
+
+        $verified = $required !== null && $declared !== null && $declared >= $required - 0.005;
+
+        return ['required' => $required, 'declared' => $declared, 'verified' => $verified];
     }
 
     /** Ported from api/admin/payments-update.php */
@@ -175,6 +217,21 @@ class PaymentController extends Controller
 
         if (!$proof) {
             json_response(false, 'That payment submission no longer exists.', [], 404);
+        }
+
+        // Approval is only allowed once the 50% downpayment is validated against the reservation total.
+        if ($status === 'Approved') {
+            $check = $this->downpaymentCheck($pdo, (string) $proof['reservation_ref'], $proof['amount']);
+            if ($check['required'] === null) {
+                json_response(false, 'Cannot verify this payment: the reservation total could not be found.', [], 422);
+            }
+            if ($check['declared'] === null) {
+                json_response(false, 'Cannot verify this payment: the amount on the receipt is missing or unreadable.', [], 422);
+            }
+            if (!$check['verified']) {
+                json_response(false, 'Cannot approve: the declared amount ₱' . number_format($check['declared'], 2)
+                    . ' is below the required 50% downpayment of ₱' . number_format($check['required'], 2) . '.', [], 422);
+            }
         }
 
         $pdo->prepare(

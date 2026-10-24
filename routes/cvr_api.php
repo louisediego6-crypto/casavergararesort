@@ -92,6 +92,8 @@ Route::any('admin/users-delete', [AdminUserController::class, 'delete']);
 Route::any('admin/users-list', [AdminUserController::class, 'index']);
 Route::any('admin/users-save', [AdminUserController::class, 'save']);
 Route::any('admin/users-update', [AdminUserController::class, 'update']);
+Route::any('admin/users-archived', [AdminUserController::class, 'archived']);
+Route::any('admin/users-restore', [AdminUserController::class, 'restore']);
 Route::any('auth/check-email', [AuthController::class, 'checkEmail']);
 Route::any('auth/check-name', [AuthController::class, 'checkName']);
 Route::any('auth/check-phone', [AuthController::class, 'checkPhone']);

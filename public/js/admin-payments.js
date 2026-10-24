@@ -86,6 +86,26 @@ async function initAdminSubmittedProofs() {
         } else {
           thumb = `<i class="bi bi-file-earmark-text fs-4 text-muted-brand"></i>`;
         }
+        const money = (n) =>
+          "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // 50% downpayment check (server-computed from the reservation total).
+        const dpBadge =
+          proof.downpaymentRequired == null
+            ? `<div class="small text-muted-brand mt-1">Reservation total not found</div>`
+            : proof.downpaymentVerified
+              ? `<span class="badge text-bg-success mt-1"><i class="bi bi-check2-circle me-1"></i>50% verified</span>`
+              : `<span class="badge text-bg-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Below 50%</span>
+                 <div class="small text-danger">Required ${money(proof.downpaymentRequired)}</div>`;
+
+        // Once approved the button is greyed out; it also stays disabled until the 50% is verified.
+        const isApproved = proof.status === "Approved";
+        const approveBtn = isApproved
+          ? `<button class="btn btn-sm btn-secondary proof-action-btn" data-action="Approved" disabled title="This payment is already approved"><i class="bi bi-check2-all me-1"></i>Approved</button>`
+          : proof.downpaymentVerified
+            ? `<button class="btn btn-sm btn-outline-success proof-action-btn" data-action="Approved">Approve</button>`
+            : `<button class="btn btn-sm btn-outline-secondary proof-action-btn" data-action="Approved" disabled title="The 50% downpayment must be verified before approving">Approve</button>`;
+
         return `
           <tr data-proof-id="${proof.id}">
             <td>
@@ -97,7 +117,7 @@ async function initAdminSubmittedProofs() {
               <div class="small text-muted-brand">${cvrEscapeHtml(proof.email || "")}</div>
             </td>
             <td class="small">${cvrEscapeHtml(submitted)}</td>
-            <td class="small">${cvrEscapeHtml(proof.amount || "—")}<div class="small text-muted-brand">${cvrEscapeHtml(proof.paymentMethod || "")}</div></td>
+            <td class="small">${cvrEscapeHtml(proof.amount || "—")}<div class="small text-muted-brand">${cvrEscapeHtml(proof.paymentMethod || "")}</div>${dpBadge}</td>
             <td>
               <a href="${cvrEscapeHtml(proof.fileUrl)}" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-2 text-decoration-none">
                 ${thumb}<span class="small">View</span>
@@ -106,7 +126,7 @@ async function initAdminSubmittedProofs() {
             <td><span class="status-chip ${cvrProofStatusClass(proof.status)}">${cvrEscapeHtml(proof.status)}</span></td>
             <td>
               <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-outline-success proof-action-btn" data-action="Approved">Approve</button>
+                ${approveBtn}
                 <button class="btn btn-sm btn-outline-danger proof-action-btn" data-action="Rejected">Reject</button>
                 <button class="btn btn-sm btn-outline-secondary proof-delete-btn" title="Delete submission" aria-label="Delete submission"><i class="bi bi-trash3"></i></button>
               </div>

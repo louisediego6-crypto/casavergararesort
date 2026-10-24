@@ -2,6 +2,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -26,6 +29,7 @@
         </div>
         <div class="d-flex align-items-center gap-2">
           <span id="usersLiveIndicator" class="small text-muted-brand"><i class="bi bi-arrow-repeat me-1"></i>Updating…</span>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="usersArchiveBtn"><i class="bi bi-archive me-1"></i>Archived accounts <span class="badge text-bg-secondary ms-1" id="usersArchiveCount">0</span></button>
           <button type="button" class="btn btn-outline-secondary btn-sm" id="usersRefreshBtn"><i class="bi bi-arrow-clockwise me-1"></i>Refresh now</button>
           <button type="button" class="btn btn-brand btn-sm" id="usersAddBtn"><i class="bi bi-plus-lg me-1"></i>Add User</button>
         </div>
@@ -157,18 +161,42 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="userDeleteModalLabel"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Delete account</h5>
+          <h5 class="modal-title" id="userDeleteModalLabel"><i class="bi bi-archive text-danger me-2"></i>Archive account</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-0">Permanently delete <strong id="userDeleteName">this account</strong>? This cannot be undone.</p>
+          <p class="mb-0">Move <strong id="userDeleteName">this account</strong> to Archived accounts? It will no longer be able to sign in, and you can restore it at any time.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-danger" id="userDeleteConfirmBtn">
-            <span class="admin-btn-label">Delete</span>
+            <span class="admin-btn-label">Archive</span>
             <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="userArchiveModal" tabindex="-1" aria-labelledby="userArchiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userArchiveModalLabel"><i class="bi bi-archive me-2"></i>Archived accounts</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted-brand">Archived accounts are hidden from the user list and cannot sign in. Restore one to bring it back with its original details and password.</p>
+          <div id="userArchiveAlert" class="alert d-none small" role="alert"></div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr><th>Name</th><th>Email</th><th>Role</th><th>Archived</th><th class="text-end">Action</th></tr>
+              </thead>
+              <tbody id="userArchiveTableBody"></tbody>
+            </table>
+          </div>
+          <div id="userArchiveEmpty" class="text-center text-muted-brand py-4 d-none">No archived accounts.</div>
         </div>
       </div>
     </div>
