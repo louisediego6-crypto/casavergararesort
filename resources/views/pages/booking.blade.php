@@ -23,6 +23,7 @@
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/calendars.css?v=20261024a" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/booking-ui.css?v=20261025a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -32,6 +33,11 @@
       <div class="text-center mb-4 booking-page-header">
         <p class="text-uppercase text-primary fw-semibold small mb-2">Reservations</p>
         <h1 class="display-5 fw-bold text-brand">Book Your Stay or Event</h1>
+        <ol class="bk-steps" aria-label="Booking steps">
+          <li class="active"><span class="n">1</span>Pick dates</li>
+          <li><span class="n">2</span>Choose a room</li>
+          <li><span class="n">3</span>Guest details &amp; payment</li>
+        </ol>
         <div id="staffRoomsIntro" class="alert alert-info d-none mt-3 mb-0 text-start">
           <i class="bi bi-shield-check me-2"></i>
           <strong>Staff view.</strong> Booking is disabled for admin and staff accounts. Below you can see event and room availability, and open any room for full details.
@@ -40,7 +46,8 @@
 
       <div id="staffAvailabilityPanel" class="d-none"></div>
 
-      <div class="soft-card p-4 mb-4 booking-filter-card booking-filter-unified">
+      <div class="soft-card p-4 mb-4 booking-filter-card booking-filter-unified" id="bkFilterCard">
+        <h2 class="bk-filter-title"><i class="bi bi-calendar-check"></i>Find your stay <small>Choose a date and how long you'd like to stay</small></h2>
         <div class="row g-3 align-items-start booking-filter-row" id="bookingFilterRow">
           <div class="col-12 col-sm-6 col-lg-2 cvr-filter-shrink-col">
             <label for="bookingType" class="form-label text-brand">Booking Type</label>
@@ -142,6 +149,10 @@
       </div>
 
       <div id="roomBookingSection">
+        <div class="bk-results-head" id="bkResultsHead">
+          <h2 class="text-brand">Choose your room</h2>
+          <p class="bk-results-meta" id="bkResultsMeta"></p>
+        </div>
         <div class="row g-4 booking-room-grid" id="roomPackagesGrid"></div>
       </div>
 
@@ -332,6 +343,7 @@
               </div>
             </div>
             <div class="small text-muted-brand mt-2" id="roomGuestHint"></div>
+            <div class="small text-danger fw-semibold mt-1 d-none" id="roomGuestError" role="alert"></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -343,6 +355,7 @@
     </div>
   </div>
 
+  <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/main.js?v=20261025e"></script>
@@ -350,8 +363,8 @@
   <script src="../js/booking-data.js?v=20261025a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20261025b"></script>
-  <script src="../js/booking.js?v=20261025b"></script>
+  <script src="../js/reservation-calendar.js?v=20261024a"></script>
+  <script src="../js/booking.js?v=20261024i"></script>
   <script src="../js/booking-search-calendar.js?v=20261024a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

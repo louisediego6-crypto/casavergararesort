@@ -383,7 +383,6 @@
       ],
       onChange: function (selectedDates) {
         hidden.value = selectedDates.length ? formatYMD(selectedDates[0]) : "";
-        hidden.dispatchEvent(new Event("change"));
         if (typeof opts.onChange === "function") opts.onChange();
       },
       onDayCreate: function (_dObj, _dStr, _fp, dayElem) {
