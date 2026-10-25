@@ -128,6 +128,7 @@ function initBookingPage() {
   });
 
   checkOutDateHidden?.addEventListener("change", () => renderRoomCards());
+  document.getElementById("checkInDate")?.addEventListener("change", () => renderRoomCards());
 
   ["cvrCheckInHour", "cvrCheckInMinute", "cvrCheckInMeridiem"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", () => renderRoomCards());
@@ -226,6 +227,38 @@ function initBookingPage() {
   };
   window.cvrBookRoom = bookRoom;
 
+  const availabilityNote = (() => {
+    let el = document.getElementById("roomAvailabilityNote");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "roomAvailabilityNote";
+      el.className = "alert alert-info small d-none mb-3";
+      document.getElementById("roomPackagesGrid")?.parentNode?.insertBefore(el, document.getElementById("roomPackagesGrid"));
+    }
+    return el;
+  })();
+
+  // Build the exact time window the visitor is currently searching for.
+  const buildSelectedRoomWindow = (durationKey, nights) => {
+    const checkIn = document.getElementById("checkInDate")?.value || "";
+    if (!checkIn || !window.CVRDuration?.buildWindow) return null;
+    if (durationKey === "extended" && !nights) return null;
+    const arrival = getCheckInTimeSelection().time;
+    const departure = durationKey === "extended" ? getCheckOutTimeSelection().time : null;
+    try {
+      return window.CVRDuration.buildWindow(checkIn, durationKey, durationKey === "extended" ? nights : 1, arrival, departure) || null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const isRoomOccupied = (pkg, win) => {
+    if (typeof window.roomStayOverlapsExisting !== "function") return false;
+    return Boolean(
+      window.roomStayOverlapsExisting(pkg.id, pkg.title, win.checkInDateOnly, win.checkOutDateOnly, "", win.scheduledCheckIn, win.scheduledCheckOut)
+    );
+  };
+
   const renderRoomCards = () => {
     const grid = document.getElementById("roomPackagesGrid");
     if (!grid) return;
@@ -243,8 +276,31 @@ function initBookingPage() {
     const label3 = windowLabel("3hr", "8AM–11AM");
     const label12 = windowLabel("12hr", "8AM–8PM");
     const label24 = windowLabel("24hr", "2PM–2PM");
-    grid.innerHTML = cat
-      .getRoomPackages({ activeOnly: true })
+    // Only show rooms that are free for the chosen date, duration and arrival time.
+    const selectedWin = buildSelectedRoomWindow(durationKey, extendedNightsValid ? extendedNights : null);
+    const allRooms = cat.getRoomPackages({ activeOnly: true });
+    const availableRooms = selectedWin ? allRooms.filter((pkg) => !isRoomOccupied(pkg, selectedWin)) : allRooms;
+    const hiddenCount = allRooms.length - availableRooms.length;
+    if (availabilityNote) {
+      if (selectedWin && hiddenCount > 0) {
+        availabilityNote.textContent = `${hiddenCount} room${hiddenCount !== 1 ? "s are" : " is"} already booked for your selected date and time, so ${hiddenCount !== 1 ? "they are" : "it is"} hidden below.`;
+        availabilityNote.classList.remove("d-none");
+      } else {
+        availabilityNote.classList.add("d-none");
+      }
+    }
+    if (selectedWin && availableRooms.length === 0) {
+      grid.innerHTML = `
+        <div class="col-12">
+          <div class="soft-card p-4 text-center">
+            <i class="bi bi-calendar-x fs-2 text-brand"></i>
+            <h5 class="text-brand mt-2 mb-1">No rooms available for that date and time</h5>
+            <p class="small text-muted-brand mb-0">Every room is already booked for your selected schedule. Please try a different date, arrival time or stay duration.</p>
+          </div>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = availableRooms
       .map((pkg) => {
         const inc = pkg.inclusions.slice(0, 4).join(" · ");
         const more = pkg.inclusions.length > 4 ? " +" + (pkg.inclusions.length - 4) + " more" : "";
@@ -356,6 +412,10 @@ function initBookingPage() {
   if (bookingTypeSelect.value === "event") ensureEventPreferredCalendar();
   setDefaultDates();
   renderRoomCards();
+  // Pull confirmed bookings from the server, then refresh so occupied rooms disappear.
+  if (typeof window.__cvrFetchServerOccupied === "function") {
+    window.__cvrFetchServerOccupied().then(() => renderRoomCards()).catch(() => {});
+  }
 
   const searchBtn = document.getElementById("bookingSearchBtn");
   searchBtn?.addEventListener("click", () => {
@@ -613,6 +673,47 @@ function initBookingPage() {
         eventTypeEl.dispatchEvent(new Event("change"));
       }
     })();
+
+    // Event availability: the venue is shared, so an overlapping event makes the chosen slot unavailable.
+    const eventSubmitBtn = eventForm.querySelector('button[type="submit"]');
+    let eventNote = document.getElementById("eventAvailabilityNote");
+    if (!eventNote) {
+      eventNote = document.createElement("div");
+      eventNote.id = "eventAvailabilityNote";
+      eventNote.className = "alert alert-danger small d-none";
+      eventForm.insertBefore(eventNote, eventForm.firstChild);
+    }
+    const refreshEventAvailability = () => {
+      const dateVal = document.getElementById("eventDate")?.value || "";
+      if (!dateVal || !window.CVRDuration?.buildWindow || typeof window.cvrEventOverlapsExisting !== "function") {
+        eventNote.classList.add("d-none");
+        if (eventSubmitBtn) eventSubmitBtn.disabled = false;
+        return;
+      }
+      const key = getSelectedPackageKey();
+      const fixed = getFixedSchedule(key);
+      const dKey = fixed ? fixed.durationKey : document.getElementById("eventDuration")?.value || "12hr";
+      const ext = !fixed && dKey === "extended";
+      const inSel = fixed ? { time: fixed.checkInTime } : getEventCheckInTimeSelection();
+      const outSel = ext ? getEventCheckOutTimeSelection() : { time: null };
+      let w = null;
+      try {
+        w = window.CVRDuration.buildWindow(dateVal, dKey, ext ? getSelectedEventNights() : null, inSel.time, outSel.time);
+      } catch (e) { w = null; }
+      const taken = Boolean(w && window.cvrEventOverlapsExisting(w.scheduledCheckIn, w.scheduledCheckOut, ""));
+      eventNote.textContent = taken ? "The venue is already booked for that date and time. Please choose a different date, time or duration." : "";
+      eventNote.classList.toggle("d-none", !taken);
+      if (eventSubmitBtn) eventSubmitBtn.disabled = taken;
+    };
+    ["eventDate", "eventDuration", "eventNights", "eventType", "eventBirthdayPackage",
+     "eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem",
+     "eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
+    });
+    window.cvrRefreshEventAvailability = refreshEventAvailability;
+    if (typeof window.__cvrFetchServerOccupied === "function") {
+      window.__cvrFetchServerOccupied().then(refreshEventAvailability).catch(() => {});
+    }
 
     eventForm.addEventListener("submit", (event) => {
       event.preventDefault();
