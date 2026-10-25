@@ -262,7 +262,8 @@ function setCustomerSession(profile) {
   if (!profile?.email) return;
   const { password: _pw, ...rest } = profile;
   localStorage.setItem("cvrCustomerSession", JSON.stringify(rest));
-  rememberRecentAccount(rest);
+  // Accounts are NOT remembered automatically on sign-in. They are only saved
+  // when the person clicks "Save account" in the log-out dialog (or ticks "Remember me").
 }
 
 function clearCustomerSession() {
@@ -300,6 +301,15 @@ window.cvrClearSavedLoginEmail = cvrClearSavedLoginEmail;
 
 const CVR_RECENT_ACCOUNTS_KEY = "cvrRecentAccounts";
 const CVR_RECENT_ACCOUNTS_MAX = 5;
+
+// One-time cleanup: earlier versions auto-added every signed-in account to this list.
+(function cvrPurgeAutoSavedAccounts() {
+  try {
+    if (localStorage.getItem("cvrRecentAccountsPurged") === "1") return;
+    localStorage.removeItem("cvrRecentAccounts");
+    localStorage.setItem("cvrRecentAccountsPurged", "1");
+  } catch {}
+})();
 
 function getRecentAccounts() {
   try {
