@@ -399,7 +399,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/booking-data.js?v=20261024a"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
-  <script src="../js/main.js?v=20261025b"></script>
+  <script src="../js/main.js?v=20261025c"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
   <script src="../js/casa-refresh.js?v=20261018a"></script>
   <script>

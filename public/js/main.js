@@ -6231,9 +6231,29 @@ function initCustomerLoginPicker() {
 
   const backToSavedBtn = document.getElementById("loginBackToSavedBtn");
 
-  const showPanel = createCvrPanelSwitcher({ picker, form: formPanel, password: passwordPanel }, (which) => {
+  // Top-left arrow: on the sign-in form / password step it goes back to the saved
+  // accounts; on the saved-accounts screen (or when none are saved) it goes to the landing page.
+  const topBackBtn = document.getElementById("loginTopBackBtn");
+  let currentPanel = "";
+  const syncTopBack = () => {
+    if (!topBackBtn) return;
+    const toSaved = !!accounts.length && (currentPanel === "form" || currentPanel === "password");
+    topBackBtn.setAttribute("aria-label", toSaved ? "Back to saved accounts" : "Back to home");
+    topBackBtn.title = toSaved ? "Back to saved accounts" : "Back to home";
+  };
+  topBackBtn?.addEventListener("click", (e) => {
+    if (!!accounts.length && (currentPanel === "form" || currentPanel === "password")) {
+      e.preventDefault();
+      showPwAlert(null);
+      showPanel("picker");
+    }
+    // otherwise follow the link to landing.html
+  });
 
+  const showPanel = createCvrPanelSwitcher({ picker, form: formPanel, password: passwordPanel }, (which) => {
+    currentPanel = which;
     backToSavedBtn?.classList.toggle("cvr-fade-hidden", which !== "form" || !accounts.length);
+    syncTopBack();
   });
 
   const showPwAlert = (message) => {

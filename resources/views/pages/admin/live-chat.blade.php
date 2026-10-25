@@ -64,7 +64,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261025b"></script>
+  <script src="../../js/main.js?v=20261025c"></script>
   <script src="../../js/live-chat.js?v=20261024c"></script>
   <script src="../../js/admin-live-chat.js?v=20261024c"></script>
   <script>renderAdminSidebar("live-chat"); initAdminLiveChatPage();</script>

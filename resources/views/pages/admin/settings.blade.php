@@ -231,7 +231,7 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261025b"></script>
+  <script src="../../js/main.js?v=20261025c"></script>
   <script src="../../js/admin-settings.js?v=20260830i"></script>
   <script>
     renderAdminSidebar("settings");

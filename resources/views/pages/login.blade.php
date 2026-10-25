@@ -42,6 +42,7 @@
 
       <a
         href="landing.html"
+        id="loginTopBackBtn"
         class="btn btn-link p-0 text-brand position-absolute"
         style="top:1.5rem; left:1.5rem;"
         aria-label="Back to home"
@@ -368,7 +369,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="../js/main.js?v=20261025b"></script>
+  <script src="../js/main.js?v=20261025c"></script>
   <script>applySiteText(); applySiteImages();</script>
 
   <script src="../js/legal-doc.js?v=20260830i"></script>
