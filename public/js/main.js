@@ -352,27 +352,46 @@ function ensureCvrLogoutModal() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="modal fade" id="cvrLogoutModal" tabindex="-1" aria-labelledby="cvrLogoutModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content cvr-logout-modal-content">
-          <div class="modal-body text-center pt-4 pb-3 px-4">
-            <div class="cvr-logout-modal-icon mb-3"><i class="bi bi-box-arrow-right"></i></div>
-            <h5 class="text-brand mb-2" id="cvrLogoutModalLabel">Log out of Casa Vergara?</h5>
-            <p class="text-muted-brand small mb-0">You'll need to sign in again to access your account.</p>
-            <div class="mt-3 d-none" id="cvrLogoutSaveWrap">
-              <button type="button" class="btn btn-outline-primary btn-sm px-3" id="cvrLogoutSaveBtn">
-                <i class="bi bi-person-check me-1 cvr-logout-save-icon"></i>
-                <span class="cvr-logout-save-label">Save account</span>
-                <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
-              </button>
-              <div class="small text-muted-brand mt-2" id="cvrLogoutSaveHint">Save this account to sign back in with one tap next time.</div>
+      <div class="modal-dialog modal-dialog-centered cvr-lo-dialog">
+        <div class="modal-content cvr-lo-card">
+          <button type="button" class="cvr-lo-close" data-bs-dismiss="modal" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+
+          <div class="cvr-lo-head" id="cvrLogoutHead">
+            <div class="cvr-lo-avatar" id="cvrLogoutAvatar" aria-hidden="true"></div>
+            <div class="cvr-lo-who">
+              <div class="cvr-lo-eyebrow">Signed in as</div>
+              <div class="cvr-lo-name" id="cvrLogoutName"></div>
+              <div class="cvr-lo-email" id="cvrLogoutEmail"></div>
             </div>
           </div>
-          <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-center gap-2">
-            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger px-4" id="cvrLogoutConfirmBtn">
-              <span class="cvr-logout-btn-label">Log out</span>
-              <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
-            </button>
+
+          <div class="cvr-lo-body">
+            <h5 class="cvr-lo-title" id="cvrLogoutModalLabel">Log out of Casa Vergara?</h5>
+            <p class="cvr-lo-sub">You'll need to sign in again to access your account.</p>
+
+            <div class="cvr-lo-actions">
+              <div class="d-none" id="cvrLogoutSaveWrap">
+                <button type="button" class="cvr-lo-opt cvr-lo-opt--save" id="cvrLogoutSaveBtn">
+                  <span class="cvr-lo-opt-icon"><i class="bi bi-person-check cvr-logout-save-icon"></i></span>
+                  <span class="cvr-lo-opt-text">
+                    <span class="cvr-lo-opt-title cvr-logout-save-label">Save account &amp; log out</span>
+                    <small id="cvrLogoutSaveHint">Sign back in with one tap next time.</small>
+                  </span>
+                  <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+              </div>
+
+              <button type="button" class="cvr-lo-opt cvr-lo-opt--out" id="cvrLogoutConfirmBtn">
+                <span class="cvr-lo-opt-icon"><i class="bi bi-box-arrow-right"></i></span>
+                <span class="cvr-lo-opt-text">
+                  <span class="cvr-lo-opt-title cvr-logout-btn-label">Log out</span>
+                  <small>Sign out without saving this account</small>
+                </span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <button type="button" class="cvr-lo-cancel" data-bs-dismiss="modal">Stay signed in</button>
           </div>
         </div>
       </div>
@@ -461,6 +480,7 @@ function cvrConfirmLogout(redirectUrl) {
 
   // "Save account" saves this account, then logs out and heads to the login page.
   setupCvrLogoutSaveButton(modalEl, performLogout);
+  fillCvrLogoutUser(modalEl);
 
   if (window.bootstrap?.Modal) {
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -468,6 +488,32 @@ function cvrConfirmLogout(redirectUrl) {
 
     if (window.confirm("Log out of Casa Vergara?")) btn.click();
   }
+}
+
+function fillCvrLogoutUser(modalEl) {
+  const head = modalEl.querySelector("#cvrLogoutHead");
+  const avatarEl = modalEl.querySelector("#cvrLogoutAvatar");
+  const nameEl = modalEl.querySelector("#cvrLogoutName");
+  const emailEl = modalEl.querySelector("#cvrLogoutEmail");
+  const sess = getCustomerSession();
+  if (!head) return;
+  if (!sess?.email) { head.classList.add("d-none"); return; }
+  head.classList.remove("d-none");
+  const initials = customerProfileInitials(sess);
+  const showInitials = () => { avatarEl.textContent = initials; };
+  const src = customerAvatarSrc(sess);
+  avatarEl.textContent = "";
+  if (src) {
+    const img = document.createElement("img");
+    img.alt = "";
+    img.src = src;
+    img.addEventListener("error", showInitials);
+    avatarEl.appendChild(img);
+  } else {
+    showInitials();
+  }
+  if (nameEl) nameEl.textContent = customerProfileDisplayName(sess);
+  if (emailEl) emailEl.textContent = sess.email;
 }
 
 // Shows a "Save account" button in the log-out dialog when the current account
@@ -486,13 +532,13 @@ function setupCvrLogoutSaveButton(modalEl, onSaved) {
   const spinnerEl = saveBtn.querySelector(".spinner-border");
   const hintEl = modalEl.querySelector("#cvrLogoutSaveHint");
   saveBtn.disabled = false;
-  saveBtn.className = "btn btn-outline-primary btn-sm px-3";
-  if (labelEl) labelEl.textContent = "Save account";
-  if (iconEl) iconEl.className = "bi bi-person-check me-1 cvr-logout-save-icon";
+  saveBtn.className = "cvr-lo-opt cvr-lo-opt--save";
+  if (labelEl) labelEl.textContent = "Save account & log out";
+  if (iconEl) iconEl.className = "bi bi-person-check cvr-logout-save-icon";
   spinnerEl?.classList.add("d-none");
   if (hintEl) {
-    hintEl.className = "small text-muted-brand mt-2";
-    hintEl.textContent = "Save this account to sign back in with one tap next time.";
+    hintEl.className = "";
+    hintEl.textContent = "Sign back in with one tap next time.";
   }
 
   const current = getCustomerSession();
@@ -505,23 +551,24 @@ function setupCvrLogoutSaveButton(modalEl, onSaved) {
       const { body } = await cvrApiPost("auth/save-account", {});
       if (body.success) {
         rememberRecentAccount(current);
-        saveBtn.className = "btn btn-success btn-sm px-3";
-        if (iconEl) iconEl.className = "bi bi-check-circle me-1 cvr-logout-save-icon";
+        saveBtn.className = "cvr-lo-opt cvr-lo-opt--save is-done";
+        if (iconEl) iconEl.className = "bi bi-check-lg cvr-logout-save-icon";
         if (labelEl) labelEl.textContent = "Account saved";
-        if (hintEl) hintEl.textContent = "Account saved. Taking you to the login page…";
+        if (hintEl) hintEl.textContent = "Taking you to the login page…";
+        modalEl.querySelector("#cvrLogoutConfirmBtn")?.setAttribute("disabled", "disabled");
         // Save, then sign out and go straight to the login page.
         if (typeof onSaved === "function") setTimeout(onSaved, 600);
       } else {
         saveBtn.disabled = false;
         if (hintEl) {
-          hintEl.className = "small text-danger mt-2";
+          hintEl.className = "is-error";
           hintEl.textContent = body.message || "Could not save this account. Please try again.";
         }
       }
     } catch {
       saveBtn.disabled = false;
       if (hintEl) {
-        hintEl.className = "small text-danger mt-2";
+        hintEl.className = "is-error";
         hintEl.textContent = "Could not reach the server. Please try again.";
       }
     } finally {
@@ -7928,4 +7975,165 @@ window.cvrConfirmModal = cvrConfirmModal;
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+
+
+/* ===== Log-out dialog styles + animated password "eye" (injected so every page gets them) ===== */
+(function cvrUiExtras() {
+  const css = `
+  /* --- Log-out dialog --- */
+  .cvr-lo-dialog { max-width: 400px; }
+  .cvr-lo-card { position: relative; border: 0; border-radius: 22px; overflow: hidden; background: #fff;
+    box-shadow: 0 30px 70px rgba(10, 37, 56, .28); }
+  .modal.fade .cvr-lo-dialog { transform: translateY(18px) scale(.97); transition: transform .28s cubic-bezier(.2,.9,.3,1.2), opacity .2s; }
+  .modal.show .cvr-lo-dialog { transform: none; }
+  .cvr-lo-close { position: absolute; top: .7rem; right: .7rem; z-index: 2; width: 30px; height: 30px; border: 0; border-radius: 50%;
+    background: rgba(255,255,255,.16); color: #fff; font-size: .75rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+  .cvr-lo-close:hover { background: rgba(255,255,255,.3); }
+  .cvr-lo-head { display: flex; align-items: center; gap: .9rem; padding: 1.35rem 1.4rem 1.2rem;
+    background: linear-gradient(135deg, #0a3d57 0%, #0e6d8c 100%); color: #fff; }
+  .cvr-lo-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.75); font-weight: 700; font-size: 1.1rem; letter-spacing: .02em; }
+  .cvr-lo-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .cvr-lo-who { min-width: 0; }
+  .cvr-lo-eyebrow { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; opacity: .75; }
+  .cvr-lo-name { font-weight: 600; font-size: 1.05rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cvr-lo-email { font-size: .8rem; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cvr-lo-body { padding: 1.25rem 1.4rem 1.2rem; }
+  .cvr-lo-title { margin: 0 0 .25rem; font-weight: 700; color: #0b4f6c; }
+  .cvr-lo-sub { margin: 0 0 1rem; color: #6b7c8e; font-size: .88rem; }
+  .cvr-lo-actions { display: flex; flex-direction: column; gap: .6rem; }
+  .cvr-lo-opt { width: 100%; display: flex; align-items: center; gap: .85rem; padding: .75rem .9rem; border-radius: 14px; text-align: left;
+    cursor: pointer; border: 1.5px solid transparent; transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease, color .2s ease; }
+  .cvr-lo-opt:active:not(:disabled) { transform: scale(.985); }
+  .cvr-lo-opt:disabled { opacity: .75; cursor: default; }
+  .cvr-lo-opt-icon { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+  .cvr-lo-opt-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .cvr-lo-opt-title { font-weight: 600; font-size: .95rem; }
+  .cvr-lo-opt-text small { font-size: .76rem; opacity: .8; }
+  .cvr-lo-opt-text small.is-error { color: #ffd2d6; opacity: 1; }
+  .cvr-lo-opt--save { background: linear-gradient(135deg, #0b5f82, #0e8aa8); color: #fff; box-shadow: 0 8px 18px rgba(14, 109, 140, .28); }
+  .cvr-lo-opt--save .cvr-lo-opt-icon { background: rgba(255,255,255,.18); }
+  .cvr-lo-opt--save:hover:not(:disabled) { box-shadow: 0 10px 22px rgba(14, 109, 140, .38); transform: translateY(-1px); }
+  .cvr-lo-opt--save.is-done { background: linear-gradient(135deg, #198754, #2fa66d); box-shadow: 0 8px 18px rgba(25,135,84,.3); }
+  .cvr-lo-opt--out { background: #fff; color: #c62839; border-color: #f2c5cb; }
+  .cvr-lo-opt--out .cvr-lo-opt-icon { background: rgba(220, 53, 69, .1); }
+  .cvr-lo-opt--out:hover:not(:disabled) { background: #dc3545; color: #fff; border-color: #dc3545; }
+  .cvr-lo-opt--out:hover:not(:disabled) .cvr-lo-opt-icon { background: rgba(255,255,255,.2); }
+  .cvr-lo-cancel { display: block; margin: .85rem auto 0; background: none; border: 0; color: #6b7c8e; font-size: .88rem; font-weight: 500; padding: .35rem .8rem; border-radius: 8px; cursor: pointer; }
+  .cvr-lo-cancel:hover { color: #0b4f6c; background: rgba(11, 79, 108, .07); }
+  html[data-theme="dark"] .cvr-lo-card { background: #18222c; color: #e6edf3; box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+  html[data-theme="dark"] .cvr-lo-title { color: #8fd3ea; }
+  html[data-theme="dark"] .cvr-lo-sub, html[data-theme="dark"] .cvr-lo-cancel { color: #9fb0c1; }
+  html[data-theme="dark"] .cvr-lo-cancel:hover { color: #fff; background: rgba(255,255,255,.08); }
+  html[data-theme="dark"] .cvr-lo-opt--out { background: transparent; color: #ff8793; border-color: #5a3038; }
+  html[data-theme="dark"] .cvr-lo-opt--out:hover:not(:disabled) { background: #dc3545; color: #fff; border-color: #dc3545; }
+
+  /* --- Animated password eye --- */
+  .cvr-pw-wrap { position: relative; }
+  .cvr-pw-wrap > input, .cvr-pw-group > input.cvr-pw-input { padding-right: 2.9rem; }
+  .cvr-pw-group { position: relative; }
+  .cvr-eye-btn { position: absolute; top: 0; bottom: 0; right: 0; width: 2.9rem; z-index: 5; display: flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; color: #7a8b9c; cursor: pointer; border-radius: 0 .5rem .5rem 0; transition: color .2s ease; padding: 0; }
+  .cvr-eye-btn:hover { color: #0b5f82; }
+  .cvr-eye-btn:focus-visible { outline: 2px solid #0e8aa8; outline-offset: -3px; }
+  .cvr-eye-btn.is-on { color: #0b5f82; }
+  .cvr-eye-svg { width: 22px; height: 22px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cvr-eye-ball { transform-box: fill-box; transform-origin: center; }
+  .cvr-eye-pupil { fill: currentColor; stroke: none; transform-box: fill-box; transform-origin: center; transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+  .cvr-eye-slash { stroke-dasharray: 26; stroke-dashoffset: 0; transition: stroke-dashoffset .3s ease; }
+  .cvr-eye-btn:not(.is-on) .cvr-eye-pupil { transform: scale(.55); }
+  .cvr-eye-btn.is-on .cvr-eye-slash { stroke-dashoffset: 26; }
+  .cvr-eye-btn.is-on .cvr-eye-pupil { transform: scale(1); }
+  .cvr-eye-btn.is-blink .cvr-eye-ball { animation: cvrEyeBlink .38s ease; }
+  .cvr-eye-btn.is-on.is-blink .cvr-eye-pupil { animation: cvrEyeGlance .7s ease .1s; }
+  .cvr-eye-btn:hover .cvr-eye-svg { animation: cvrEyeNudge .5s ease; }
+  @keyframes cvrEyeBlink { 0% { transform: scaleY(1); } 45% { transform: scaleY(.08); } 100% { transform: scaleY(1); } }
+  @keyframes cvrEyeGlance { 0%,100% { transform: translateX(0) scale(1); } 30% { transform: translateX(-2.2px) scale(1); } 65% { transform: translateX(2.2px) scale(1); } }
+  @keyframes cvrEyeNudge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  html[data-theme="dark"] .cvr-eye-btn { color: #9fb0c1; }
+  html[data-theme="dark"] .cvr-eye-btn:hover, html[data-theme="dark"] .cvr-eye-btn.is-on { color: #8fd3ea; }
+  @media (prefers-reduced-motion: reduce) {
+    .cvr-eye-btn *, .cvr-eye-btn, .modal.fade .cvr-lo-dialog { animation: none !important; transition: none !important; }
+  }`;
+  const style = document.createElement("style");
+  style.id = "cvr-ui-extras";
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  const EYE_SVG = `
+    <svg class="cvr-eye-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <g class="cvr-eye-ball">
+        <path d="M1.8 12S5.6 5.2 12 5.2 22.2 12 22.2 12 18.4 18.8 12 18.8 1.8 12 1.8 12z"/>
+        <circle class="cvr-eye-pupil" cx="12" cy="12" r="3.1"/>
+      </g>
+      <line class="cvr-eye-slash" x1="4" y1="4" x2="20" y2="20"/>
+    </svg>`;
+
+  function enhance(input) {
+    if (input.dataset.cvrEye) return;
+    input.dataset.cvrEye = "1";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cvr-eye-btn";
+    btn.setAttribute("aria-label", "Show password");
+    btn.setAttribute("aria-pressed", "false");
+    btn.tabIndex = 0;
+    btn.innerHTML = EYE_SVG;
+
+    const parent = input.parentElement;
+    if (parent && parent.classList.contains("input-group")) {
+      parent.classList.add("cvr-pw-group");
+      input.classList.add("cvr-pw-input");
+      parent.appendChild(btn);
+    } else {
+      const wrap = document.createElement("div");
+      wrap.className = "cvr-pw-wrap";
+      const mb = getComputedStyle(input).marginBottom;
+      if (mb && mb !== "0px") { wrap.style.marginBottom = mb; input.style.marginBottom = "0"; }
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      wrap.appendChild(btn);
+    }
+
+    // Keep focus (and caret) in the field when the eye is pressed.
+    btn.addEventListener("mousedown", (e) => e.preventDefault());
+    btn.addEventListener("click", () => {
+      const show = input.type === "password";
+      let start = null, end = null;
+      try { start = input.selectionStart; end = input.selectionEnd; } catch {}
+      input.type = show ? "text" : "password";
+      try { if (start !== null) input.setSelectionRange(start, end); } catch {}
+      btn.classList.toggle("is-on", show);
+      btn.setAttribute("aria-pressed", show ? "true" : "false");
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      btn.classList.remove("is-blink");
+      void btn.offsetWidth; // restart the blink animation
+      btn.classList.add("is-blink");
+    });
+    btn.addEventListener("animationend", (e) => {
+      if (e.animationName === "cvrEyeBlink") btn.classList.remove("is-blink");
+    });
+
+    // Always go back to hidden after the form is submitted or reset.
+    input.form?.addEventListener("submit", () => { if (input.type === "text" && btn.classList.contains("is-on")) btn.click(); });
+  }
+
+  function scan(root) {
+    (root || document).querySelectorAll('input[type="password"]:not([data-cvr-eye])').forEach(enhance);
+  }
+
+  let queued = false;
+  function queueScan() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; scan(); });
+  }
+
+  function start() {
+    scan();
+    new MutationObserver(queueScan).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

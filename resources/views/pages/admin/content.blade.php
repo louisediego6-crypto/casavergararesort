@@ -89,7 +89,7 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261024j"></script>
+  <script src="../../js/main.js?v=20261025b"></script>
   <script src="../../js/admin-content.js?v=20260924a"></script>
   <script>renderAdminSidebar("content"); initAdminContentPage();</script>
 </body>
