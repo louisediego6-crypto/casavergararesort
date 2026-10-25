@@ -438,16 +438,19 @@ function cvrConfirmLogout(redirectUrl) {
   const btn = oldBtn.cloneNode(true);
   oldBtn.replaceWith(btn);
 
-  btn.addEventListener("click", async () => {
+  const performLogout = async () => {
     btn.disabled = true;
     btn.querySelector(".cvr-logout-btn-label")?.classList.add("d-none");
     btn.querySelector(".spinner-border")?.classList.remove("d-none");
     try { await cvrApiPost("auth/logout", {}); } catch {  }
     clearCustomerSession();
     window.location.href = redirectUrl;
-  });
+  };
 
-  setupCvrLogoutSaveButton(modalEl);
+  btn.addEventListener("click", performLogout);
+
+  // "Save account" saves this account, then logs out and heads to the login page.
+  setupCvrLogoutSaveButton(modalEl, performLogout);
 
   if (window.bootstrap?.Modal) {
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -459,7 +462,7 @@ function cvrConfirmLogout(redirectUrl) {
 
 // Shows a "Save account" button in the log-out dialog when the current account
 // is not already saved on this browser.
-function setupCvrLogoutSaveButton(modalEl) {
+function setupCvrLogoutSaveButton(modalEl, onSaved) {
   const wrap = modalEl.querySelector("#cvrLogoutSaveWrap");
   const oldSaveBtn = modalEl.querySelector("#cvrLogoutSaveBtn");
   if (!wrap || !oldSaveBtn) return;
@@ -495,7 +498,9 @@ function setupCvrLogoutSaveButton(modalEl) {
         saveBtn.className = "btn btn-success btn-sm px-3";
         if (iconEl) iconEl.className = "bi bi-check-circle me-1 cvr-logout-save-icon";
         if (labelEl) labelEl.textContent = "Account saved";
-        if (hintEl) hintEl.textContent = "You can switch back to it anytime from the login page.";
+        if (hintEl) hintEl.textContent = "Account saved. Taking you to the login page…";
+        // Save, then sign out and go straight to the login page.
+        if (typeof onSaved === "function") setTimeout(onSaved, 600);
       } else {
         saveBtn.disabled = false;
         if (hintEl) {

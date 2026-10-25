@@ -373,7 +373,7 @@
           <small class="text-muted-brand" data-role="page"></small>
         </div>
         <div class="alert d-none small py-2 mb-0" data-role="alert" role="alert"></div>
-        <input type="file" class="d-none" accept="image/jpeg,image/png,image/webp,image/gif" data-role="file">
+        <input type="file" class="d-none" accept="image/*" data-role="file">
         <div class="d-flex flex-wrap gap-2">
           <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" data-role="upload-btn">
             <i class="bi bi-upload me-1"></i><span class="admin-btn-label">Replace photo</span>
