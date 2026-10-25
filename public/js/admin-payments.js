@@ -149,22 +149,24 @@ async function initAdminSubmittedProofs() {
         const money = (n) =>
           "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // 50% downpayment check (server-computed from the reservation total).
+        // Payment check (server-computed): 50% downpayment, or the full amount when the guest chose to pay in full.
+        const isFullPlan = proof.paymentPlan === "full";
+        const planWord = isFullPlan ? "full payment" : "50% downpayment";
         const dpBadge =
           proof.downpaymentRequired == null
             ? `<div class="small text-muted-brand mt-1">Reservation total not found</div>`
             : proof.downpaymentVerified
-              ? `<span class="badge text-bg-success mt-1"><i class="bi bi-check2-circle me-1"></i>50% verified</span>`
-              : `<span class="badge text-bg-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Below 50%</span>
+              ? `<span class="badge text-bg-success mt-1"><i class="bi bi-check2-circle me-1"></i>${isFullPlan ? "Full payment verified" : "50% verified"}</span>`
+              : `<span class="badge text-bg-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>${isFullPlan ? "Below full amount" : "Below 50%"}</span>
                  <div class="small text-danger">Required ${money(proof.downpaymentRequired)}</div>`;
 
-        // Once approved the button is greyed out; it also stays disabled until the 50% is verified.
+        // Once approved the button is greyed out; it also stays disabled until the required payment is verified.
         const isApproved = proof.status === "Approved";
         const approveBtn = isApproved
           ? `<button class="btn btn-sm btn-secondary proof-action-btn" data-action="Approved" disabled title="This payment is already approved"><i class="bi bi-check2-all me-1"></i>Approved</button>`
           : proof.downpaymentVerified
             ? `<button class="btn btn-sm btn-outline-success proof-action-btn" data-action="Approved">Approve</button>`
-            : `<button class="btn btn-sm btn-outline-secondary proof-action-btn" data-action="Approved" disabled title="The 50% downpayment must be verified before approving">Approve</button>`;
+            : `<button class="btn btn-sm btn-outline-secondary proof-action-btn" data-action="Approved" disabled title="The ${planWord} must be verified before approving">Approve</button>`;
 
         return `
           <tr data-proof-id="${proof.id}">

@@ -3887,10 +3887,11 @@ function renderQuotationBreakdownHtml(record, cat) {
           <tr><td colspan="3" class="text-end fw-semibold">Package subtotal</td><td class="text-end">${fmt(q.subtotalPackage)}</td></tr>
           <tr><td colspan="3" class="text-end fw-semibold">Add-ons</td><td class="text-end">${fmt(q.subtotalAddOns)}</td></tr>
           <tr><td colspan="3" class="text-end fw-semibold">Special / custom services</td><td class="text-end">${fmt(q.subtotalSpecial)}</td></tr>
+          ${(q.subtotalDiscount || 0) > 0 ? `<tr class="cvr-quote-discount-row"><td colspan="3" class="text-end fw-semibold text-success"><i class="bi bi-ticket-perforated me-1"></i>Voucher / discount</td><td class="text-end fw-semibold text-success">−${fmt(q.subtotalDiscount)}</td></tr>` : ""}
           <tr class="table-light"><td colspan="3" class="text-end fw-bold text-brand">Total</td><td class="text-end fw-bold text-brand">${fmt(q.totalNumeric)}</td></tr>
           ${
             q.downpaymentAmount != null
-              ? `<tr><td colspan="3" class="text-end fw-semibold text-primary">Downpayment due now (${q.downpaymentPercent || 50}%)</td><td class="text-end fw-semibold text-primary">${fmt(q.downpaymentAmount)}</td></tr>
+              ? `<tr><td colspan="3" class="text-end fw-semibold text-primary">${(q.downpaymentPercent || 50) >= 100 ? "Full payment due now" : "Downpayment due now"} (${q.downpaymentPercent || 50}%)</td><td class="text-end fw-semibold text-primary">${fmt(q.downpaymentAmount)}</td></tr>
                  <tr><td colspan="3" class="text-end small text-muted-brand">Balance due before ${record.bookingType === "event" ? "the event date" : "check-in"}</td><td class="text-end small text-muted-brand">${fmt(q.balanceAmount)}</td></tr>`
               : ""
           }
@@ -5080,21 +5081,34 @@ function initQuotationReviewPage() {
     statusEl.className = `status-chip ${getQuotationStatusChipClass(q.status)}`;
   }
 
-  const breakdown = document.getElementById("quotationBreakdown");
-  if (breakdown) breakdown.innerHTML = renderQuotationBreakdownHtml(record, cat);
+  const paintQuotationAmounts = () => {
+    const qq = record.quotation || q;
+    const breakdown = document.getElementById("quotationBreakdown");
+    if (breakdown) breakdown.innerHTML = renderQuotationBreakdownHtml(record, cat);
 
-  window.initResponsiveEnhancements?.();
+    window.initResponsiveEnhancements?.();
 
-  const totalEl = document.getElementById("quotationTotalAmount");
-  if (totalEl) totalEl.textContent = record.totalAmount || cat?.formatMoney(q.totalNumeric, q.currency);
+    const totalEl = document.getElementById("quotationTotalAmount");
+    if (totalEl) totalEl.textContent = record.totalAmount || cat?.formatMoney(qq.totalNumeric, qq.currency);
 
-  const dpPctEl = document.getElementById("quotationDownpaymentPercent");
-  const dpAmtEl = document.getElementById("quotationDownpaymentAmount");
-  const balAmtEl = document.getElementById("quotationBalanceAmount");
-  const dpFmt = (n) => (cat ? cat.formatMoney(n, q.currency || record.currency || "PHP") : String(n));
-  if (dpPctEl) dpPctEl.textContent = q.downpaymentPercent ?? record.downpaymentPercent ?? 50;
-  if (dpAmtEl) dpAmtEl.textContent = dpFmt(q.downpaymentAmount ?? record.downpaymentAmount ?? 0);
-  if (balAmtEl) balAmtEl.textContent = dpFmt(q.balanceAmount ?? record.balanceAmount ?? 0);
+    const dpPctEl = document.getElementById("quotationDownpaymentPercent");
+    const dpAmtEl = document.getElementById("quotationDownpaymentAmount");
+    const balAmtEl = document.getElementById("quotationBalanceAmount");
+    const dpFmt = (n) => (cat ? cat.formatMoney(n, qq.currency || record.currency || "PHP") : String(n));
+    const pct = qq.downpaymentPercent ?? record.downpaymentPercent ?? 50;
+    if (dpPctEl) dpPctEl.textContent = pct;
+    setText("quotationDpLabel", pct >= 100 ? "Full payment due now" : "Downpayment due now");
+    if (dpAmtEl) dpAmtEl.textContent = dpFmt(qq.downpaymentAmount ?? record.downpaymentAmount ?? 0);
+    if (balAmtEl) balAmtEl.textContent = dpFmt(qq.balanceAmount ?? record.balanceAmount ?? 0);
+    const discRow = document.getElementById("quotationDiscountRow");
+    if (discRow) {
+      discRow.classList.toggle("d-none", !((qq.subtotalDiscount || 0) > 0));
+      setText("quotationDiscountAmount", "−" + dpFmt(qq.subtotalDiscount || 0));
+    }
+  };
+  paintQuotationAmounts();
+  cvrMountPaymentPlanPicker(document.getElementById("quotationPaymentPlanBox"), record, paintQuotationAmounts);
+  cvrMountVoucherBox(document.getElementById("quotationVoucherBox"), record, paintQuotationAmounts);
 
   const versionEl = document.getElementById("quotationVersion");
   if (versionEl) versionEl.textContent = `Version ${q.version || 1}`;
@@ -5236,12 +5250,27 @@ function initPaymentPageSummary() {
   const fmt = (v) => (cat ? cat.formatMoney(v, r.currency || "PHP") : String(v));
   setTxt("paySubtotal", r.roomSubtotal != null ? fmt(r.roomSubtotal) : "—");
   setTxt("payPackageTotal", r.totalAmount || fmt(r.totalNumeric));
+  const discRow = document.getElementById("payDiscountRow");
+  if (discRow) {
+    const disc = Number(r.quotation?.subtotalDiscount ?? r.discountAmount) || 0;
+    discRow.classList.toggle("d-none", !(disc > 0));
+    setTxt("payDiscount", "−" + fmt(disc));
+  }
   const dpPercent = r.downpaymentPercent ?? (cat ? cat.DOWNPAYMENT_PERCENT : 50);
+  setTxt("payNowLabel", dpPercent >= 100 ? "Full payment to Pay Now" : "Downpayment to Pay Now");
   const dpAmount = r.downpaymentAmount != null ? r.downpaymentAmount : (cat ? cat.computeDownpayment(r.totalNumeric).downpayment : r.totalNumeric);
   const balAmount = r.balanceAmount != null ? r.balanceAmount : (cat ? cat.computeDownpayment(r.totalNumeric).balance : 0);
   setTxt("payDownpaymentPercent", dpPercent);
   setTxt("payBalanceDue", fmt(balAmount));
   setTxt("payTotal", fmt(dpAmount));
+  if (!document.getElementById("paymentPlanBox")?.dataset.cvrMounted) {
+    const planBox = document.getElementById("paymentPlanBox");
+    const voucherBox = document.getElementById("paymentVoucherBox");
+    const repaint = () => initPaymentPageSummary();
+    if (planBox) { planBox.dataset.cvrMounted = "1"; }
+    cvrMountPaymentPlanPicker(planBox, r, repaint);
+    cvrMountVoucherBox(voucherBox, r, repaint);
+  }
 
   const addRow = document.getElementById("payAddOnsRow");
   const addAmt = document.getElementById("payAddOns");
@@ -5497,7 +5526,7 @@ function initQrPaymentUpload() {
 
     target.paymentStatus = "Waiting for Verification";
     target.paymentMethod = "QR / GCash";
-    target.paymentType = "downpayment";
+    target.paymentType = target.paymentPlan === "full" ? "full" : "downpayment";
     target.termsAcceptedAt = new Date().toISOString();
     target.proofOfPayment = {
       filename: uploaded?.fileName || safeName,
@@ -5605,6 +5634,12 @@ async function initReservationStatusView() {
   }
   setIf("statusPayTotal", target.totalAmount || fmt(target.totalNumeric));
   setIf("statusDownpaymentPercent", target.downpaymentPercent ?? (cat ? cat.DOWNPAYMENT_PERCENT : 50));
+  setIf("statusDpLabel", (target.downpaymentPercent ?? 50) >= 100 ? "Full payment" : "Downpayment");
+  const statusDisc = Number(target.quotation?.subtotalDiscount ?? target.discountAmount) || 0;
+  if (statusDisc > 0) {
+    document.getElementById("statusPayDiscountRow")?.classList.remove("d-none");
+    setIf("statusPayDiscount", "−" + fmt(statusDisc));
+  }
   setIf("statusDownpaymentAmount", fmt(target.downpaymentAmount ?? 0));
   setIf("statusBalanceAmount", fmt(target.balanceAmount ?? 0));
   setIf("statusBalanceLabel", target.bookingType === "event" ? "the event date" : "check-in");
@@ -5908,6 +5943,8 @@ const SITEMAP_PAGE_INFO = {
   "admin/reservations.html": ["Reservations", "Full reservation list with filters, status changes, guest details and approvals.", "Staff only"],
   "admin/calendar.html": ["Booking Calendar", "Month and day view of every booking, blocked date and holiday.", "Staff only"],
   "admin/payments.html": ["Payment Verification", "Review uploaded payment proofs and approve or reject them.", "Staff only"],
+  "admin/site-content.html?tab=vouchers": ["Vouchers & Discounts", "Create and edit discount vouchers that guests can apply to their booking. Admin and staff can both manage them.", "Staff only"],
+  "admin/vouchers.html": ["Vouchers & Discounts", "Create and edit discount vouchers that guests can apply to their booking. Admin and staff can both manage them.", "Staff only"],
   "admin/packages.html": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/site-content.html?tab=packages": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/messages.html": ["Messages", "Inbox for guest enquiries, plus a composer for messaging clients directly.", "Staff only"],
@@ -7181,6 +7218,8 @@ async function initCustomerDashboardPage() {
       const fmt = (v) => (cat ? cat.formatMoney(v, record.currency || "PHP") : String(v));
       if (payModalId) payModalId.textContent = record.id;
       if (payModalTotal) payModalTotal.textContent = record.totalAmount || fmt(record.totalNumeric ?? 0);
+      const payModalDpLabel = document.getElementById("dashPayModalDpLabel");
+      if (payModalDpLabel) payModalDpLabel.textContent = (q?.downpaymentPercent ?? record.downpaymentPercent ?? 50) >= 100 ? "Full payment due now" : "Downpayment due now";
       if (payModalDownpayment) payModalDownpayment.textContent = fmt(q?.downpaymentAmount ?? record.downpaymentAmount ?? record.totalNumeric ?? 0);
       if (payModalBalance) payModalBalance.textContent = fmt(q?.balanceAmount ?? record.balanceAmount ?? 0);
       if (payModalConfirmBtn) payModalConfirmBtn.href = payUrl;
@@ -8157,3 +8196,259 @@ window.cvrConfirmModal = cvrConfirmModal;
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
+
+
+/* =============================================================================
+   Payment option (50% downpayment / full payment) and vouchers
+   Shared by the quotation page, the payment page and the admin voucher manager.
+   ========================================================================== */
+
+function cvrMoney(amount, currency = "PHP") {
+  const cat = window.CVRBookingCatalog;
+  return cat ? cat.formatMoney(amount, currency) : "₱" + Number(amount || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 });
+}
+
+function cvrSaveReservationRecord(record) {
+  const all = getStoredReservations();
+  const idx = all.findIndex((item) => item.id === record.id);
+  if (idx >= 0) all[idx] = record;
+  else all.push(record);
+  saveStoredReservations(all);
+  syncReservationToServer(record, true);
+}
+
+/** True while the guest can still change how they pay (nothing has been submitted yet). */
+function cvrCanEditPaymentChoices(record) {
+  if (!record) return false;
+  if (String(record.reservationStatus || "").toLowerCase().includes("cancel")) return false;
+  const pay = String(record.paymentStatus || "Pending Payment");
+  if (pay !== "Pending Payment" && pay !== "Rejected") return false;
+  const qStatus = record.quotation?.status;
+  return qStatus !== "Pending Admin Review";
+}
+
+function cvrHexColor(value, fallback = "#0c3b5d") {
+  return /^#[0-9a-fA-F]{6}$/.test(String(value || "")) ? value : fallback;
+}
+
+function cvrTrimNumber(n) {
+  const num = Number(n) || 0;
+  return Number.isInteger(num) ? String(num) : String(Math.round(num * 100) / 100);
+}
+
+/**
+ * The voucher card. Always carries the resort logo (the site logo set in Admin > Site Content, or a
+ * custom logo uploaded for that one voucher). Used on guest pages and in the admin voucher manager.
+ */
+function cvrVoucherCardHtml(v, opts = {}) {
+  if (!v) return "";
+  const logo = v.logoUrl || assetUrl("images/logo.png");
+  const slot = v.logoUrl ? "" : ' data-site-image-slot="site_logo"';
+  const off = v.discountType === "percent" ? `${cvrTrimNumber(v.discountValue)}%` : cvrMoney(v.discountValue);
+  const meta = [];
+  if (v.discountType === "percent" && Number(v.maxDiscount) > 0) meta.push(`Up to ${cvrMoney(v.maxDiscount)} off`);
+  if (Number(v.minSpend) > 0) meta.push(`Min. spend ${cvrMoney(v.minSpend)}`);
+  if (v.appliesTo === "room") meta.push("Room bookings");
+  if (v.appliesTo === "event") meta.push("Event bookings");
+  const fmtDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+  if (v.validUntil) meta.push(`Valid until ${fmtDate(v.validUntil)}`);
+  else meta.push("No expiry");
+  if (v.validFrom && new Date(v.validFrom + "T00:00:00") > new Date()) meta.push(`Starts ${fmtDate(v.validFrom)}`);
+
+  return `
+    <div class="cvr-voucher ${opts.compact ? "cvr-voucher--compact" : ""} ${opts.dim ? "is-dim" : ""}" style="--v-accent:${cvrHexColor(v.accentColor)}">
+      <div class="cvr-voucher-stub">
+        <span class="cvr-voucher-logo"><img src="${escapeHtml(logo)}" alt="Casa Vergara Resort logo"${slot}></span>
+        <span class="cvr-voucher-brand">Casa Vergara<br>Resort</span>
+      </div>
+      <div class="cvr-voucher-main">
+        <div class="cvr-voucher-kicker">Discount voucher</div>
+        <div class="cvr-voucher-off"><strong>${escapeHtml(off)}</strong><span>OFF</span></div>
+        <div class="cvr-voucher-title">${escapeHtml(v.title || "")}</div>
+        ${v.description && !opts.compact ? `<p class="cvr-voucher-desc">${escapeHtml(v.description)}</p>` : ""}
+        <div class="cvr-voucher-meta">${meta.map((m) => `<span>${escapeHtml(m)}</span>`).join("")}</div>
+        <div class="cvr-voucher-foot">
+          <span class="cvr-voucher-code"><i class="bi bi-ticket-perforated"></i><code>${escapeHtml(v.code || "")}</code></span>
+          ${opts.footerHtml || ""}
+        </div>
+      </div>
+    </div>`;
+}
+window.cvrVoucherCardHtml = cvrVoucherCardHtml;
+
+function cvrMountPaymentPlanPicker(host, record, onChange) {
+  if (!host || !record) return;
+  const cat = window.CVRBookingCatalog;
+  if (!cat?.PAYMENT_PLANS) return;
+
+  const render = () => {
+    const q = ensureReservationQuotation(record);
+    const total = Number(record.totalNumeric ?? q?.totalNumeric) || 0;
+    const plan = cat.normalizePaymentPlan(record.paymentPlan);
+    const editable = cvrCanEditPaymentChoices(record);
+    const half = cat.computeDownpayment(total, 50);
+    const laterWhen = record.bookingType === "event" ? "the event date" : "check-in";
+
+    const option = (key, title, line) => `
+      <label class="cvr-plan-option ${plan === key ? "is-selected" : ""} ${editable ? "" : "is-locked"}">
+        <input type="radio" name="cvrPaymentPlan" value="${key}" ${plan === key ? "checked" : ""} ${editable ? "" : "disabled"}>
+        <span class="cvr-plan-radio" aria-hidden="true"></span>
+        <span class="cvr-plan-body"><strong>${title}</strong><small>${line}</small></span>
+      </label>`;
+
+    host.innerHTML = `
+      <div class="cvr-plan-picker" role="radiogroup" aria-label="Payment option">
+        <div class="cvr-plan-heading"><i class="bi bi-wallet2"></i> Payment option</div>
+        ${option("downpayment", "50% downpayment", `Pay <b>${cvrMoney(half.downpayment, record.currency)}</b> now · <b>${cvrMoney(half.balance, record.currency)}</b> balance before ${laterWhen}`)}
+        ${option("full", "Pay in full", `Pay <b>${cvrMoney(total, record.currency)}</b> now · nothing left to pay later`)}
+        ${editable ? "" : `<div class="cvr-plan-note"><i class="bi bi-lock"></i> Your payment has been submitted, so the option can no longer be changed.</div>`}
+      </div>`;
+
+    host.querySelectorAll('input[name="cvrPaymentPlan"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        record.paymentPlan = cat.normalizePaymentPlan(input.value);
+        cat && window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+        cvrSaveReservationRecord(record);
+        render();
+        onChange?.();
+      });
+    });
+  };
+  render();
+}
+window.cvrMountPaymentPlanPicker = cvrMountPaymentPlanPicker;
+
+function cvrMountVoucherBox(host, record, onChange) {
+  if (!host || !record || !window.CVRQuotation) return;
+  let available = null;
+
+  const loadAvailable = async () => {
+    if (available) return available;
+    try {
+      const { body } = await cvrApiGet("content/vouchers");
+      available = body?.success ? body.data?.vouchers || [] : [];
+    } catch {
+      available = [];
+    }
+    return available;
+  };
+
+  const apply = async (code, msgEl, btn) => {
+    const clean = String(code || "").trim();
+    if (!clean) {
+      msgEl.className = "cvr-voucher-msg text-danger";
+      msgEl.textContent = "Enter a voucher code first.";
+      return;
+    }
+    const q = ensureReservationQuotation(record);
+    const withoutVoucher = JSON.parse(JSON.stringify((q.lines || []).filter((l) => !(l.type === "discount" && l.voucherCode))));
+    const gross = window.CVRQuotation.recalculateQuotationTotals(withoutVoucher).grossTotal;
+    if (btn) btn.disabled = true;
+    msgEl.className = "cvr-voucher-msg text-muted-brand";
+    msgEl.textContent = "Checking voucher…";
+    try {
+      const { body } = await cvrApiPost("content/voucher-validate", {
+        code: clean,
+        subtotal: gross,
+        bookingType: record.bookingType,
+        reservationId: record.id,
+      });
+      if (!body?.success) {
+        msgEl.className = "cvr-voucher-msg text-danger";
+        msgEl.textContent = body?.message || "We couldn't apply that voucher.";
+        return;
+      }
+      window.CVRQuotation.addVoucherToQuotation(record.quotation, body.data.voucher);
+      window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+      cvrSaveReservationRecord(record);
+      render();
+      onChange?.();
+    } catch {
+      msgEl.className = "cvr-voucher-msg text-danger";
+      msgEl.textContent = "Network problem. Please try again.";
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  const render = async () => {
+    const q = ensureReservationQuotation(record);
+    const line = window.CVRQuotation.getQuotationVoucherLine(q);
+    const editable = cvrCanEditPaymentChoices(record);
+
+    if (line) {
+      const discount = Math.abs(Number(line.amount) || 0);
+      host.innerHTML = `
+        <div class="cvr-voucher-box">
+          <div class="cvr-voucher-box-title"><i class="bi bi-ticket-perforated"></i> Voucher applied</div>
+          <div class="cvr-voucher-applied">
+            <div class="cvr-voucher-applied-info">
+              <code>${escapeHtml(line.voucherCode)}</code>
+              <span>${escapeHtml(line.voucherTitle || "")}</span>
+              <strong class="text-success">−${cvrMoney(discount, record.currency)}</strong>
+            </div>
+            ${editable ? `<button type="button" class="btn btn-sm btn-outline-danger" id="cvrVoucherRemoveBtn">Remove</button>` : ""}
+          </div>
+        </div>`;
+      host.querySelector("#cvrVoucherRemoveBtn")?.addEventListener("click", () => {
+        window.CVRQuotation.removeVoucherFromQuotation(record.quotation);
+        window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+        cvrSaveReservationRecord(record);
+        render();
+        onChange?.();
+      });
+      return;
+    }
+
+    if (!editable) {
+      host.innerHTML = "";
+      return;
+    }
+
+    host.innerHTML = `
+      <div class="cvr-voucher-box">
+        <div class="cvr-voucher-box-title"><i class="bi bi-ticket-perforated"></i> Voucher or discount code</div>
+        <div class="input-group">
+          <input type="text" class="form-control text-uppercase" id="cvrVoucherInput" placeholder="Enter code" maxlength="40" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn btn-brand" id="cvrVoucherApplyBtn">Apply</button>
+        </div>
+        <div class="cvr-voucher-msg small mt-2" id="cvrVoucherMsg" aria-live="polite"></div>
+        <div id="cvrVoucherAvailable" class="cvr-voucher-available"></div>
+      </div>`;
+
+    const input = host.querySelector("#cvrVoucherInput");
+    const btn = host.querySelector("#cvrVoucherApplyBtn");
+    const msg = host.querySelector("#cvrVoucherMsg");
+    btn.addEventListener("click", () => apply(input.value, msg, btn));
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        apply(input.value, msg, btn);
+      }
+    });
+
+    const list = await loadAvailable();
+    const slot = host.querySelector("#cvrVoucherAvailable");
+    if (slot && list.length) {
+      const bookingType = record.bookingType === "event" ? "event" : "room";
+      const usable = list.filter((v) => v.appliesTo === "all" || v.appliesTo === bookingType);
+      if (usable.length) {
+        slot.innerHTML = `<div class="cvr-voucher-available-title">Available vouchers</div>` +
+          usable.map((v) => cvrVoucherCardHtml(v, {
+            compact: true,
+            footerHtml: `<button type="button" class="btn btn-sm btn-brand cvr-voucher-use-btn" data-code="${escapeHtml(v.code)}">Use</button>`,
+          })).join("");
+        applySiteImages();
+        slot.querySelectorAll(".cvr-voucher-use-btn").forEach((b) =>
+          b.addEventListener("click", () => {
+            input.value = b.dataset.code;
+            apply(b.dataset.code, msg, btn);
+          })
+        );
+      }
+    }
+  };
+
+  render();
+}
+window.cvrMountVoucherBox = cvrMountVoucherBox;

@@ -243,6 +243,8 @@ class ReservationController extends Controller
                 $checkoutChanged ? 1 : 0,
             ]);
 
+            cvr_voucher_sync_redemption($pdo, $id, $userId, $reservation, stripos($reservationStatus, 'cancel') !== false);
+
             if ($isStaff && !$isNew) {
                 $statusChanged = $reservationStatus !== (string) $previousStatus
                     || $paymentStatus !== $previousPaymentStatus;

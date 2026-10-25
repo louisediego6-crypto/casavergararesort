@@ -21,7 +21,7 @@ class PublicUploadController extends Controller
             return response('Not found.', 404);
         }
 
-        $isPublicDirectory = in_array($directory, ['avatars', 'packages', 'site', 'site-content', 'team'], true);
+        $isPublicDirectory = in_array($directory, ['avatars', 'packages', 'site', 'site-content', 'team', 'vouchers'], true);
         $isPaymentQr = $directory === 'payments'
             && preg_match('/\Aqr_[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)\z/i', $filename);
 

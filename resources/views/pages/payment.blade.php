@@ -19,6 +19,8 @@
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/vouchers.css?v=20261025a" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -66,7 +68,7 @@
                 <ol class="small text-muted-brand payment-instructions mb-0">
                   <li>Open your e-wallet app and tap <strong>Scan QR</strong>.</li>
                   <li>Scan the Casa Vergara Resort QR code.</li>
-                  <li>Enter the exact amount shown in your booking summary.</li>
+                  <li>Enter the exact amount shown under <strong>Pay Now</strong> in your booking summary (50% downpayment or full payment, whichever you chose).</li>
                   <li>Complete payment and save a screenshot or PDF receipt.</li>
                   <li>Upload the proof below to submit for admin verification.</li>
                 </ol>
@@ -110,6 +112,8 @@
             <p class="small text-muted-brand">Payment must match the accepted quotation total below.</p>
             <div id="paymentQuotationBreakdown" class="mb-3"></div>
             <hr>
+            <div id="paymentVoucherBox" class="mb-3"></div>
+            <div id="paymentPlanBox" class="mb-3"></div>
             <h5 class="text-brand">Payment summary</h5>
             <hr>
             <div class="d-flex justify-content-between small mb-1"><span>Reservation ID</span><strong id="paymentReservationId">—</strong></div>
@@ -119,9 +123,10 @@
             <div class="d-flex justify-content-between small mb-1 d-none" id="payAddOnsRow"><span>Add-ons</span><span id="payAddOns">—</span></div>
             <div id="payDetailLines" class="small text-muted-brand mb-2"></div>
             <hr>
+            <div class="d-flex justify-content-between small mb-1 text-success d-none" id="payDiscountRow"><span><i class="bi bi-ticket-perforated me-1"></i>Voucher discount</span><span id="payDiscount">—</span></div>
             <div class="d-flex justify-content-between small mb-1"><span>Total package price</span><span id="payPackageTotal">—</span></div>
             <div class="d-flex justify-content-between small text-muted-brand mb-2"><span>Balance due later</span><span id="payBalanceDue">—</span></div>
-            <div class="d-flex justify-content-between mb-2"><strong>Downpayment to Pay Now (<span id="payDownpaymentPercent">50</span>%)</strong><strong class="text-brand" id="payTotal">—</strong></div>
+            <div class="d-flex justify-content-between mb-2"><strong><span id="payNowLabel">Downpayment to Pay Now</span> (<span id="payDownpaymentPercent">50</span>%)</strong><strong class="text-brand" id="payTotal">—</strong></div>
             <div class="small">Payment Status: <span class="status-chip chip-yellow">Pending Payment</span></div>
           </div>
           <div class="soft-card p-3 payment-note-card" style="background:#eef6fd;border-color:#d5e9fa;">
@@ -140,8 +145,8 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261024a"></script>
-  <script src="../js/main.js?v=20261025c"></script>
+  <script src="../js/booking-data.js?v=20261025a"></script>
+  <script src="../js/main.js?v=20261025e"></script>
   <script src="../js/legal-doc.js?v=20260830i"></script>
   <script>renderNavbar("booking"); renderFooter();</script>
 </body>

@@ -22,6 +22,7 @@
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -63,7 +64,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261025c"></script>
+  <script src="../js/main.js?v=20261025e"></script>
   <script src="../js/legal-doc.js?v=20261018b"></script>
   <script>
     renderNavbar("");

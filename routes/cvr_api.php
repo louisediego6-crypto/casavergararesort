@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\SiteImageController as AdminSiteImageControll
 use App\Http\Controllers\Api\Admin\SiteTextController as AdminSiteTextController;
 use App\Http\Controllers\Api\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\Admin\VoucherController as AdminVoucherController;
 use App\Http\Controllers\Api\AuthController as AuthController;
 use App\Http\Controllers\Api\ChatController as ChatController;
 use App\Http\Controllers\Api\Content\AiAssistantController as ContentAiAssistantController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\Api\Content\ReservationController as ContentReservation
 use App\Http\Controllers\Api\Content\ReviewController as ContentReviewController;
 use App\Http\Controllers\Api\Content\SiteController as ContentSiteController;
 use App\Http\Controllers\Api\Content\TeamController as ContentTeamController;
+use App\Http\Controllers\Api\Content\VoucherController as ContentVoucherController;
 use App\Http\Controllers\Api\ReviewController as ReviewController;
 
 // JSON API. Every URL matches the old api/<group>/<name>.php script, without the ".php".
@@ -94,6 +96,10 @@ Route::any('admin/users-save', [AdminUserController::class, 'save']);
 Route::any('admin/users-update', [AdminUserController::class, 'update']);
 Route::any('admin/users-archived', [AdminUserController::class, 'archived']);
 Route::any('admin/users-restore', [AdminUserController::class, 'restore']);
+Route::any('admin/vouchers-delete', [AdminVoucherController::class, 'delete']);
+Route::any('admin/vouchers-list', [AdminVoucherController::class, 'index']);
+Route::any('admin/vouchers-logo', [AdminVoucherController::class, 'logo']);
+Route::any('admin/vouchers-save', [AdminVoucherController::class, 'save']);
 Route::any('auth/check-email', [AuthController::class, 'checkEmail']);
 Route::any('auth/check-name', [AuthController::class, 'checkName']);
 Route::any('auth/check-phone', [AuthController::class, 'checkPhone']);
@@ -148,6 +154,8 @@ Route::any('content/reviews', [ContentReviewController::class, 'index']);
 Route::any('content/site', [ContentSiteController::class, 'content']);
 Route::any('content/site-images', [ContentSiteController::class, 'images']);
 Route::any('content/site-text', [ContentSiteController::class, 'text']);
+Route::any('content/voucher-validate', [ContentVoucherController::class, 'validateCode']);
+Route::any('content/vouchers', [ContentVoucherController::class, 'index']);
 Route::any('content/team', [ContentTeamController::class, 'index']);
 Route::any('content/terms', [ContentLegalController::class, 'terms']);
 Route::any('reviews/delete', [ReviewController::class, 'delete']);

@@ -133,12 +133,14 @@ class PaymentController extends Controller
             ];
         }, $rows);
 
-        // Each receipt is checked against the 50% downpayment of its reservation total.
+        // Each receipt is checked against the payment the guest chose (50% downpayment or full payment).
         foreach ($proofs as $i => $proofRow) {
             $check = $this->downpaymentCheck($pdo, (string) $proofRow['reservationId'], $proofRow['amount']);
             $proofs[$i]['downpaymentRequired'] = $check['required'];
             $proofs[$i]['declaredAmount'] = $check['declared'];
             $proofs[$i]['downpaymentVerified'] = $check['verified'];
+            $proofs[$i]['paymentPlan'] = $check['plan'];
+            $proofs[$i]['paymentPercent'] = $check['percent'];
         }
 
         $counts = ['waiting' => 0, 'approved' => 0, 'rejected' => 0];
@@ -151,24 +153,46 @@ class PaymentController extends Controller
         json_response(true, 'OK', ['proofs' => $proofs, 'counts' => $counts]);
     }
 
-    /** Downpayment rule: the guest must pay at least 50% of the reservation total. */
+    /** Default downpayment rule: the guest must pay at least 50% of the reservation total. */
     private const DOWNPAYMENT_RATE = 0.5;
 
     /**
-     * Compares the amount a guest declared on their receipt with the required downpayment
-     * (50% of the reservation's total_numeric). Returns null for "required" when the total is unknown.
+     * Compares the amount a guest declared on their receipt with the payment they chose at booking:
+     * the 50% downpayment (default) or the full amount. The required figure comes from the reservation
+     * itself (downpaymentAmount in its saved payload, which already reflects any voucher discount), and
+     * falls back to 50% of total_numeric. Returns null for "required" when the total is unknown.
      *
-     * @return array{required: ?float, declared: ?float, verified: bool}
+     * @return array{required: ?float, declared: ?float, verified: bool, plan: string, percent: int}
      */
     private function downpaymentCheck(PDO $pdo, string $reservationRef, ?string $declaredAmount): array
     {
         $required = null;
+        $plan = 'downpayment';
+        $percent = 50;
         try {
-            $stmt = $pdo->prepare('SELECT total_numeric FROM reservations WHERE id = ?');
+            $stmt = $pdo->prepare('SELECT total_numeric, payload_json FROM reservations WHERE id = ?');
             $stmt->execute([$reservationRef]);
-            $total = $stmt->fetchColumn();
-            if ($total !== false && $total !== null && (float) $total > 0) {
-                $required = round((float) $total * self::DOWNPAYMENT_RATE, 2);
+            $row = $stmt->fetch();
+            if ($row) {
+                $total = $row['total_numeric'];
+                $payload = json_decode((string) $row['payload_json'], true);
+                $payload = is_array($payload) ? $payload : [];
+
+                if (($payload['paymentPlan'] ?? '') === 'full') {
+                    $plan = 'full';
+                    $percent = 100;
+                }
+
+                if ($total !== null && (float) $total > 0) {
+                    $rate = $plan === 'full' ? 1.0 : self::DOWNPAYMENT_RATE;
+                    $required = round((float) $total * $rate, 2);
+                }
+                // Trust the amount the guest was actually quoted when it is consistent with the total.
+                if (isset($payload['downpaymentAmount']) && is_numeric($payload['downpaymentAmount'])
+                    && (float) $payload['downpaymentAmount'] > 0 && $total !== null && (float) $total > 0
+                    && (float) $payload['downpaymentAmount'] <= (float) $total + 0.005) {
+                    $required = round((float) $payload['downpaymentAmount'], 2);
+                }
             }
         } catch (\Throwable $e) {
             error_log('admin/payments: downpayment lookup failed: ' . $e->getMessage());
@@ -182,7 +206,7 @@ class PaymentController extends Controller
 
         $verified = $required !== null && $declared !== null && $declared >= $required - 0.005;
 
-        return ['required' => $required, 'declared' => $declared, 'verified' => $verified];
+        return ['required' => $required, 'declared' => $declared, 'verified' => $verified, 'plan' => $plan, 'percent' => $percent];
     }
 
     /** Ported from api/admin/payments-update.php */
@@ -219,7 +243,7 @@ class PaymentController extends Controller
             json_response(false, 'That payment submission no longer exists.', [], 404);
         }
 
-        // Approval is only allowed once the 50% downpayment is validated against the reservation total.
+        // Approval is only allowed once the chosen payment (50% downpayment or full) is validated against the reservation total.
         if ($status === 'Approved') {
             $check = $this->downpaymentCheck($pdo, (string) $proof['reservation_ref'], $proof['amount']);
             if ($check['required'] === null) {
@@ -230,7 +254,8 @@ class PaymentController extends Controller
             }
             if (!$check['verified']) {
                 json_response(false, 'Cannot approve: the declared amount ₱' . number_format($check['declared'], 2)
-                    . ' is below the required 50% downpayment of ₱' . number_format($check['required'], 2) . '.', [], 422);
+                    . ' is below the required ' . ($check['plan'] === 'full' ? 'full payment' : '50% downpayment')
+                    . ' of ₱' . number_format($check['required'], 2) . '.', [], 422);
             }
         }
 

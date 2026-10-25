@@ -19,6 +19,7 @@
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -118,8 +119,9 @@
             <h5 class="text-brand">Payment summary</h5>
             <div class="d-flex justify-content-between small"><span>Package subtotal</span><span id="statusPaySubtotal">—</span></div>
             <div class="d-flex justify-content-between small d-none" id="statusPayAddOnsRow"><span>Add-ons</span><span id="statusPayAddOns">—</span></div>
+            <div class="d-flex justify-content-between small text-success d-none" id="statusPayDiscountRow"><span><i class="bi bi-ticket-perforated me-1"></i>Voucher discount</span><span id="statusPayDiscount">—</span></div>
             <hr><div class="d-flex justify-content-between"><strong>Total package price</strong><strong id="statusPayTotal">—</strong></div>
-            <div class="d-flex justify-content-between small mt-2"><span>Downpayment (<span id="statusDownpaymentPercent">50</span>%)</span><span id="statusDownpaymentAmount">—</span></div>
+            <div class="d-flex justify-content-between small mt-2"><span><span id="statusDpLabel">Downpayment</span> (<span id="statusDownpaymentPercent">50</span>%)</span><span id="statusDownpaymentAmount">—</span></div>
             <div class="d-flex justify-content-between small text-muted-brand"><span>Balance due before <span id="statusBalanceLabel">check-in</span></span><span id="statusBalanceAmount">—</span></div>
           </div>
         </div>
@@ -130,8 +132,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261024a"></script>
-  <script src="../js/main.js?v=20261025c"></script>
+  <script src="../js/booking-data.js?v=20261025a"></script>
+  <script src="../js/main.js?v=20261025e"></script>
   <script>renderNavbar(""); renderFooter();</script>
 </body>
 </html>

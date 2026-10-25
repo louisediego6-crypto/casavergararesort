@@ -833,6 +833,20 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
 
 const DOWNPAYMENT_PERCENT = 50;
 
+/** Guests can pay a 50% downpayment (default) or pay the full amount up front. */
+const PAYMENT_PLANS = {
+  downpayment: { key: "downpayment", percent: 50, label: "50% downpayment" },
+  full: { key: "full", percent: 100, label: "Full payment" },
+};
+
+function normalizePaymentPlan(plan) {
+  return plan === "full" ? "full" : "downpayment";
+}
+
+function paymentPlanPercent(plan) {
+  return PAYMENT_PLANS[normalizePaymentPlan(plan)].percent;
+}
+
 function computeDownpayment(totalNumeric, percent = DOWNPAYMENT_PERCENT) {
   const total = Number(totalNumeric) || 0;
   const pct = Math.min(100, Math.max(0, Number(percent) || 0));
@@ -1084,6 +1098,25 @@ function createQuotationLineId() {
   return `ql-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/**
+ * Amount (positive PHP) a voucher gives on a subtotal. Mirrors cvr_voucher_discount() in PHP.
+ */
+function computeVoucherDiscount(voucher, subtotal) {
+  const base = Number(subtotal) || 0;
+  if (!voucher || base <= 0) return 0;
+  const value = Number(voucher.discountValue ?? voucher.voucherValue) || 0;
+  const type = voucher.discountType ?? voucher.voucherType;
+  let amount;
+  if (type === "percent") {
+    amount = (base * Math.min(100, value)) / 100;
+    const cap = Number(voucher.maxDiscount ?? voucher.voucherMax) || 0;
+    if (cap > 0) amount = Math.min(amount, cap);
+  } else {
+    amount = value;
+  }
+  return Math.round(Math.min(amount, base) * 100) / 100;
+}
+
 function recalculateQuotationTotals(lines) {
   const active = (lines || []).filter((line) => line.approved !== false);
   const sumType = (type) =>
@@ -1093,13 +1126,79 @@ function recalculateQuotationTotals(lines) {
   const specialTotal = active
     .filter((line) => line.type === "special" || line.type === "custom")
     .reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
-  const totalNumeric = Math.round((packageTotal + addonTotal + specialTotal) * 100) / 100;
+  const grossTotal = Math.round((packageTotal + addonTotal + specialTotal) * 100) / 100;
+
+  // Discount / voucher lines are stored as negative amounts. Voucher percentages are re-worked on the
+  // current gross so they stay right when an admin edits the quotation.
+  let remaining = grossTotal;
+  let discountTotal = 0;
+  (lines || []).forEach((line) => {
+    if (line.type !== "discount") return;
+    if (line.approved === false) {
+      return;
+    }
+    let amount;
+    if (line.voucherType) {
+      amount = computeVoucherDiscount(
+        { discountType: line.voucherType, discountValue: line.voucherValue, maxDiscount: line.voucherMax },
+        remaining
+      );
+    } else {
+      amount = Math.min(Math.abs(Number(line.amount) || 0), Math.max(0, remaining));
+    }
+    amount = Math.round(amount * 100) / 100;
+    line.amount = -amount;
+    line.unitPrice = -amount;
+    line.qty = 1;
+    remaining = Math.round((remaining - amount) * 100) / 100;
+    discountTotal = Math.round((discountTotal + amount) * 100) / 100;
+  });
+
+  const totalNumeric = Math.max(0, Math.round((grossTotal - discountTotal) * 100) / 100);
   return {
     subtotalPackage: packageTotal,
     subtotalAddOns: addonTotal,
     subtotalSpecial: specialTotal,
+    subtotalDiscount: discountTotal,
+    grossTotal,
     totalNumeric,
   };
+}
+
+/** The voucher line on a quotation, if any. */
+function getQuotationVoucherLine(quotation) {
+  return (quotation?.lines || []).find((line) => line.type === "discount" && line.voucherCode) || null;
+}
+
+/** Adds (or replaces) the voucher discount line. One voucher per reservation. */
+function addVoucherToQuotation(quotation, voucher) {
+  if (!quotation || !voucher) return quotation;
+  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
+  quotation.lines.push({
+    id: createQuotationLineId(),
+    type: "discount",
+    label: `Voucher ${voucher.code} — ${voucher.title}`,
+    description: voucher.discountType === "percent" ? `${Number(voucher.discountValue)}% off` : "",
+    qty: 1,
+    unitPrice: 0,
+    amount: 0,
+    approved: true,
+    source: "voucher",
+    voucherCode: voucher.code,
+    voucherTitle: voucher.title,
+    voucherType: voucher.discountType,
+    voucherValue: Number(voucher.discountValue) || 0,
+    voucherMax: voucher.maxDiscount != null ? Number(voucher.maxDiscount) : null,
+  });
+  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
+  return quotation;
+}
+
+function removeVoucherFromQuotation(quotation) {
+  if (!quotation) return quotation;
+  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
+  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
+  return quotation;
 }
 
 function cvrScheduleDescription(reservation) {
@@ -1212,7 +1311,13 @@ function applyQuotationToReservation(reservation, quotation) {
   reservation.totalAmount = cat ? cat.formatMoney(quotation.totalNumeric, currency) : String(quotation.totalNumeric);
   reservation.currency = currency;
 
-  const dp = computeDownpayment(quotation.totalNumeric);
+  const plan = normalizePaymentPlan(reservation.paymentPlan);
+  reservation.paymentPlan = plan;
+  const dp = computeDownpayment(quotation.totalNumeric, paymentPlanPercent(plan));
+  reservation.discountAmount = quotation.subtotalDiscount || 0;
+  const voucherLine = getQuotationVoucherLine(quotation);
+  reservation.voucherCode = voucherLine ? voucherLine.voucherCode : "";
+  quotation.paymentPlan = plan;
   reservation.downpaymentPercent = dp.percent;
   reservation.downpaymentAmount = dp.downpayment;
   reservation.balanceAmount = dp.balance;
@@ -1230,6 +1335,10 @@ window.CVRQuotation = {
   recalculateQuotationTotals,
   buildQuotationFromReservation,
   applyQuotationToReservation,
+  computeVoucherDiscount,
+  getQuotationVoucherLine,
+  addVoucherToQuotation,
+  removeVoucherFromQuotation,
 };
 
 window.CVRBookingCatalog = {
@@ -1262,6 +1371,9 @@ window.CVRBookingCatalog = {
   getEventPackageKeys,
   isEventPackageActive,
   DOWNPAYMENT_PERCENT,
+  PAYMENT_PLANS,
+  normalizePaymentPlan,
+  paymentPlanPercent,
   computeDownpayment,
   createEventPackage,
   updateEventPackage,

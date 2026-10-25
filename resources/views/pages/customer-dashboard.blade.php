@@ -30,6 +30,7 @@
   </script>
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
 </head>
 <body id="customerDashboardRoot">
   <div id="site-navbar"></div>
@@ -146,7 +147,7 @@
         <div class="modal-body">
           <p class="small text-muted-brand mb-3">You're about to upload proof of payment for reservation <strong id="dashPayModalId">—</strong>.</p>
           <div class="d-flex justify-content-between small mb-1"><span>Total package price</span><strong id="dashPayModalTotal">—</strong></div>
-          <div class="d-flex justify-content-between small mb-1"><span>Downpayment due now</span><strong id="dashPayModalDownpayment">—</strong></div>
+          <div class="d-flex justify-content-between small mb-1"><span id="dashPayModalDpLabel">Downpayment due now</span><strong id="dashPayModalDownpayment">—</strong></div>
           <div class="d-flex justify-content-between small text-muted-brand"><span>Balance due before check-in</span><span id="dashPayModalBalance">—</span></div>
         </div>
         <div class="modal-footer">
@@ -199,7 +200,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/main.js?v=20261025c"></script>
+  <script src="../js/main.js?v=20261025e"></script>
   <script>
     renderNavbar("");
     renderFooter();
