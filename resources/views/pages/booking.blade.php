@@ -157,9 +157,15 @@
       </div>
 
       <div id="eventBookingSection" class="d-none">
+        <div class="bk-results-head">
+          <h2 class="text-brand">Event Reservation</h2>
+          <p class="bk-results-meta">Four quick steps. Dates with an existing event or blocked day can't be selected.</p>
+        </div>
         <div class="soft-card p-4 booking-event-card">
-          <h4 class="text-brand mb-3">Event Reservation Details</h4>
           <form id="eventReservationForm" class="row g-4 booking-event-form">
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">1</span><div><h3>What are you celebrating?</h3><p>Pick the event type, and a package if you have one in mind.</p></div></div>
+              <div class="row g-3">
             <div class="col-md-6">
               <label for="eventType" class="form-label text-brand">Event Type</label>
               <select id="eventType" class="form-select" required>
@@ -173,6 +179,29 @@
                 <optgroup label="Full-Event Packages" id="eventTypeVenueGroup"></optgroup>
               </select>
             </div>
+            <div class="col-md-6 d-none" id="eventOtherSpecifyWrap">
+              <label for="eventOtherSpecify" class="form-label text-brand">Please specify <span class="text-danger">*</span></label>
+              <input id="eventOtherSpecify" type="text" class="form-control" placeholder="Tell us what kind of event this is">
+            </div>
+            <div class="col-md-6 d-none" id="eventBirthdayPackageWrap">
+              <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
+              <select id="eventBirthdayPackage" class="form-select"></select>
+            </div>
+            <div class="col-12">
+              <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
+            </div>
+            <div class="col-md-6 d-none" id="eventMotifBookingWrap">
+              <label for="eventMotifSelect" class="form-label text-brand">Motif / color theme (optional)</label>
+              <select id="eventMotifSelect" class="form-select">
+                <option value="">Select later on reservation form</option>
+              </select>
+            </div>
+              </div>
+            </div>
+            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">2</span><div><h3>Who is coming?</h3><p>Adults and kids are counted together as your total guests.</p></div></div>
+              <div class="row g-3">
             <div class="col-md-6">
               <span class="form-label text-brand d-block">Number of Guests <span class="text-danger">*</span></span>
               <div class="row g-2">
@@ -188,6 +217,12 @@
               <input id="eventGuests" type="hidden" value="1">
               <div class="small text-muted-brand mt-2" id="eventGuestTotalText">1 guest in total</div>
             </div>
+              </div>
+            </div>
+            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">3</span><div><h3>When is it?</h3><p>Choose your date, then how long you need the venue.</p></div></div>
+              <div class="row g-3">
             <div class="col-12 booking-event-date-col">
               <label class="form-label text-brand">Preferred Date <span class="text-danger">*</span></label>
               <p class="small text-muted-brand mb-3 mb-md-2">Dates with an existing event booking or blocked days cannot be selected.</p>
@@ -274,29 +309,21 @@
               </div>
               <small class="text-muted-brand d-block mt-1">Pick your own departure time on the last day, or leave blank to use the default 12:00 NN.</small>
             </div>
-            <div class="col-md-6 d-none" id="eventBirthdayPackageWrap">
-              <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
-              <select id="eventBirthdayPackage" class="form-select"></select>
+              </div>
             </div>
-            <div class="col-md-6 d-none" id="eventOtherSpecifyWrap">
-              <label for="eventOtherSpecify" class="form-label text-brand">Please specify <span class="text-danger">*</span></label>
-              <input id="eventOtherSpecify" type="text" class="form-control" placeholder="Tell us what kind of event this is">
             </div>
-            <div class="col-12">
-              <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
-            </div>
-            <div class="col-md-6 d-none" id="eventMotifBookingWrap">
-              <label for="eventMotifSelect" class="form-label text-brand">Motif / color theme (optional)</label>
-              <select id="eventMotifSelect" class="form-select">
-                <option value="">Select later on reservation form</option>
-              </select>
-            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">4</span><div><h3>Anything else?</h3><p>Special requests, setup ideas, or questions for our team.</p></div></div>
+              <div class="row g-3">
             <div class="col-12">
               <label for="eventNotes" class="form-label text-brand">Additional Notes</label>
               <textarea id="eventNotes" class="form-control" rows="4" placeholder="Enter any special requests or notes"></textarea>
             </div>
-            <div class="col-12 col-sm-auto d-grid">
-              <button type="submit" class="btn btn-brand px-4">Submit Event Reservation</button>
+              </div>
+            </div>
+            </div>
+            <div class="col-12 bk-submit-bar">
+              <button type="submit" class="btn btn-brand px-4"><i class="bi bi-send-check me-2"></i>Submit Event Reservation</button>
             </div>
           </form>
         </div>

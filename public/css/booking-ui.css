@@ -167,3 +167,40 @@ html[data-theme="dark"] .bk-float { color: #0e161e; }
 @media (prefers-reduced-motion: reduce) {
   .booking-page .booking-room-card, .bk-float { transition: none; }
 }
+
+/* ---------- Event reservation form ---------- */
+.booking-page .booking-event-card {
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  padding: 0 !important; transform: none !important;
+}
+.booking-page .booking-event-form { --bs-gutter-y: 1.25rem; }
+.bk-form-section {
+  background: var(--bk-surface); border: 1px solid var(--bk-line); border-radius: 20px;
+  box-shadow: var(--bk-shadow); padding: 1.25rem 1.5rem 1.5rem;
+}
+.bk-sec-head { display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem; padding-bottom: .85rem; border-bottom: 1px solid var(--bk-line); }
+.bk-sec-head .n {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--bk-brand); color: #fff; font-weight: 800; font-size: .95rem;
+}
+html[data-theme="dark"] .bk-sec-head .n { color: #0e161e; }
+.bk-sec-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--bk-brand-dark); }
+.bk-sec-head p { margin: .1rem 0 0; font-size: .84rem; color: var(--bk-muted); }
+.booking-page .booking-event-form .form-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+.booking-page .booking-event-form .form-control,
+.booking-page .booking-event-form .form-select { min-height: 46px; border-radius: 12px; border-color: var(--bk-line); }
+.booking-page .booking-event-form textarea.form-control { min-height: 110px; }
+.booking-page .booking-event-form .form-control:focus,
+.booking-page .booking-event-form .form-select:focus { border-color: var(--bk-brand); box-shadow: 0 0 0 3px rgba(11, 92, 133, .18); }
+.booking-page .booking-event-form .booking-event-package-details .soft-card { border-radius: 16px; }
+.bk-submit-bar { display: flex; justify-content: flex-end; }
+.bk-submit-bar .btn { min-height: 50px; border-radius: 14px; font-weight: 700; }
+@media (max-width: 767.98px) {
+  .bk-form-section { padding: 1rem; border-radius: 16px; }
+  .bk-submit-bar {
+    position: sticky; bottom: 0; z-index: 20; margin-top: .5rem;
+    padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px));
+    background: var(--bk-surface); border-top: 1px solid var(--bk-line); box-shadow: 0 -6px 18px rgba(0, 0, 0, .08);
+  }
+  .bk-submit-bar .btn { width: 100%; }
+}
