@@ -138,9 +138,10 @@
                 <span class="sitemap-group-count"></span>
               </div>
             </div>
-            <p class="small text-muted-brand mb-3">Sign in or join Casa Vergara</p>
+            <p class="small text-muted-brand mb-3">Sign in, switch between saved accounts, or join Casa Vergara</p>
             <ul class="sitemap-link-list">
-              <li><a href="login.html"><i class="bi bi-box-arrow-in-right"></i><span>Sign In</span></a></li>
+              <li><a href="login.html"><i class="bi bi-box-arrow-in-right"></i><span>Sign In <em>(with show/hide password)</em></span></a></li>
+              <li><a href="login.html"><i class="bi bi-people"></i><span>Saved Accounts <em>(one-tap sign-in &amp; switch account)</em></span></a></li>
               <li><a href="register.html"><i class="bi bi-person-plus"></i><span>Register</span></a></li>
               <li><a href="forgot-password.html"><i class="bi bi-key"></i><span>Reset Password</span></a></li>
             </ul>
@@ -160,12 +161,12 @@
             <p class="small text-muted-brand mb-3">For signed-in guests</p>
             <ul class="sitemap-link-list">
               <li><a href="customer-dashboard.html"><i class="bi bi-speedometer2"></i><span>My Dashboard</span></a></li>
-              <li><a href="customer-settings.html"><i class="bi bi-gear"></i><span>Account Settings</span></a></li>
+              <li><a href="customer-settings.html"><i class="bi bi-gear"></i><span>Account Settings <em>(profile photo, password)</em></span></a></li>
               <li><a href="reservation-form.html"><i class="bi bi-journal-check"></i><span>Reservation Details</span></a></li>
               <li><a href="quotation.html"><i class="bi bi-receipt"></i><span>Quotation</span></a></li>
               <li><a href="payment.html"><i class="bi bi-credit-card"></i><span>Payment</span></a></li>
               <li><a href="reservation-status.html"><i class="bi bi-activity"></i><span>Reservation Status</span></a></li>
-              <li><a href="customer-dashboard.html#live-chat"><i class="bi bi-chat-dots"></i><span>Live Chat</span></a></li>
+              <li><a href="customer-dashboard.html#live-chat"><i class="bi bi-chat-dots"></i><span>Live Chat <em>(Casa Vergara Resort)</em></span></a></li>
               <li><a href="customer-dashboard.html#reviews"><i class="bi bi-star-half"></i><span>My Reviews</span></a></li>
             </ul>
           </div>
@@ -194,7 +195,7 @@
               <li><a href="admin/notifications.html"><i class="bi bi-bell"></i><span>Notifications</span></a></li>
               <li><a href="admin/reports.html"><i class="bi bi-file-earmark-bar-graph"></i><span>Reports</span></a></li>
               <li><a href="admin/users.html"><i class="bi bi-person-badge"></i><span>Users</span></a></li>
-              <li><a href="admin/site-content.html"><i class="bi bi-file-earmark-richtext"></i><span>Site Content <em>(text, photos, packages, FAQs, legal, team)</em></span></a></li>
+              <li><a href="admin/site-content.html"><i class="bi bi-file-earmark-richtext"></i><span>Site Content <em>(text, photos of any image type, packages, FAQs, legal, team)</em></span></a></li>
               <li><a href="admin/settings.html"><i class="bi bi-gear"></i><span>Settings</span></a></li>
             </ul>
           </div>
@@ -210,11 +211,12 @@
                 <span class="sitemap-group-count"></span>
               </div>
             </div>
-            <p class="small text-muted-brand mb-3">Day-to-day operations &mdash; event-manager staff accounts (Packages, Reviews &amp; Reports are view-only here)</p>
+            <p class="small text-muted-brand mb-3">Day-to-day operations &mdash; event-manager staff accounts (Payment Verification is available; Packages, Reviews &amp; Reports are view-only here)</p>
             <ul class="sitemap-link-list">
               <li><a href="admin/dashboard.html"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
               <li><a href="admin/reservations.html"><i class="bi bi-people"></i><span>Reservations</span></a></li>
               <li><a href="admin/calendar.html"><i class="bi bi-calendar3"></i><span>Booking Calendar</span></a></li>
+              <li><a href="admin/payments.html"><i class="bi bi-qr-code-scan"></i><span>Payment Verification <em>(approve / reject)</em></span></a></li>
               <li><a href="admin/site-content.html?tab=reviews"><i class="bi bi-star"></i><span>Reviews <em>(view only)</em></span></a></li>
               <li><a href="admin/live-chat.html"><i class="bi bi-chat-dots"></i><span>Live Chat</span></a></li>
               <li><a href="admin/messages.html"><i class="bi bi-envelope-paper"></i><span>Contact Messages</span></a></li>
