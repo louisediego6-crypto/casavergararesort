@@ -412,7 +412,7 @@ function initAdminPackagesPage() {
     "ps1", "psm1", "sh", "bash", "php", "php3", "php4", "php5", "phtml", "cgi", "pl",
     "py", "jar", "apk", "app", "dmg", "html", "htm", "svg", "swf", "reg", "lnk", "hta",
   ]);
-  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "bmp", "avif"]);
+  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "apng", "webp", "gif", "bmp", "avif", "ico", "tif", "tiff", "heic", "heif"]);
   const fileExt = (name) => String(name || "").split(".").pop()?.toLowerCase() || "";
 
   const photoSrc = (path, fallback) => {

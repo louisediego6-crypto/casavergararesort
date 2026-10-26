@@ -26,6 +26,7 @@
   <link href="../css/booking-ui.css?v=20261026b" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/booking-extras.css?v=20261026a" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -202,22 +203,40 @@
             </div>
             </div>
             <div class="col-12"><div class="bk-form-section">
-              <div class="bk-sec-head"><span class="n">2</span><div><h3>Who is coming?</h3><p>Adults and kids are counted together as your total guests.</p></div></div>
+              <div class="bk-sec-head"><span class="n">2</span><div><h3>Who is coming?</h3><p>Adults and kids always add up to your total guests.</p></div></div>
               <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-12 col-lg-8">
               <span class="form-label text-brand d-block">Number of Guests <span class="text-danger">*</span></span>
-              <div class="row g-2">
-                <div class="col-6">
-                  <label for="eventAdults" class="small text-muted-brand mb-1">Adults</label>
-                  <input id="eventAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+              <div class="bk-guest-grid" role="group" aria-label="Number of guests">
+                <div class="bk-guest-field bk-guest-field--total">
+                  <label for="eventGuests" class="small text-muted-brand mb-1">Total guests</label>
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventGuests" aria-label="Fewer total guests"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventGuests" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventGuests" aria-label="More total guests"><i class="bi bi-plus-lg"></i></button>
+                  </div>
                 </div>
-                <div class="col-6">
+                <div class="bk-guest-eq" aria-hidden="true">=</div>
+                <div class="bk-guest-field">
+                  <label for="eventAdults" class="small text-muted-brand mb-1">Adults</label>
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventAdults" aria-label="Fewer adults"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventAdults" aria-label="More adults"><i class="bi bi-plus-lg"></i></button>
+                  </div>
+                </div>
+                <div class="bk-guest-eq" aria-hidden="true">+</div>
+                <div class="bk-guest-field">
                   <label for="eventChildren" class="small text-muted-brand mb-1">Kids</label>
-                  <input id="eventChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventChildren" aria-label="Fewer kids"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventChildren" aria-label="More kids"><i class="bi bi-plus-lg"></i></button>
+                  </div>
                 </div>
               </div>
-              <input id="eventGuests" type="hidden" value="1">
-              <div class="small text-muted-brand mt-2" id="eventGuestTotalText">1 guest in total</div>
+              <div class="small text-muted-brand mt-2" id="eventGuestTotalText" aria-live="polite">1 guest in total: 1 adult</div>
+              <div class="small text-muted-brand">Total, adults and kids stay in sync: change any one and the others update.</div>
             </div>
               </div>
             </div>
@@ -393,7 +412,8 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261026a"></script>
-  <script src="../js/booking.js?v=20261024i"></script>
+  <script src="../js/package-media.js?v=20261026a"></script>
+  <script src="../js/booking.js?v=20261026a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

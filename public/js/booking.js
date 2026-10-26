@@ -51,6 +51,12 @@ function initBookingPage() {
     stayDurationWrap?.classList.toggle("d-none", !isRoom);
     document.getElementById("cvrCheckInTimeWrap")?.classList.toggle("d-none", !isRoom);
     if (!isRoom) document.getElementById("cvrRoomCheckOutTimeWrap")?.classList.add("d-none");
+    // Event reservations pick their date on the calendar inside the form below,
+    // so the Check-in / Check-out date fields are only shown for room stays.
+    document.getElementById("cvrCheckInWrap")?.classList.toggle("d-none", !isRoom);
+    const isExtendedStay = (document.getElementById("stayDuration")?.value || "") === "extended";
+    document.getElementById("cvrCheckOutWrap")?.classList.toggle("d-none", !isRoom || !isExtendedStay);
+    if (isRoom) document.getElementById("cvrRoomCheckOutTimeWrap")?.classList.toggle("d-none", !isExtendedStay);
     roomTimingNote?.classList.toggle("d-none", !isRoom);
 
     filterRow?.classList.toggle("cvr-filter-event-mode", !isRoom);
@@ -561,7 +567,9 @@ function initBookingPage() {
         : `package price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`;
       const addOnCount = pkg.addOns?.length || 0;
       detailsEl.classList.remove("d-none");
-      const photo = pkg.image
+      const photo = pkg.image && window.CVRPackageMedia
+        ? window.CVRPackageMedia.render(pkg.image, key)
+        : pkg.image
         ? `<img src="${escapeHtml(window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image)}" alt="${escapeHtml(key)}" class="w-100 rounded-3 mb-3" style="max-height:220px;object-fit:cover;">`
         : "";
       detailsEl.innerHTML = `
@@ -607,26 +615,65 @@ function initBookingPage() {
     document.getElementById("eventDuration")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("input", renderPackageDetails);
-    // Adults + kids feed the hidden total that pricing reads.
-    const syncEventGuestTotal = () => {
-      const a = Math.max(0, parseInt(document.getElementById("eventAdults")?.value, 10) || 0);
-      const c = Math.max(0, parseInt(document.getElementById("eventChildren")?.value, 10) || 0);
-      const hidden = document.getElementById("eventGuests");
-      if (hidden) hidden.value = String(a + c);
+    // Total guests, adults and kids are linked:
+    //   - editing Adults or Kids updates the Total
+    //   - editing the Total keeps the Kids count and adjusts Adults (at least 1 adult),
+    //     and trims Kids only if the Total is too small to fit them
+    const guestAdultsEl = document.getElementById("eventAdults");
+    const guestKidsEl = document.getElementById("eventChildren");
+    const guestTotalEl = document.getElementById("eventGuests");
+    const readCount = (el, min) => Math.max(min, parseInt(el?.value, 10) || 0);
+
+    const paintGuestSummary = (a, c) => {
       const text = document.getElementById("eventGuestTotalText");
-      if (text) {
-        text.textContent = `${a} adult${a !== 1 ? "s" : ""}${c ? `, ${c} kid${c !== 1 ? "s" : ""}` : ""} · ${a + c} guest${a + c !== 1 ? "s" : ""} in total`;
+      if (!text) return;
+      const t = a + c;
+      text.textContent = `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""}`;
+    };
+
+    // source: "parts" (adults/kids edited) or "total" (total edited)
+    const syncEventGuestTotal = (source = "parts") => {
+      let a = readCount(guestAdultsEl, 0);
+      let c = readCount(guestKidsEl, 0);
+      if (source === "total") {
+        const total = readCount(guestTotalEl, 1);
+        c = Math.min(c, Math.max(0, total - 1));
+        a = Math.max(1, total - c);
+        if (guestAdultsEl) guestAdultsEl.value = String(a);
+        if (guestKidsEl) guestKidsEl.value = String(c);
+      } else if (guestTotalEl) {
+        guestTotalEl.value = String(Math.max(1, a + c));
       }
+      paintGuestSummary(a, c);
       renderPackageDetails();
     };
-    document.getElementById("eventAdults")?.addEventListener("input", syncEventGuestTotal);
-    document.getElementById("eventChildren")?.addEventListener("input", syncEventGuestTotal);
-    document.getElementById("eventGuests")?.addEventListener("input", renderPackageDetails);
+    guestAdultsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
+    guestKidsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
+    guestTotalEl?.addEventListener("input", () => {
+      // let the field be empty while typing; only sync once there is a number
+      if (guestTotalEl.value === "") return;
+      syncEventGuestTotal("total");
+    });
+    guestTotalEl?.addEventListener("blur", () => {
+      if (guestTotalEl.value === "" || Number(guestTotalEl.value) < 1) guestTotalEl.value = "1";
+      syncEventGuestTotal("total");
+    });
+    // +/- steppers next to each count
+    document.querySelectorAll("[data-guest-step]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.guestTarget);
+        if (!target) return;
+        const min = Number(target.min) || 0;
+        const next = Math.max(min, (parseInt(target.value, 10) || 0) + Number(btn.dataset.guestStep));
+        target.value = String(next);
+        syncEventGuestTotal(target === guestTotalEl ? "total" : "parts");
+      });
+    });
     syncBirthdayPackageVisibility();
     syncOtherSpecifyVisibility();
     syncDurationOptionsAvailability();
     syncFixedScheduleVisibility();
-    renderPackageDetails();
+    syncEventGuestTotal("parts");
 
     // Deep link from the homepage, e.g. booking.html?type=event&event=Wedding%20Package
     (() => {
