@@ -51,12 +51,6 @@ function initBookingPage() {
     stayDurationWrap?.classList.toggle("d-none", !isRoom);
     document.getElementById("cvrCheckInTimeWrap")?.classList.toggle("d-none", !isRoom);
     if (!isRoom) document.getElementById("cvrRoomCheckOutTimeWrap")?.classList.add("d-none");
-    // Event reservations pick their date on the calendar inside the form below,
-    // so the Check-in / Check-out date fields are only shown for room stays.
-    document.getElementById("cvrCheckInWrap")?.classList.toggle("d-none", !isRoom);
-    const isExtendedStay = (document.getElementById("stayDuration")?.value || "") === "extended";
-    document.getElementById("cvrCheckOutWrap")?.classList.toggle("d-none", !isRoom || !isExtendedStay);
-    if (isRoom) document.getElementById("cvrRoomCheckOutTimeWrap")?.classList.toggle("d-none", !isExtendedStay);
     roomTimingNote?.classList.toggle("d-none", !isRoom);
 
     filterRow?.classList.toggle("cvr-filter-event-mode", !isRoom);
@@ -567,15 +561,25 @@ function initBookingPage() {
         : `package price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`;
       const addOnCount = pkg.addOns?.length || 0;
       detailsEl.classList.remove("d-none");
-      const photo = pkg.image && window.CVRPackageMedia
-        ? window.CVRPackageMedia.render(pkg.image, key)
-        : pkg.image
-        ? `<img src="${escapeHtml(window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image)}" alt="${escapeHtml(key)}" class="w-100 rounded-3 mb-3" style="max-height:220px;object-fit:cover;">`
-        : "";
+      const mediaKind = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.kindOf(pkg.image) : "image";
+      const coverUrl = pkg.image ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image) : "";
+      // Same look as the room cards: photo + price badge + "View details" overlay.
+      // Photos open the details dialog; other file types (PDF, video, docs...) open the file viewer.
+      const photo = !pkg.image
+        ? ""
+        : mediaKind === "image"
+        ? `<div class="room-cover-wrap bk-event-cover" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
+            <img class="room-cover" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(key)}">
+            <span class="bk-price-badge"><strong>${escapeHtml(money)}</strong></span>
+            <div class="room-cover-overlay"><span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View package details</span></div>
+          </div>`
+        : window.CVRPackageMedia.render(pkg.image, key);
+      lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, eventNights, guestCountVal, paxSurcharge };
       detailsEl.innerHTML = `
-        <div class="soft-card p-3 border">
+        <div class="soft-card overflow-hidden border bk-event-pkg">
           ${photo}
-          <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="p-3">
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
             <div>
               <h6 class="text-brand mb-1">${escapeHtml(key)}</h6>
               <div class="small text-muted-brand">${escapeHtml(paxLabel)}</div>
@@ -595,9 +599,68 @@ function initBookingPage() {
               ? `<div class="small text-primary mt-3 mb-0"><i class="bi bi-stars me-1"></i>Mix and match — choose your own lighting, sound, motif, and decor add-ons on the next step (${addOnCount} options available).</div>`
               : ""
           }
+          ${pkg.image && mediaKind === "image" ? `<button type="button" class="btn btn-outline-primary btn-sm mt-3" data-event-details><i class="bi bi-info-circle me-1"></i>View package details</button>` : ""}
+          </div>
         </div>
       `;
     };
+
+    // ---- Event package details dialog (same style as the room details dialog) ----
+    let lastEventView = null;
+    const openEventDetails = () => {
+      const v = lastEventView;
+      const modalEl = document.getElementById("eventDetailsModal");
+      if (!v || !modalEl || typeof bootstrap === "undefined") return;
+      const { key, pkg } = v;
+      const q = (sel) => modalEl.querySelector(sel);
+      q("#eventDetailsTitle").textContent = key;
+      q("#eventDetailsTagline").textContent = v.paxLabel;
+      q("#eventDetailsPrice").textContent = v.money;
+      q("#eventDetailsPriceNote").textContent = v.priceLabel;
+      q("#eventDetailsSurcharge").textContent = v.paxSurcharge
+        ? `+ ${cat.formatMoney(v.paxSurcharge.price, "PHP")} for ${v.guestCountVal} guests`
+        : "";
+      // Photo: click it to open the full-size viewer (works for any file type).
+      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key) : "";
+
+      const schedule = getFixedSchedule(key);
+      const facts = [
+        `Capacity: ${pkg.isCustom ? `flexible, up to ${pkg.pax} pax` : pkg.maxPax ? `${pkg.pax} pax included, up to ${pkg.maxPax} pax` : `${pkg.pax} pax`}`,
+        pkg.extraPaxRate && pkg.maxPax ? `Extra guests: +${cat.formatMoney(pkg.extraPaxRate, "PHP")} per person past ${pkg.pax}` : "",
+        schedule ? `Schedule: ${schedule.label}` : "Check-in is flexible; check-out follows your chosen duration",
+        pkg.flatRate ? "Flat package price, same regardless of duration" : "",
+      ].filter(Boolean);
+      q("#eventDetailsFacts").innerHTML = facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+      q("#eventDetailsInclusions").innerHTML = (pkg.inclusions || []).map((i) => `<li>${escapeHtml(i)}</li>`).join("");
+
+      const addOns = pkg.addOns || [];
+      q("#eventDetailsAddonsWrap").classList.toggle("d-none", !addOns.length);
+      q("#eventDetailsAddons").innerHTML = addOns
+        .map((a) => `<li>${escapeHtml(a.label)}${Number(a.price) ? ` <span class="text-brand fw-semibold">· ${escapeHtml(cat.formatMoney(Number(a.price), "PHP"))}</span>` : ""}</li>`)
+        .join("");
+
+      const motifs = (cat.getEventMotifs ? cat.getEventMotifs(key) : pkg.motifs) || [];
+      q("#eventDetailsMotifsWrap").classList.toggle("d-none", !motifs.length);
+      q("#eventDetailsMotifs").innerHTML = motifs.map((m) => `<span class="bk-motif-chip">${escapeHtml(m.label)}</span>`).join("");
+
+      const cont = q("#eventDetailsContinueBtn");
+      if (cont) {
+        cont.onclick = () => {
+          bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+          document.getElementById("eventAdults")?.closest(".bk-form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+      }
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    };
+    detailsEl?.addEventListener("click", (e) => {
+      if (e.target.closest("[data-event-details]")) openEventDetails();
+    });
+    detailsEl?.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && e.target.matches(".room-cover-wrap[data-event-details]")) {
+        e.preventDefault();
+        openEventDetails();
+      }
+    });
 
     eventTypeEl?.addEventListener("change", () => {
       syncBirthdayPackageVisibility();

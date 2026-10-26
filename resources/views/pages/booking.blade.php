@@ -26,7 +26,7 @@
   <link href="../css/booking-ui.css?v=20261026b" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
-  <link href="../css/booking-extras.css?v=20261026a" rel="stylesheet">
+  <link href="../css/booking-extras.css?v=20261026b" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -403,6 +403,44 @@
     </div>
   </div>
 
+  <div class="modal fade cvr-room-modal" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-brand" id="eventDetailsTitle">Package details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="eventDetailsPhoto" class="mb-3"></div>
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <p class="text-muted-brand mb-1" id="eventDetailsTagline"></p>
+            <div class="text-end ms-auto">
+              <div class="fw-bold text-brand fs-5" id="eventDetailsPrice"></div>
+              <div class="small text-muted-brand" id="eventDetailsPriceNote"></div>
+              <div class="small text-primary" id="eventDetailsSurcharge"></div>
+            </div>
+          </div>
+          <h6 class="text-brand mt-4 mb-2">Package facts</h6>
+          <ul class="small text-muted-brand ps-3" id="eventDetailsFacts"></ul>
+          <h6 class="text-brand mt-4 mb-2">Inclusions</h6>
+          <ul class="small text-muted-brand ps-3" id="eventDetailsInclusions"></ul>
+          <div id="eventDetailsAddonsWrap">
+            <h6 class="text-brand mt-4 mb-2">Available add-ons</h6>
+            <ul class="small text-muted-brand ps-3" id="eventDetailsAddons"></ul>
+          </div>
+          <div id="eventDetailsMotifsWrap">
+            <h6 class="text-brand mt-4 mb-2">Motif / color themes</h6>
+            <div class="d-flex flex-wrap gap-2" id="eventDetailsMotifs"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="eventDetailsContinueBtn" class="btn btn-brand">Continue booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -413,7 +451,7 @@
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261026a"></script>
   <script src="../js/package-media.js?v=20261026a"></script>
-  <script src="../js/booking.js?v=20261026a"></script>
+  <script src="../js/booking.js?v=20261026b"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

@@ -130,7 +130,7 @@
       const stage = viewer?.querySelector(".cvr-media-view-stage");
       if (stage) stage.innerHTML = `<div class="cvr-media-view-file">${fileCard(url, label, "file", e)}<p>Your browser can't display this image format. Open or download it to view.</p></div>`;
     });
-    document.body.appendChild(viewer);
+    (document.querySelector(".modal.show") || document.body).appendChild(viewer);
     document.body.classList.add("cvr-media-open");
     document.addEventListener("keydown", onKey, true);
     viewer.querySelector(".cvr-media-close")?.focus();
