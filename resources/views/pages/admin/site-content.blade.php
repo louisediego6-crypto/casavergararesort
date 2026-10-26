@@ -40,6 +40,7 @@
   <link href="../../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../../css/vouchers.css?v=20261025a" rel="stylesheet">
   <link href="../../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
 </head>
 <body>
   <div class="admin-wrap admin-page">

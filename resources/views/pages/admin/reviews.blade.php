@@ -9,6 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="refresh" content="0; url=site-content.html?tab=reviews" />
   <title>Reviews - Casa Vergara Admin</title>
+  <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
 </head>
 <body>
   <p>Redirecting to <a href="site-content.html?tab=reviews">Site Content › Reviews</a>…</p>

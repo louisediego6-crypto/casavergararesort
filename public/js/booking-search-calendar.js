@@ -103,6 +103,7 @@
     let fpOut;
 
     fpOut = flatpickr(outAnchor, {
+      disableMobile: true,
       mode: "single",
       inline: false,
       allowInput: false,
@@ -137,6 +138,7 @@
     });
 
     fpIn = flatpickr(inAnchor, {
+      disableMobile: true,
       mode: "single",
       inline: false,
       allowInput: false,

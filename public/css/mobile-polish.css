@@ -1,0 +1,476 @@
+/* ==========================================================================
+   Casa Vergara Resort — mobile polish + dark-mode safety net
+   LOAD THIS FILE LAST on every page (after theme.css / calendars.css / booking-ui.css).
+
+   Covers:
+     1. Booking search card + date / time pickers (room stay + event reservation)
+     2. Calendar bottom-sheet and inline calendars on phones (light + dark)
+     3. Guest live-chat widget on phones (light + dark)
+     4. Admin / Staff portal on phones (top bar, menu, page heads, cards, tables,
+        filters, modals, live-chat inbox, booking calendar)
+     5. Dark-mode patches for anything the older sheets missed
+
+   "html:not(.cvr-x):not(.cvr-y) body" below = html:not(.cvr-x):not(.cvr-y) body  (same specificity boost that
+   calendars.css uses, so these rules beat it without editing it).
+   ========================================================================== */
+
+:root {
+  --mp-safe-t: env(safe-area-inset-top, 0px);
+  --mp-safe-b: env(safe-area-inset-bottom, 0px);
+  --mp-field-h: 48px;
+}
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: clip; }
+html body img, html body video { max-width: 100%; }
+
+/* Date inputs a flatpickr "mobile" fallback may have created must never show:
+   they were the stray empty drop-down under "Check-in date" on Android. */
+html body .flatpickr-mobile { display: none !important; }
+html body #cvrCheckInAnchor,
+html body #cvrCheckOutAnchor { position: absolute !important; left: 0; bottom: 0; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important; }
+html body #cvrCheckInWrap, html body #cvrCheckOutWrap { position: relative; }
+
+/* Touch screens: 16px inputs stop iOS from zooming in on focus */
+@media (pointer: coarse) {
+  html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  html body select, html body textarea,
+  html body .form-control, html body .form-select { font-size: max(16px, 1rem); }
+}
+
+/* ==========================================================================
+   1. BOOKING SEARCH CARD
+   ========================================================================== */
+
+/* The row used to be a second bordered card inside the card — flatten it. */
+html body .booking-filter-unified .booking-filter-row {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0;
+}
+
+html body .bk-filter-title { flex-wrap: wrap; }
+html body .bk-filter-title small { flex-basis: 100%; }
+
+html body .booking-filter-card .cvr-search-date-input {
+  min-height: var(--mp-field-h);
+  padding-right: 2.75rem;
+  background-color: var(--bk-surface, #fff);
+  color: var(--bk-text, inherit);
+  text-overflow: ellipsis;
+}
+html body .booking-filter-card .cvr-search-date-input::placeholder { color: var(--bk-muted, #7a8aa0); opacity: 1; }
+html body .booking-filter-card .cvr-search-date-icon {
+  right: 1rem; font-size: 1.1rem; color: var(--bk-brand, var(--secondary));
+}
+
+/* Time pickers: three equal, tappable cells in one rounded control */
+html body .cvr-time-picker-group {
+  min-height: var(--mp-field-h);
+  border-radius: 12px;
+  border-color: var(--bk-line, #cfdbe8);
+  background: var(--bk-surface, #fff);
+}
+html body .cvr-time-picker-group .form-select {
+  min-height: var(--mp-field-h) !important;
+  padding: 0 .25rem !important;
+  background-color: transparent !important;
+  color: var(--bk-text, inherit);
+  text-align: center; text-align-last: center;
+}
+html body .cvr-time-picker-group select#cvrCheckInMeridiem,
+html body .cvr-time-picker-group select#cvrCheckOutMeridiem {
+  flex: 0 0 3.6rem; font-weight: 700;
+  border-left: 1px solid var(--bk-line, #e3eaf2) !important;
+}
+html body .cvr-time-picker-sep { color: var(--bk-muted, var(--text)); padding: 0; }
+html body .cvr-time-label-row { padding-right: 4.5rem; }
+
+@media (max-width: 575.98px) {
+  html body .booking-page .container { padding-left: .9rem; padding-right: .9rem; }
+  html body .booking-page .booking-filter-card {
+    padding: 1rem !important;
+    border-radius: 18px;
+    margin-bottom: 1rem !important;
+  }
+
+  /* "Find your stay" heading: icon + title on one line, hint under it */
+  html body .bk-filter-title {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: .65rem; row-gap: .1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1.12rem; line-height: 1.2;
+  }
+  html body .bk-filter-title > i {
+    grid-row: 1; width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 1.15rem;
+    background: var(--bk-surface-2, #f4f8fb); border: 1px solid var(--bk-line, #dfe8ef);
+  }
+  html body .bk-filter-title small {
+    grid-column: 2; display: block; font-size: .8rem; line-height: 1.35; flex-basis: auto;
+  }
+
+  html body .booking-filter-row { --bs-gutter-y: .9rem; --bs-gutter-x: 0; margin-left: 0; margin-right: 0; }
+  html body .booking-filter-row > [class*="col"] { padding-left: 0; padding-right: 0; max-width: 100%; flex: 0 0 100%; }
+  html body .booking-filter-row.cvr-filter-event-mode .cvr-filter-shrink-col { flex: 0 0 100%; max-width: 100%; }
+  html body .booking-filter-card .form-control,
+  html body .booking-filter-card .form-select,
+  html body .booking-filter-card .btn { min-height: var(--mp-field-h); }
+  html body .booking-filter-card .form-select { padding-right: 2.5rem; }
+  html body #bookingSearchBtn { width: 100%; font-size: 1rem; }
+  html body #cvrSearchBtnWrap { position: sticky; bottom: calc(.75rem + var(--mp-safe-b)); z-index: 3; }
+
+  html body .cvr-time-flex-badge { top: 0; }
+  html body .booking-page .bk-form-section { padding: 1rem; border-radius: 16px; }
+}
+
+/* ==========================================================================
+   2. CALENDARS
+   ========================================================================== */
+
+/* Calendar closed = gone. Nothing may leak into the page flow. */
+html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar:not(.open):not(.inline) { display: none !important; }
+
+/* Make sure the sheet's backdrop sits under the sheet and never blocks it */
+@media (max-width: 575.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar.open {
+    bottom: calc(12px + var(--mp-safe-b)) !important;
+    width: min(calc(100vw - 20px), 400px) !important;
+    max-height: calc(100dvh - 24px - var(--mp-safe-t) - var(--mp-safe-b));
+    overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 24px !important;
+    --cal-day-h: clamp(38px, 11.4vw, 46px);
+  }
+  /* little grab handle so it reads as a sheet */
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar.open::before {
+    content: "" !important; display: block !important;
+    position: static !important; border: 0 !important;
+    width: 40px; height: 4px; margin: 8px auto 0; border-radius: 4px;
+    background: var(--cal-line-strong, #cfdbe8); opacity: .9;
+  }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp .flatpickr-months { padding-top: .15rem; }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp .cvr-search-fp-footer {
+    display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: .5rem; padding: .75rem .9rem calc(.9rem + 0px);
+  }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp .cvr-search-fp-btn {
+    min-height: 46px; border-radius: 12px; font-size: .95rem; margin: 0 !important;
+  }
+  html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp .cvr-search-fp-legend { padding: .55rem 1rem 0; justify-content: center; }
+  body.cvr-fp-sheet-open { overflow: hidden; }
+  body.cvr-fp-sheet-open::before { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+}
+
+/* Inline calendars (event date, stay dates): always fit their card */
+html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount,
+html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell,
+html:not(.cvr-x):not(.cvr-y) body .cvr-stay-calendars-wrap { max-width: 100%; min-width: 0; }
+html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar.inline { width: 100% !important; max-width: 100% !important; box-shadow: none; }
+
+@media (max-width: 767.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .cvr-cal-pair-grid { grid-template-columns: 1fr; gap: 1rem; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-stay-calendars-wrap .cvr-fp-mount { max-width: none; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell { max-width: 100%; border-radius: 18px !important; }
+}
+@media (max-width: 575.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar.flatpickr-calendar { --cal-day-h: clamp(38px, 11.4vw, 46px); }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-innerContainer { padding: .25rem .5rem .6rem; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-day { font-size: .9rem; border-radius: 12px !important; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-months { padding: .35rem 0; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months { font-size: .95rem; padding: .35rem .55rem; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .numInputWrapper { width: 4.8ch; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-prev-month,
+  html:not(.cvr-x):not(.cvr-y) body .cvr-fp-mount .flatpickr-calendar .flatpickr-next-month { width: 40px; height: 40px; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-calendar-legend { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .75rem; padding: .7rem .85rem; justify-items: start; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-calendar-legend > span { white-space: normal; font-size: .76rem; }
+  html:not(.cvr-x):not(.cvr-y) body .cvr-event-date-shell .cvr-calendar-legend { justify-items: start; }
+}
+
+/* Dark mode for the calendar bits that sit outside the flatpickr widget */
+html[data-theme="dark"] .cvr-fp-mount.bg-white,
+html[data-theme="dark"] .cvr-event-pref-mount { background: transparent !important; }
+html[data-theme="dark"] .cvr-fp-mount.border { border-color: var(--cal-line, #27384a) !important; }
+html[data-theme="dark"] body.cvr-fp-sheet-open::before { background: rgba(0, 0, 0, .66); }
+html[data-theme="dark"] .booking-filter-card .cvr-search-date-input { background-color: #1b2835 !important; color: #e6edf4; border-color: #2f4357; }
+html[data-theme="dark"] .booking-filter-card .cvr-search-date-input:focus { border-color: #5aa9de; box-shadow: 0 0 0 3px rgba(90, 169, 222, .25); }
+html[data-theme="dark"] .cvr-time-picker-group .form-select option { background: #16212c; color: #e6edf4; }
+html[data-theme="dark"] .booking-filter-card .bk-filter-title > i { background: #1b2835; border-color: #2a3b4b; }
+
+/* ==========================================================================
+   3. GUEST LIVE CHAT
+   ========================================================================== */
+
+html body .cvr-live-chat-dock {
+  right: max(1.1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1.1rem, var(--mp-safe-b));
+  max-width: 100vw;
+}
+html body .cvr-live-chat-dock .cvr-chat-panel {
+  position: absolute; right: 0; bottom: calc(3.35rem + .8rem);
+  display: flex; flex-direction: column;
+  width: min(calc(100vw - 2rem), 380px);
+  max-height: min(78dvh, 600px);
+}
+html body .cvr-live-chat-dock .cvr-chat-panel.d-none { display: none !important; }
+html body .cvr-live-chat-dock #cvrLiveChatThreadWrap { min-height: 0; flex: 1 1 auto; }
+html body .cvr-live-chat-dock #cvrLiveChatThreadWrap.d-none { display: none !important; }
+html body .cvr-live-chat-dock #cvrLiveChatThreadWrap:not(.d-none) { display: flex !important; }
+html body .cvr-live-chat-dock .cvr-chat-messages { flex: 1 1 auto; min-height: 160px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+html body .cvr-live-chat-dock .cvr-chat-panel-head { flex: 0 0 auto; }
+html body .cvr-live-chat-dock .cvr-cmp { flex: 0 0 auto; }
+
+@media (max-width: 575.98px) {
+  html body .cvr-live-chat-dock { right: max(.75rem, env(safe-area-inset-right, 0px)); bottom: max(.75rem, var(--mp-safe-b)); }
+
+  /* Opened chat = a full-width sheet that follows the on-screen keyboard */
+  html body .cvr-live-chat-dock:has(.cvr-chat-panel:not(.d-none)) {
+    left: 0; right: 0; bottom: 0; top: auto;
+  }
+  html body .cvr-live-chat-dock .cvr-chat-panel:not(.d-none) {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+    width: 100%; max-width: 100%;
+    height: min(86dvh, 640px); max-height: 86dvh;
+    border-radius: 22px 22px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+    padding-bottom: var(--mp-safe-b);
+    box-shadow: 0 -12px 40px rgba(8, 24, 38, .35);
+    animation: mpSheetUp .26s cubic-bezier(.2, .8, .2, 1);
+  }
+  html body .cvr-live-chat-dock:has(.cvr-chat-panel:not(.d-none)) .cvr-chat-fab { display: none; }
+  html body .cvr-live-chat-dock .cvr-chat-panel-head { padding: .8rem 1rem; }
+  html body .cvr-live-chat-dock .cvr-chat-panel-head .btn-close { padding: .85rem; margin: -.3rem -.4rem -.3rem 0; }
+  html body .cvr-live-chat-dock .cvr-chat-messages { max-height: none; padding: .85rem .8rem; }
+  html body .cvr-msg-col { max-width: 84%; }
+  html body .cvr-live-chat-dock .cvr-cmp { padding: .5rem .6rem .6rem; }
+  html body .cvr-live-chat-dock .cvr-cmp textarea,
+  html body .cvr-live-chat-dock .cvr-cmp input[type="text"] { font-size: 16px; }
+  html body .cvr-live-chat-dock .cvr-cmp-ico,
+  html body .cvr-live-chat-dock .cvr-cmp-send { min-width: 40px; min-height: 40px; }
+  html body .cvr-live-chat-dock .cvr-cmp-pop { max-width: calc(100vw - 1.5rem); }
+  html body .cvr-live-chat-dock .cvr-emoji-grid { grid-template-columns: repeat(8, 1fr); }
+  html body.cvr-chat-open-lock { overflow: hidden; }
+}
+@keyframes mpSheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Dark chat */
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-panel { background: #16212c !important; border-color: #2a3b4b; color: #e6edf4; box-shadow: 0 -12px 40px rgba(0, 0, 0, .6); }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-panel-head { background: linear-gradient(135deg, #102c43, #17476b) !important; color: #fff; border-bottom: 1px solid #2a3b4b; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-panel-head h2,
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-panel-head p,
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-panel-head .text-brand { color: #fff !important; }
+html[data-theme="dark"] .cvr-live-chat-dock .btn-close { filter: invert(1) grayscale(1) brightness(2); opacity: .85; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-messages { background: #101a23 !important; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-msg--theirs .cvr-bubble--text { background: #1f3042; color: #e6edf4; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-msg-who,
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-msg-status,
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-msg-sep { color: #93a5b7; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp { background: #16212c; border-top: 1px solid #2a3b4b; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp-pill { background: #1b2835; border-color: #2f4357; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp textarea { background: transparent !important; color: #e6edf4; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp textarea::placeholder { color: #7f93a6; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp-ico,
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp-emoji { color: #8fc4ea; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-cmp-pop { background: #1b2835; border-color: #2f4357; box-shadow: 0 12px 30px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-auth-gate { background: #16212c; color: #c6d3df; }
+html[data-theme="dark"] .cvr-live-chat-dock .cvr-chat-fab { background: linear-gradient(145deg, #17476b, #2878ad); box-shadow: 0 10px 26px rgba(0, 0, 0, .55); }
+
+/* ==========================================================================
+   4. ADMIN / STAFF PORTAL
+   ========================================================================== */
+
+html body .admin-wrap { max-width: 100vw; overflow-x: clip; }
+html body .admin-main { min-width: 0; }
+html body .admin-main > * { min-width: 0; }
+html body .admin-drawer { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--mp-safe-b); }
+html body .admin-drawer-body { padding-bottom: calc(1rem + var(--mp-safe-b)); }
+
+@media (max-width: 991.98px) {
+  html body .admin-topbar { padding-top: var(--mp-safe-t); }
+  html body .admin-topbar-inner {
+    display: flex !important; flex-wrap: nowrap; align-items: center;
+    gap: .55rem; min-height: 60px; padding: .5rem .85rem;
+  }
+  html body .admin-topbar-brand { flex: 1 1 auto; min-width: 0; gap: .6rem; }
+  html body .admin-topbar-brand > .min-w-0 { min-width: 0; display: block; }
+  html body .admin-topbar-brand .brand-logo { width: 40px; height: 40px; }
+  html body .admin-topbar-brand .brand-title { font-size: 1rem; max-width: 100%; }
+  html body .admin-topbar-brand .admin-role-pill { display: inline-block; font-size: .66rem; }
+  html body .admin-topbar-actions { flex: 0 0 auto; margin-left: 0; gap: .4rem; display: flex; align-items: center; }
+  html body .admin-topbar-inner > [data-cvr-theme-toggle],
+  html body .admin-topbar-inner .cvr-theme-toggle { flex: 0 0 auto; order: 2; }
+  html body .admin-topbar-actions { order: 3; }
+  html body .admin-topbar-divider, html body .admin-topbar-section { display: none !important; }
+  html body .admin-icon-btn { width: 42px; height: 42px; flex: 0 0 auto; }
+}
+@media (max-width: 359.98px) {
+  html body .admin-topbar-brand .brand-title { font-size: .9rem; }
+  html body .admin-topbar-actions a.admin-icon-btn[href*="landing"] { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  html body .admin-main { padding: .9rem .85rem calc(1.5rem + var(--mp-safe-b)); }
+
+  /* Page headers: title on top, actions full width underneath */
+  html body .admin-page-head { display: flex; flex-direction: column; align-items: stretch !important; gap: .75rem; margin-bottom: 1rem !important; }
+  html body .admin-page-head h1, html body .admin-page-head .h2 { font-size: 1.45rem; line-height: 1.2; }
+  html body .admin-page-head p { font-size: .88rem; }
+  html body .admin-page-head > .d-flex, html body .admin-page-head .admin-page-actions { flex-wrap: wrap; gap: .5rem; }
+  html body .admin-page-head .btn, html body .admin-page-head .btn-group { flex: 1 1 calc(50% - .5rem); }
+  html body .admin-page-head .btn-group .btn { flex: 1 1 auto; }
+
+  /* KPI cards: 2 per row instead of one long column */
+  html body .admin-kpi-grid { --bs-gutter-x: .65rem; --bs-gutter-y: .65rem; gap: 0 !important; }
+  html body .admin-kpi-grid > [class*="col"] { flex: 0 0 50%; max-width: 50%; }
+  html body .admin-kpi-grid .soft-card { padding: .8rem !important; height: 100%; }
+  html body .admin-kpi-grid .soft-card h3 { font-size: 1.35rem; }
+  html body .admin-kpi-grid .soft-card small { font-size: .72rem; line-height: 1.25; display: block; }
+
+  html body .admin-wrap .soft-card { border-radius: 16px; padding: .95rem !important; }
+  html body .admin-chart-card > div[style*="height"] { height: 230px !important; }
+
+  /* Forms inside admin cards: one column, comfy targets */
+  html body .admin-wrap .row > [class*="col-md-"], html body .admin-wrap .row > [class*="col-lg-"] { flex: 0 0 100%; max-width: 100%; }
+  html body .admin-wrap .admin-kpi-grid > [class*="col-md-"] { flex: 0 0 50%; max-width: 50%; }
+  html body .admin-wrap .form-control, html body .admin-wrap .form-select { min-height: 44px; }
+  html body .admin-wrap .form-control-sm, html body .admin-wrap .form-select-sm { min-height: 40px; }
+  html body .admin-wrap .btn { min-height: 42px; }
+  html body .admin-wrap .btn-sm { min-height: 36px; }
+  html body .admin-wrap .input-group { flex-wrap: nowrap; }
+
+  /* Tabs / pills / report tabs scroll sideways instead of wrapping into a mess */
+  html body .admin-wrap .nav-pills, html body .admin-wrap .nav-tabs, html body .admin-wrap .report-tabs {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: .25rem;
+  }
+  html body .admin-wrap .nav-pills::-webkit-scrollbar, html body .admin-wrap .nav-tabs::-webkit-scrollbar { display: none; }
+  html body .admin-wrap .nav-pills .nav-link, html body .admin-wrap .nav-tabs .nav-link, html body .admin-wrap .report-tab-btn { white-space: nowrap; flex: 0 0 auto; }
+
+  /* Tables */
+  html body .admin-wrap .table-responsive { -webkit-overflow-scrolling: touch; border-radius: 12px; max-width: 100%; }
+  html body .admin-wrap table.table:not(.admin-stack-table) { min-width: 560px; }
+  html body .admin-wrap .admin-stack-table { min-width: 0; width: 100%; }
+  html body .admin-wrap .admin-stack-table td, html body .admin-wrap .admin-stack-table th { word-break: break-word; }
+  html body .admin-wrap .table .btn, html body .admin-wrap .table .btn-group { white-space: nowrap; }
+
+  /* Modals: sheet-like, never wider than the screen */
+  html body .modal-dialog { margin: .6rem; max-width: calc(100vw - 1.2rem); }
+  html body .modal-dialog:not(.modal-fullscreen) .modal-content { border-radius: 18px; }
+  html body .modal-dialog-scrollable .modal-content { max-height: calc(100dvh - 1.2rem); }
+  html body .modal-body { padding: 1rem; overflow-wrap: anywhere; }
+  html body .modal-footer { flex-wrap: wrap; gap: .5rem; padding: .75rem 1rem calc(.75rem + var(--mp-safe-b)); }
+  html body .modal-footer > .btn { flex: 1 1 calc(50% - .5rem); }
+  html body .modal-header { padding: .85rem 1rem; }
+
+  /* Live chat inbox (admin + staff) */
+  html body .live-chat-shell { grid-template-columns: 1fr; min-height: 0; border-radius: 16px; }
+  html body .live-chat-sidebar { max-height: 260px; border-right: 0; border-bottom: 1px solid var(--cv-line, #e3eaf0); }
+  html body .live-chat-main { min-height: 62dvh; }
+  html body .live-chat-thread { min-height: 260px; max-height: 52dvh; overflow-y: auto; }
+  html body .live-chat-main .cvr-cmp textarea { font-size: 16px; }
+}
+
+@media (max-width: 575.98px) {
+  html body .admin-kpi-grid .soft-card h3 { font-size: 1.2rem; }
+  html body .admin-wrap .soft-card { padding: .85rem !important; }
+  html body .admin-page-head .btn { flex: 1 1 100%; }
+  html body .modal-footer > .btn { flex: 1 1 100%; }
+}
+
+/* Admin booking calendar on phones */
+@media (max-width: 767.98px) {
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-main { padding: 0 !important; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar { flex-direction: column; align-items: stretch; padding: .85rem .9rem !important; gap: .65rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-left, html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-right { width: 100%; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-right { display: flex; flex-wrap: wrap; gap: .5rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-topbar-right .btn { flex: 1 1 calc(50% - .5rem); }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-month-label { font-size: 1.05rem; text-align: center; flex: 1; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-icon-btn { width: 44px; height: 44px; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-workspace { padding: .65rem !important; gap: .75rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-grid-card { padding: .6rem .45rem .75rem; border-radius: 16px; overflow-x: auto; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-dow-row, html:not(.cvr-x):not(.cvr-y) body .booking-cal-main-grid { gap: 3px; min-width: 0; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-dow-row > * { font-size: .6rem; letter-spacing: 0; text-align: center; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell { min-height: 58px; padding: .25rem .2rem; border-radius: 10px; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-num { font-size: .78rem; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-event { padding: .1rem .25rem; font-size: .58rem; border-radius: 6px; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-event-sub, html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell-holiday { display: none; }
+  html:not(.cvr-x):not(.cvr-y) body .booking-cal-aside { width: 100%; }
+}
+
+/* ==========================================================================
+   5. DARK-MODE SAFETY NET (admin + shared)
+   ========================================================================== */
+
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="dark"] body input[type="date"],
+html[data-theme="dark"] body input[type="time"],
+html[data-theme="dark"] body input[type="datetime-local"] { color-scheme: dark; }
+html[data-theme="dark"] body ::placeholder { color: #7f93a6; opacity: 1; }
+html[data-theme="dark"] body select option { background: #16212c; color: #e6edf4; }
+
+html[data-theme="dark"] .admin-topbar { background: rgba(14, 22, 30, .94) !important; border-bottom: 1px solid #22313f; }
+html[data-theme="dark"] .admin-topbar-brand .brand-logo,
+html[data-theme="dark"] .admin-drawer-logo { background: #fff; border-color: #2a3b4b; }
+html[data-theme="dark"] .admin-icon-btn { background: #1b2835; border-color: #2a3b4b; color: #a5d0f0; }
+html[data-theme="dark"] .admin-drawer { background: #121c26 !important; border-color: #22313f; }
+html[data-theme="dark"] .admin-drawer-head { border-bottom: 1px solid #22313f; }
+html[data-theme="dark"] .admin-drawer .nav-link { color: #c6d3df !important; }
+html[data-theme="dark"] .admin-drawer .nav-link .bi,
+html[data-theme="dark"] .admin-drawer .nav-link i { color: #a5d0f0 !important; }
+html[data-theme="dark"] .admin-drawer .nav-link:hover { background: #1b2835 !important; }
+html[data-theme="dark"] .admin-drawer .nav-link.active,
+html[data-theme="dark"] .admin-drawer .nav-link.active span { background: #1f3347 !important; color: #fff !important; }
+html[data-theme="dark"] .admin-drawer .nav-link.active .bi,
+html[data-theme="dark"] .admin-drawer .nav-link.active i { background: #16212c; color: #a5d0f0 !important; box-shadow: none; }
+html[data-theme="dark"] .admin-wrap .nav-pills .nav-link { color: #a5d0f0; }
+html[data-theme="dark"] .admin-wrap .nav-pills .nav-link:hover { background: #1b2835; }
+html[data-theme="dark"] .admin-wrap .nav-pills .nav-link.active { background: linear-gradient(135deg, #1c5780, #2878ad) !important; color: #fff !important; }
+html[data-theme="dark"] .admin-wrap .soft-card { background: #16212c !important; border-color: #22313f !important; }
+html[data-theme="dark"] .admin-wrap .table { --bs-table-bg: transparent; --bs-table-color: #d5e0ea; --bs-table-border-color: #22313f; --bs-table-striped-bg: rgba(255, 255, 255, .03); --bs-table-hover-bg: rgba(90, 169, 222, .08); color: #d5e0ea; }
+html[data-theme="dark"] .admin-wrap .table thead th { background: #1b2835 !important; color: #a5d0f0 !important; border-color: #2a3b4b; }
+html[data-theme="dark"] .admin-wrap .admin-stack-table > tbody > tr { background: #16212c; border-color: #22313f; }
+html[data-theme="dark"] .admin-wrap .admin-stack-table > tbody > tr > td[data-label]::before { color: #93a5b7; }
+
+/* Live chat inbox */
+html[data-theme="dark"] .live-chat-shell { background: #16212c !important; border-color: #22313f !important; }
+html[data-theme="dark"] .live-chat-sidebar { background: #121c26 !important; border-color: #22313f !important; }
+html[data-theme="dark"] .live-chat-main { background: #16212c !important; }
+html[data-theme="dark"] .live-chat-thread { background: #101a23 !important; }
+html[data-theme="dark"] .live-chat-conv { color: #d5e0ea; border-bottom-color: #22313f; }
+html[data-theme="dark"] .live-chat-conv:hover { background: rgba(90, 169, 222, .1); }
+html[data-theme="dark"] .live-chat-conv.is-active { background: rgba(90, 169, 222, .18); }
+html[data-theme="dark"] .live-chat-conv.is-unread strong { color: #a5d0f0; }
+
+/* Modals + dropdowns + toasts */
+html[data-theme="dark"] .modal-content { background: #16212c !important; color: #d5e0ea; border-color: #2a3b4b; }
+html[data-theme="dark"] .modal-header, html[data-theme="dark"] .modal-footer { border-color: #22313f; }
+html[data-theme="dark"] .modal-title { color: #e6edf4; }
+html[data-theme="dark"] .modal .btn-close { filter: invert(1) grayscale(1) brightness(2); }
+html[data-theme="dark"] .dropdown-menu { background: #1b2835; border-color: #2a3b4b; }
+html[data-theme="dark"] .dropdown-item { color: #d5e0ea; }
+html[data-theme="dark"] .dropdown-item:hover { background: #22364a; color: #fff; }
+html[data-theme="dark"] .form-control, html[data-theme="dark"] .form-select { background-color: #1b2835; border-color: #2f4357; color: #e6edf4; }
+html[data-theme="dark"] .form-control:focus, html[data-theme="dark"] .form-select:focus { background-color: #1f3042; border-color: #5aa9de; box-shadow: 0 0 0 3px rgba(90, 169, 222, .22); color: #fff; }
+html[data-theme="dark"] .form-control:disabled, html[data-theme="dark"] .form-select:disabled { background-color: #141e28; color: #7f93a6; }
+html[data-theme="dark"] .form-check-input { background-color: #1b2835; border-color: #3a5167; }
+html[data-theme="dark"] .form-check-input:checked { background-color: #2878ad; border-color: #2878ad; }
+html[data-theme="dark"] .bg-white, html[data-theme="dark"] .bg-light { background-color: #16212c !important; color: #d5e0ea; }
+html[data-theme="dark"] .text-dark { color: #e6edf4 !important; }
+html[data-theme="dark"] .border, html[data-theme="dark"] .border-top, html[data-theme="dark"] .border-bottom { border-color: #22313f !important; }
+html[data-theme="dark"] hr { border-color: #2a3b4b; opacity: 1; }
+html[data-theme="dark"] .list-group-item { background: #16212c; border-color: #22313f; color: #d5e0ea; }
+html[data-theme="dark"] .alert-info { background: #14293b; border-color: #1f4463; color: #b9dcf5; }
+html[data-theme="dark"] .alert-warning { background: #3a3114; border-color: #5c4d1c; color: #f2dc86; }
+html[data-theme="dark"] .alert-danger { background: #3b1a1f; border-color: #6a2a33; color: #f4b0b8; }
+html[data-theme="dark"] .alert-success { background: #13321f; border-color: #21583a; color: #9fe0bb; }
+html[data-theme="dark"] .badge.text-bg-light, html[data-theme="dark"] .badge.bg-light { background: #22313f !important; color: #d5e0ea !important; }
+html[data-theme="dark"] .page-link { background: #16212c; border-color: #2a3b4b; color: #a5d0f0; }
+html[data-theme="dark"] .page-item.active .page-link { background: #2878ad; border-color: #2878ad; color: #fff; }
+html[data-theme="dark"] .page-item.disabled .page-link { background: #121c26; color: #5d7184; }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #34495e; border-radius: 8px; }
+html[data-theme="dark"] ::-webkit-scrollbar-track { background: #101a23; }
+
+@media (prefers-reduced-motion: reduce) {
+  html body .cvr-live-chat-dock .cvr-chat-panel:not(.d-none) { animation: none; }
+}

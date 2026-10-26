@@ -8,6 +8,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="refresh" content="0; url=site-content.html?tab=legal" />
   <title>Legal Content - Casa Vergara Admin</title>
+  <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
 </head>
 <body>
 

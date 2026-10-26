@@ -203,6 +203,7 @@
     let fpOut;
 
     fpOut = flatpickr(mountOut, {
+      disableMobile: true,
       inline: true,
       appendTo: mountOut,
       dateFormat: "Y-m-d",
@@ -246,6 +247,7 @@
     });
 
     fpIn = flatpickr(mountIn, {
+      disableMobile: true,
       inline: true,
       appendTo: mountIn,
       dateFormat: "Y-m-d",
@@ -368,6 +370,7 @@
     }
 
     flatpickr(mount, {
+      disableMobile: true,
       inline: true,
       appendTo: mount,
       dateFormat: "Y-m-d",
