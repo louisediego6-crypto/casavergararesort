@@ -20,9 +20,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
-  <link href="../css/calendars.css?v=20261024a" rel="stylesheet">
+  <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
 </head>
 <body>
   <div id="site-navbar"></div>

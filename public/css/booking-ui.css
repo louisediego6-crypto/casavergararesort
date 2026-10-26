@@ -10,7 +10,8 @@
   --bk-muted: #62788a;
   --bk-shadow: 0 6px 24px rgba(11, 60, 90, .08);
 }
-html[data-theme="dark"] .booking-page {
+html[data-theme="dark"] .booking-page,
+html[data-theme="dark"] #roomDetailsModal {
   --bk-brand: #a5d0f0;
   --bk-brand-dark: #cfe6f7;
   --bk-surface: #16212c;

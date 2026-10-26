@@ -64,7 +64,7 @@ html[data-theme="dark"] {
   --cal-block-b: rgba(165, 208, 240, 0.08);
   --cal-holiday-fg: #e8a77c;
   --cal-range: rgba(80, 160, 220, 0.24);
-  --cal-disabled: #4e5f70;
+  --cal-disabled: #8497ab;
 
   --cal-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
   --cal-shadow-pop: 0 22px 54px rgba(0, 0, 0, 0.6);
