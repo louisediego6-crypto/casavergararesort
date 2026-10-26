@@ -691,21 +691,28 @@ function initBookingPage() {
       const text = document.getElementById("eventGuestTotalText");
       if (!text) return;
       const t = a + c;
-      text.textContent = `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""}`;
+      text.textContent = t === 0
+        ? "No guests added yet"
+        : `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""}`;
     };
+    // 0 shows as an empty box (placeholder "0") so nothing is pre-filled
+    const setCount = (el, n) => { if (el) el.value = n > 0 ? String(n) : ""; };
 
     // source: "parts" (adults/kids edited) or "total" (total edited)
     const syncEventGuestTotal = (source = "parts") => {
       let a = readCount(guestAdultsEl, 0);
       let c = readCount(guestKidsEl, 0);
       if (source === "total") {
-        const total = readCount(guestTotalEl, 1);
-        c = Math.min(c, Math.max(0, total - 1));
-        a = Math.max(1, total - c);
-        if (guestAdultsEl) guestAdultsEl.value = String(a);
-        if (guestKidsEl) guestKidsEl.value = String(c);
-      } else if (guestTotalEl) {
-        guestTotalEl.value = String(Math.max(1, a + c));
+        const total = readCount(guestTotalEl, 0);
+        if (total === 0) { a = 0; c = 0; }
+        else {
+          c = Math.min(c, Math.max(0, total - 1));
+          a = Math.max(1, total - c);
+        }
+        setCount(guestAdultsEl, a);
+        setCount(guestKidsEl, c);
+      } else {
+        setCount(guestTotalEl, a + c);
       }
       paintGuestSummary(a, c);
       renderPackageDetails();
@@ -713,22 +720,18 @@ function initBookingPage() {
     guestAdultsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
     guestKidsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
     guestTotalEl?.addEventListener("input", () => {
-      // let the field be empty while typing; only sync once there is a number
+      // let the field stay empty while typing; only sync once there is a number
       if (guestTotalEl.value === "") return;
       syncEventGuestTotal("total");
     });
-    guestTotalEl?.addEventListener("blur", () => {
-      if (guestTotalEl.value === "" || Number(guestTotalEl.value) < 1) guestTotalEl.value = "1";
-      syncEventGuestTotal("total");
-    });
+    guestTotalEl?.addEventListener("blur", () => syncEventGuestTotal("total"));
     // +/- steppers next to each count
     document.querySelectorAll("[data-guest-step]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = document.getElementById(btn.dataset.guestTarget);
         if (!target) return;
-        const min = Number(target.min) || 0;
-        const next = Math.max(min, (parseInt(target.value, 10) || 0) + Number(btn.dataset.guestStep));
-        target.value = String(next);
+        const next = Math.max(0, (parseInt(target.value, 10) || 0) + Number(btn.dataset.guestStep));
+        setCount(target, next);
         syncEventGuestTotal(target === guestTotalEl ? "total" : "parts");
       });
     });

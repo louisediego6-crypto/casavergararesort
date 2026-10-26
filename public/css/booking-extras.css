@@ -217,3 +217,26 @@ html[data-theme="dark"] #eventDetailsModal {
   padding: .25rem .7rem; border-radius: 999px; font-size: .8rem;
   background: var(--bk-surface-2, #f4f8fb); border: 1px solid var(--bk-line, #dfe8ef); color: var(--bk-text, #1d3342);
 }
+
+/* ---------- Compact event package card: photo beside the details on wider screens ---------- */
+.booking-page .bk-event-pkg { max-width: 100%; }
+.booking-page .bk-event-pkg .cvr-media-thumb { margin: 0; border: 0; border-radius: 0; }
+@media (min-width: 768px) {
+  .booking-page .bk-event-pkg:has(> .bk-event-cover, > .cvr-media-thumb) {
+    display: grid;
+    grid-template-columns: minmax(220px, 38%) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .booking-page .bk-event-pkg > .bk-event-cover,
+  .booking-page .bk-event-pkg > .cvr-media-thumb {
+    aspect-ratio: auto;
+    max-height: none;
+    height: 100%;
+    min-height: 240px;
+  }
+  .booking-page .bk-event-pkg > .bk-event-cover .room-cover { position: absolute; inset: 0; }
+  .booking-page .bk-event-pkg > .p-3 { padding: 1.1rem 1.25rem !important; }
+}
+@media (max-width: 767.98px) {
+  .booking-page .bk-event-pkg .bk-event-cover { aspect-ratio: 16 / 10; max-height: 220px; }
+}
