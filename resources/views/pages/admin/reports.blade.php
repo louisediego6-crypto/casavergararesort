@@ -23,6 +23,9 @@
   <link href="../../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../../css/admin-live-charts.css?v=20261027a" rel="stylesheet">
+  <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div class="admin-wrap admin-page admin-reports-page">
@@ -138,6 +141,7 @@
   <script src="../../js/main.js?v=20261025e"></script>
   <script src="../../js/admin-export.js?v=20261001c"></script>
   <script src="../../js/admin.js?v=20260830i"></script>
+  <script src="../../js/admin-live-charts.js?v=20261027a"></script>
   <script>
     renderAdminSidebar("reports");
     initReportsCharts();
