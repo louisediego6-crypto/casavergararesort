@@ -194,6 +194,7 @@ html body .about-lightbox img,
 .mosaic-lightbox-img { max-width: 100%; max-height: calc(var(--cvr-vh) - 8rem); width: auto; height: auto; object-fit: contain; }
 .cvr-lightbox-close { top: calc(0.5rem + var(--cvr-safe-t)); right: calc(0.5rem + var(--cvr-safe-r)); }
 
+<<<<<<< HEAD
 /* ---------- Toasts / notification pop-ups ------------------------------------
    Always top-right, directly UNDER the page header (admin top bar or site
    header) so they never cover the logo, menu or notification buttons — same for
@@ -219,6 +220,28 @@ html body .cvr-toast-container .cvr-toast { width: 100%; max-width: 100%; margin
     right: calc(0.6rem + var(--cvr-safe-r));
     width: auto;
   }
+=======
+/* ---------- Toasts / notification pop-ups ------------------------------------ */
+.cvr-toast-container {
+  max-width: 100vw;
+  padding-left: var(--cvr-safe-l);
+  padding-right: var(--cvr-safe-r);
+}
+.cvr-toast-container .notification-toast,
+.cvr-toast-container .cvr-toast { max-width: min(26rem, calc(100vw - 1.5rem)); }
+@media (max-width: 575.98px) {
+  .cvr-toast-container {
+    left: 0 !important;
+    right: 0 !important;
+    top: calc(0.5rem + var(--cvr-safe-t)) !important;
+    bottom: auto !important;
+    width: 100%;
+    padding: 0 0.6rem;
+    align-items: stretch;
+  }
+  .cvr-toast-container .notification-toast,
+  .cvr-toast-container .cvr-toast { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+>>>>>>> 35efd966798a44adaa61bf8e3e843369820c5066
 }
 
 /* ---------- Dropdowns, notification panel, popovers --------------------------- */

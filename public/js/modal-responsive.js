@@ -19,6 +19,7 @@
     vv.addEventListener("scroll", setVh);
   }
 
+<<<<<<< HEAD
 
   // Toast position: sit just below whichever header the page has (admin top bar,
   // site header, navbar) so pop-up notices never cover the logo or menu buttons.
@@ -55,6 +56,8 @@
     }
   });
 
+=======
+>>>>>>> 35efd966798a44adaa61bf8e3e843369820c5066
   // Keep the active field visible when the keyboard opens inside a modal
   document.addEventListener("focusin", function (e) {
     var t = e.target;
