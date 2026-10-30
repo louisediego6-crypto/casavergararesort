@@ -33,105 +33,99 @@
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/account-ui.css?v=20261030a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body id="customerDashboardRoot">
   <div id="site-navbar"></div>
 
-  <section class="section-pad pb-5">
-    <div class="container">
-      <div class="row g-4 align-items-stretch">
+  <section class="section-pad pb-5 acct-page">
+    <div class="container acct-container">
+      <div class="row g-4 align-items-start">
         <div class="col-lg-4">
-          <div class="soft-card p-4 h-100 customer-dash-profile">
-            <div class="d-flex align-items-center gap-3 mb-4">
-              <div class="dash-avatar-lg-wrap position-relative flex-shrink-0">
-                <img id="dashProfileAvatarImg" class="dash-avatar-lg-img rounded-circle object-fit-cover d-none" width="56" height="56" alt="">
+          <aside class="acct-profile-card customer-dash-profile" aria-label="Your profile">
+            <div class="acct-profile-cover" aria-hidden="true"></div>
+            <div class="acct-profile-body">
+              <div class="dash-avatar-lg-wrap acct-avatar position-relative flex-shrink-0">
+                <img id="dashProfileAvatarImg" class="dash-avatar-lg-img rounded-circle object-fit-cover d-none" width="88" height="88" alt="">
                 <div class="dash-avatar-lg text-white fw-bold" id="dashProfileAvatar" aria-hidden="true">—</div>
               </div>
-              <div class="min-w-0">
-                <h1 class="h4 text-brand mb-1 text-truncate" id="dashProfileName">Guest</h1>
-                <p class="small text-muted-brand mb-0">Customer account</p>
+              <h1 class="acct-profile-name text-truncate" id="dashProfileName">Guest</h1>
+              <span class="acct-chip"><i class="bi bi-patch-check-fill" aria-hidden="true"></i>Customer account</span>
+
+              <div class="acct-stats" role="list">
+                <div class="acct-stat" role="listitem"><strong id="dashStatTotal">0</strong><span>Reservations</span></div>
+                <div class="acct-stat" role="listitem"><strong id="dashStatActive">0</strong><span>Active</span></div>
+                <div class="acct-stat" role="listitem"><strong id="dashStatUnread">0</strong><span>Unread</span></div>
+              </div>
+
+              <ul class="acct-info-list">
+                <li><span class="acct-info-ico"><i class="bi bi-envelope" aria-hidden="true"></i></span><div><small>Email</small><span id="dashProfileEmail" class="text-break">—</span></div></li>
+                <li><span class="acct-info-ico"><i class="bi bi-telephone" aria-hidden="true"></i></span><div><small>Phone</small><span id="dashProfilePhone">—</span></div></li>
+                <li><span class="acct-info-ico"><i class="bi bi-calendar-heart" aria-hidden="true"></i></span><div><small>Member since</small><span id="dashProfileMemberSince">—</span></div></li>
+              </ul>
+
+              <div class="acct-profile-actions">
+                <a href="booking.html" class="btn btn-accent w-100"><i class="bi bi-calendar-plus me-2"></i>Plan a stay</a>
+                <a href="customer-settings.html" class="btn btn-outline-secondary w-100"><i class="bi bi-person-gear me-2"></i>Edit profile &amp; settings</a>
               </div>
             </div>
-            <dl class="row small mb-0 g-2">
-              <dt class="col-4 text-muted-brand">Email</dt>
-              <dd class="col-8 mb-0 text-break" id="dashProfileEmail">—</dd>
-              <dt class="col-4 text-muted-brand">Phone</dt>
-              <dd class="col-8 mb-0" id="dashProfilePhone">—</dd>
-              <dt class="col-4 text-muted-brand">Member</dt>
-              <dd class="col-8 mb-0" id="dashProfileMemberSince">—</dd>
-            </dl>
-            <a href="booking.html" class="btn btn-accent w-100 mt-3">Plan a stay</a>
-            <a href="customer-settings.html" class="btn btn-outline-secondary w-100 mt-2"><i class="bi bi-gear me-1"></i>Account settings</a>
-          </div>
+          </aside>
         </div>
+
         <div class="col-lg-8">
-          <p class="text-uppercase text-primary fw-semibold small mb-2">Guest hub</p>
-          <h2 class="display-6 fw-bold text-brand mb-3">Your dashboard</h2>
-          <p class="text-muted-brand mb-4">Jump to reservations, payments, or track the status of your booking.</p>
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <a href="booking.html" data-cvr-smart="reservation" class="text-decoration-none">
-                <div class="soft-card p-4 h-100 customer-dash-tile d-flex flex-column">
-                  <span class="dash-tile-icon mb-3 text-primary"><i class="bi bi-journal-check fs-3"></i></span>
-                  <h3 class="h5 text-brand mb-1">Reservation</h3>
-                  <p class="small text-muted-brand mb-0">Browse packages and complete your reservation details.</p>
-                </div>
-              </a>
-            </div>
-            <div class="col-sm-6">
-              <a href="booking.html" class="text-decoration-none">
-                <div class="soft-card p-4 h-100 customer-dash-tile d-flex flex-column">
-                  <span class="dash-tile-icon mb-3 text-primary"><i class="bi bi-door-open fs-3"></i></span>
-                  <h3 class="h5 text-brand mb-1">Booking</h3>
-                  <p class="small text-muted-brand mb-0">Browse rooms and events, then start a new hold.</p>
-                </div>
-              </a>
-            </div>
-            <div class="col-sm-6">
-              <a href="payment.html" data-cvr-smart="payment" class="text-decoration-none">
-                <div class="soft-card p-4 h-100 customer-dash-tile d-flex flex-column">
-                  <span class="dash-tile-icon mb-3 text-primary"><i class="bi bi-credit-card fs-3"></i></span>
-                  <h3 class="h5 text-brand mb-1">Payment</h3>
-                  <p class="small text-muted-brand mb-0">Upload proof of payment for an active reservation.</p>
-                </div>
-              </a>
-            </div>
-            <div class="col-sm-6">
-              <a href="reservation-status.html" data-cvr-smart="status" class="text-decoration-none">
-                <div class="soft-card p-4 h-100 customer-dash-tile d-flex flex-column">
-                  <span class="dash-tile-icon mb-3 text-primary"><i class="bi bi-activity fs-3"></i></span>
-                  <h3 class="h5 text-brand mb-1">Status</h3>
-                  <p class="small text-muted-brand mb-0">See verification progress and booking summary.</p>
-                </div>
-              </a>
-            </div>
-            <div class="col-sm-6">
-              <a href="customer-dashboard.html#live-chat" class="text-decoration-none" id="dashLiveChatTile">
-                <div class="soft-card p-4 h-100 customer-dash-tile d-flex flex-column">
-                  <span class="dash-tile-icon mb-3 text-primary"><i class="bi bi-chat-dots fs-3"></i></span>
-                  <h3 class="h5 text-brand mb-1">Live Chat</h3>
-                  <p class="small text-muted-brand mb-0">Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
-                </div>
-              </a>
-            </div>
-          </div>
-          <div class="soft-card p-4 mt-4">
-            <h3 class="h5 text-brand mb-3">Your reservations</h3>
-            <div id="dashReservationsList"></div>
+          <header class="acct-hero">
+            <p class="acct-eyebrow">Guest hub</p>
+            <h2 class="acct-hero-title">Welcome back, <span id="dashWelcomeName">guest</span></h2>
+            <p class="acct-hero-sub">Jump to reservations, payments, or track the status of your booking.</p>
+          </header>
+
+          <div class="acct-tiles">
+            <a href="booking.html" data-cvr-smart="reservation" class="acct-tile acct-tile--gold">
+              <span class="acct-tile-ico"><i class="bi bi-journal-check"></i></span>
+              <span class="acct-tile-text"><strong>Reservation</strong><small>Browse packages and complete your reservation details.</small></span>
+              <i class="bi bi-arrow-right acct-tile-go" aria-hidden="true"></i>
+            </a>
+            <a href="booking.html" class="acct-tile acct-tile--teal">
+              <span class="acct-tile-ico"><i class="bi bi-door-open"></i></span>
+              <span class="acct-tile-text"><strong>Booking</strong><small>Browse rooms and events, then start a new hold.</small></span>
+              <i class="bi bi-arrow-right acct-tile-go" aria-hidden="true"></i>
+            </a>
+            <a href="payment.html" data-cvr-smart="payment" class="acct-tile acct-tile--green">
+              <span class="acct-tile-ico"><i class="bi bi-credit-card-2-front"></i></span>
+              <span class="acct-tile-text"><strong>Payment</strong><small>Upload proof of payment for an active reservation.</small></span>
+              <i class="bi bi-arrow-right acct-tile-go" aria-hidden="true"></i>
+            </a>
+            <a href="reservation-status.html" data-cvr-smart="status" class="acct-tile acct-tile--violet">
+              <span class="acct-tile-ico"><i class="bi bi-activity"></i></span>
+              <span class="acct-tile-text"><strong>Status</strong><small>See verification progress and booking summary.</small></span>
+              <i class="bi bi-arrow-right acct-tile-go" aria-hidden="true"></i>
+            </a>
+            <a href="customer-dashboard.html#live-chat" class="acct-tile acct-tile--blue acct-tile--wide" id="dashLiveChatTile">
+              <span class="acct-tile-ico"><i class="bi bi-chat-dots"></i></span>
+              <span class="acct-tile-text"><strong>Live Chat</strong><small>Send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</small></span>
+              <i class="bi bi-arrow-right acct-tile-go" aria-hidden="true"></i>
+            </a>
           </div>
 
-          <div class="soft-card p-4 mt-4" id="notifications">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <h3 class="h5 text-brand mb-0">
-                <i class="bi bi-bell me-2 text-primary"></i>Notifications
-              </h3>
+          <section class="acct-panel" aria-labelledby="dashResHeading">
+            <div class="acct-panel-head">
+              <h3 id="dashResHeading"><span class="acct-panel-ico"><i class="bi bi-calendar2-check"></i></span>Your reservations</h3>
+            </div>
+            <div id="dashReservationsList"></div>
+          </section>
+
+          <section class="acct-panel" id="notifications" aria-labelledby="dashNotifHeading">
+            <div class="acct-panel-head">
+              <h3 id="dashNotifHeading"><span class="acct-panel-ico"><i class="bi bi-bell"></i></span>Notifications</h3>
               <span id="dashNotifUnreadBadge" class="badge rounded-pill text-bg-danger d-none"></span>
             </div>
-            <p class="small text-muted-brand mb-3">Replies to your Contact Us messages, plus updates about your reservations — payment verification, quotations, and booking status. You'll also get these by email.</p>
+            <p class="acct-panel-note">Replies to your Contact Us messages, plus updates about your reservations — payment verification, quotations, and booking status. You'll also get these by email.</p>
             <div id="dashNotificationsList">
               <p class="small text-muted-brand mb-0">Loading…</p>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
@@ -202,7 +196,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/main.js?v=20261025e"></script>
+  <script src="../js/main.js?v=20261030a"></script>
   <script>
     renderNavbar("");
     renderFooter();

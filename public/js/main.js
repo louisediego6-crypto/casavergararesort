@@ -1758,7 +1758,18 @@ function cvrThemeToggleMarkup(extraClass = "") {
   return `<button type="button" class="cvr-theme-toggle ${extraClass}" data-cvr-theme-toggle aria-pressed="${dark ? "true" : "false"}" aria-label="${label}" title="${label}"><i class="bi bi-moon-stars-fill cvr-theme-icon-moon" aria-hidden="true"></i><i class="bi bi-sun-fill cvr-theme-icon-sun" aria-hidden="true"></i></button>`;
 }
 
+function cvrEnsureAccountUiCss() {
+  try {
+    if (document.querySelector('link[href*="account-ui.css"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = assetUrl("css/account-ui.css?v=20261030a");
+    document.head.appendChild(link);
+  } catch { /* styling only */ }
+}
+
 function renderNavbar(active = "") {
+  cvrEnsureAccountUiCss();
   const smart = getSmartNavUrls();
   const links = [
     { id: "home", label: "Home", href: pageUrl("landing.html"), key: "nav_home" },
@@ -1824,18 +1835,23 @@ function renderNavbar(active = "") {
               <span class="nav-profile-name d-none d-md-inline text-start">${shortName}</span>
               <i class="bi bi-chevron-down small opacity-75" aria-hidden="true"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 nav-profile-menu">
-              <li class="px-3 pb-2 mb-1 border-bottom border-light-subtle">
-                <div class="small text-muted-brand text-uppercase" style="letter-spacing:.06em;">Signed in &middot; ${staffBadgeLabel}</div>
-                <div class="fw-semibold text-brand text-truncate" style="max-width:14rem;">${escapeHtml(displayName)}</div>
-                <div class="small text-muted-brand text-truncate" style="max-width:14rem;">${escapeHtml(session.email)}</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 nav-profile-menu acct-menu">
+              <li class="acct-menu-head">
+                <span class="acct-menu-avatar">${navAvatarMarkup}</span>
+                <span class="acct-menu-who">
+                  <strong class="acct-menu-name">${escapeHtml(displayName)}</strong>
+                  <small class="acct-menu-email">${escapeHtml(session.email)}</small>
+                  <span class="acct-chip ${isAdminRole ? "acct-chip--admin" : "acct-chip--staff"}"><i class="bi ${staffBadgeIcon}" aria-hidden="true"></i>${staffBadgeLabel}</span>
+                </span>
               </li>
-              <li><a class="dropdown-item" href="${pageUrl("admin/dashboard.html")}"><i class="bi bi-bootstrap-fill me-2 text-primary"></i>${isAdminRole ? "Admin dashboard" : "Staff dashboard"}</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("admin/reservations.html")}"><i class="bi bi-journal-check me-2 text-primary"></i>Reservations</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("booking.html")}"><i class="bi bi-door-open me-2 text-primary"></i>Browse rooms &amp; events</a></li>
-              <li><hr class="dropdown-divider my-2" /></li>
-              <li><button type="button" class="dropdown-item" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Switch account</button></li>
-              <li><button type="button" class="dropdown-item text-danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+              <li class="acct-menu-label">Workspace</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("admin/dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-speedometer2"></i></span><span class="acct-item-text">${isAdminRole ? "Admin dashboard" : "Staff dashboard"}<small>Overview &amp; reports</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("admin/reservations.html")}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservations<small>Manage guest bookings</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Browse rooms &amp; events<small>See what guests see</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-foot">
+                <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
+                <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
+              </li>
             </ul>
           </div>
           <span class="badge ${staffBadgeClass} px-3 py-2 d-none d-lg-inline-flex" title="Staff accounts oversee the site and can't create bookings"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
@@ -1850,21 +1866,27 @@ function renderNavbar(active = "") {
               <span class="nav-profile-name d-none d-md-inline text-start">${shortName}</span>
               <i class="bi bi-chevron-down small opacity-75" aria-hidden="true"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 nav-profile-menu">
-              <li class="px-3 pb-2 mb-1 border-bottom border-light-subtle">
-                <div class="small text-muted-brand text-uppercase" style="letter-spacing:.06em;">Signed in</div>
-                <div class="fw-semibold text-brand text-truncate" style="max-width:14rem;">${escapeHtml(displayName)}</div>
-                <div class="small text-muted-brand text-truncate" style="max-width:14rem;">${escapeHtml(session.email)}</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 nav-profile-menu acct-menu">
+              <li class="acct-menu-head">
+                <span class="acct-menu-avatar">${navAvatarMarkup}</span>
+                <span class="acct-menu-who">
+                  <strong class="acct-menu-name">${escapeHtml(displayName)}</strong>
+                  <small class="acct-menu-email">${escapeHtml(session.email)}</small>
+                  <span class="acct-chip"><i class="bi bi-patch-check-fill" aria-hidden="true"></i>Guest account</span>
+                </span>
               </li>
-              <li><a class="dropdown-item" href="${pageUrl("customer-dashboard.html")}"><i class="bi bi-bootstrap-fill me-2 text-primary"></i>Dashboard</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("customer-settings.html")}"><i class="bi bi-gear me-2 text-primary"></i>Settings</a></li>
-              <li><a class="dropdown-item" href="${smart.reservation}"><i class="bi bi-journal-check me-2 text-primary"></i>Reservation</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("booking.html")}"><i class="bi bi-door-open me-2 text-primary"></i>Booking</a></li>
-              <li><a class="dropdown-item" href="${smart.payment}"><i class="bi bi-credit-card me-2 text-primary"></i>Payment</a></li>
-              <li><a class="dropdown-item" href="${smart.status}"><i class="bi bi-activity me-2 text-primary"></i>Status</a></li>
-              <li><hr class="dropdown-divider my-2" /></li>
-              <li><button type="button" class="dropdown-item" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Switch account</button></li>
-              <li><button type="button" class="dropdown-item text-danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+              <li class="acct-menu-label">My account</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("customer-dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-grid-1x2-fill"></i></span><span class="acct-item-text">Dashboard<small>Overview &amp; notifications</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("customer-settings.html")}"><span class="acct-ico acct-ico--slate"><i class="bi bi-person-gear"></i></span><span class="acct-item-text">Profile &amp; settings<small>Photo, name, password</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-label">Reservations</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Booking<small>Rooms &amp; events</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.reservation}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservation<small>Complete your details</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.payment}"><span class="acct-ico acct-ico--green"><i class="bi bi-credit-card-2-front"></i></span><span class="acct-item-text">Payment<small>Upload proof of payment</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.status}"><span class="acct-ico acct-ico--violet"><i class="bi bi-activity"></i></span><span class="acct-item-text">Status<small>Track your booking</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-foot">
+                <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
+                <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
+              </li>
             </ul>
           </div>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
@@ -3973,6 +3995,7 @@ function reservationToPending(record) {
     checkInLabel: record.checkInLabel || "",
     checkOutLabel: record.checkOutLabel || "",
     packageOption: record.packageOption,
+    eventSession: record.eventSession || (/^8:00 AM/.test(record.eventTime || "") ? "morning" : /^7:00 PM/.test(record.eventTime || "") ? "night" : null),
     additionalNotes: record.eventNotes || "",
     motif: record.motif || null,
     selectedAddOns: record.selectedAddOns || [],
@@ -4250,7 +4273,7 @@ function updateEventFormSummary(cat, pending) {
   const eventNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
   const customCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests)
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests, pending.eventSession || null)
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
@@ -4519,7 +4542,7 @@ function buildReservationFromForm(cat, pending, flow) {
       return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or duration." };
     }
 
-    const totals = cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, evCustomCheckInTime, evNights, evCustomCheckOutTime, guestsNum);
+    const totals = cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, evCustomCheckInTime, evNights, evCustomCheckOutTime, guestsNum, pending.eventSession || null);
     if (!totals) return { error: "Invalid event duration." };
     const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
     const maxGuests = pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999;
@@ -4542,6 +4565,7 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.customCheckInTime = totals.customCheckInTime || null;
     reservation.customCheckOutTime = totals.customCheckOutTime || null;
     reservation.packageOption = pending.packageOption;
+    reservation.eventSession = totals.eventSession || null;
     reservation.eventNotes = pending.additionalNotes || specialRequests;
     reservation.motif = motif;
     reservation.roomName = `Event — ${pending.eventType}`;
@@ -4946,6 +4970,12 @@ function initReservationFormPage() {
     // Duration is fixed by the selected package (set on the booking page), so no selector here.
     const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
     pending.durationKey = initialDuration;
+
+    // Birthday packages run on a fixed session (Morning / Night), so there is no arrival time to pick.
+    if (cat.isBirthdayPackage?.(pending.packageOption)) {
+      document.getElementById("cvrResCheckInTimeWrap")?.classList.add("d-none");
+      setResCheckInTimeSelection("");
+    }
 
     populateResGuestSplit(editRecord || pending);
 
@@ -6983,6 +7013,8 @@ function renderDashboardNotificationsList(items) {
 
   const unreadCount = items.filter((i) => !i.read).length;
   const unreadBadge = document.getElementById("dashNotifUnreadBadge");
+  const unreadStat = document.getElementById("dashStatUnread");
+  if (unreadStat) unreadStat.textContent = String(unreadCount);
   if (unreadBadge) {
     if (unreadCount > 0) {
       unreadBadge.textContent = `${unreadCount} new`;
@@ -6993,7 +7025,7 @@ function renderDashboardNotificationsList(items) {
   }
 
   if (!items.length) {
-    listEl.innerHTML = `<p class="small text-muted-brand mb-0">Nothing here yet. Replies to your messages and updates about your reservations will show up here.</p>`;
+    listEl.innerHTML = `<div class="acct-empty"><span class="acct-empty-ico"><i class="bi bi-bell-slash"></i></span><strong>You're all caught up</strong><p>Replies to your messages and updates about your reservations will show up here.</p></div>`;
     return;
   }
 
@@ -7125,6 +7157,7 @@ async function initCustomerDashboardPage() {
     const s = getCustomerSession();
     if (!s) return;
     setText("dashProfileName", customerProfileDisplayName(s));
+    setText("dashWelcomeName", (s.firstName || customerProfileDisplayName(s) || "guest").split(" ")[0]);
     setText("dashProfileEmail", s.email || "—");
     setText("dashProfilePhone", s.phone || "—");
     const joined = s.joinedAt ? formatMemberSince(s.joinedAt) : "—";
@@ -7152,9 +7185,11 @@ async function initCustomerDashboardPage() {
 
   const email = (session.email || "").toLowerCase();
   const mine = getStoredReservations().filter((r) => (r.email || "").toLowerCase() === email);
+  setText("dashStatTotal", String(mine.length));
+  setText("dashStatActive", String(mine.filter((r) => !r.checkedOutAt && !String(r.reservationStatus || "").toLowerCase().includes("cancel")).length));
 
   if (!mine.length) {
-    listEl.innerHTML = `<p class="small text-muted-brand mb-0">No reservations linked to your account yet. Book a room or event to see them here.</p>`;
+    listEl.innerHTML = `<div class="acct-empty"><span class="acct-empty-ico"><i class="bi bi-calendar2-x"></i></span><strong>No reservations yet</strong><p>No reservations linked to your account yet. Book a room or event to see them here.</p><a href="${pageUrl("booking.html")}" class="btn btn-accent btn-sm">Start a booking</a></div>`;
     return;
   }
 
@@ -7174,7 +7209,7 @@ async function initCustomerDashboardPage() {
       const scheduleLabel = r.checkInLabel && r.checkOutLabel ? ` · ${r.checkInLabel} → ${r.checkOutLabel}` : "";
       const live = !isCheckedOut && canCheckout ? getLiveOvertimeStatus(r) : { isLate: false };
       return `
-      <div class="border rounded-3 p-3 mb-2">
+      <div class="dash-res-card">
         <div class="d-flex flex-wrap justify-content-between gap-2 mb-1">
           <strong class="text-brand small">${escapeHtml(r.id)}</strong>
           <span class="status-chip ${isCancelled ? "chip-red" : getStatusChipClass(r.paymentStatus)}">${isCancelled ? "Cancelled" : escapeHtml(r.paymentStatus || "")}</span>

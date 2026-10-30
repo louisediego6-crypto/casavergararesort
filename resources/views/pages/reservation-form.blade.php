@@ -24,6 +24,8 @@
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -234,7 +236,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261026a"></script>
-  <script src="../js/main.js?v=20261025e"></script>
+  <script src="../js/main.js?v=20261030a"></script>
   <script>
     (async () => {
 

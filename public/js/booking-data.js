@@ -104,8 +104,40 @@ const PRIVATE_VENUE_FIXED_SCHEDULES = {
   },
 };
 
-function getFixedEventSchedule(packageOption) {
-  return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption] || null;
+/* Birthday packages run on the same fixed sessions as the Private Venue packages
+   (Morning 8 AM–5 PM or Night 7 PM–5 AM) but are always a single session —
+   no duration picker, no custom check-in time and no multi-day stay. */
+const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
+const BIRTHDAY_SESSION_SCHEDULES = {
+  morning: {
+    key: "morning",
+    name: "Morning session",
+    checkInTime: "08:00",
+    checkOutTime: "17:00",
+    label: "8:00 AM – 5:00 PM",
+    durationKey: "12hr",
+  },
+  night: {
+    key: "night",
+    name: "Night session",
+    checkInTime: "19:00",
+    checkOutTime: "05:00",
+    label: "7:00 PM – 5:00 AM (next day)",
+    durationKey: "12hr",
+  },
+};
+const BIRTHDAY_DEFAULT_SESSION = "morning";
+
+function isBirthdayPackage(packageOption) {
+  return BIRTHDAY_PACKAGE_KEYS.includes(packageOption);
+}
+
+function getFixedEventSchedule(packageOption, sessionKey) {
+  if (PRIVATE_VENUE_FIXED_SCHEDULES[packageOption]) return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption];
+  if (isBirthdayPackage(packageOption)) {
+    return BIRTHDAY_SESSION_SCHEDULES[sessionKey] || BIRTHDAY_SESSION_SCHEDULES[BIRTHDAY_DEFAULT_SESSION];
+  }
+  return null;
 }
 
 const EVENT_PACKAGE_CATALOG = {
@@ -793,11 +825,11 @@ function cvrWholeDayRate(pkg) {
   return whole > 0 ? whole : Math.max(0, Number(pkg?.price) || 0) * 2;
 }
 
-function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null) {
+function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null) {
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
-  const fixedSchedule = getFixedEventSchedule(packageOption);
+  const fixedSchedule = getFixedEventSchedule(packageOption, sessionKey);
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
     : dur.buildWindow(dateStr, durationKey, nights, customCheckInTime, customCheckOutTime);
@@ -820,7 +852,8 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
     durationKey,
-    durationLabel: fixedSchedule ? fixedSchedule.label : dur.get(durationKey).label,
+    durationLabel: fixedSchedule ? (fixedSchedule.name && isBirthdayPackage(packageOption) ? `${fixedSchedule.name} · ${fixedSchedule.label}` : fixedSchedule.label) : dur.get(durationKey).label,
+    eventSession: fixedSchedule && isBirthdayPackage(packageOption) ? fixedSchedule.key : null,
     ...window_,
     roomSubtotal: subRounded,
     addOnsTotal: addOns.total,
@@ -1349,6 +1382,8 @@ window.CVRBookingCatalog = {
   getRoomPackageById,
   getEventPackageCatalog,
   getFixedEventSchedule,
+  isBirthdayPackage,
+  BIRTHDAY_SESSION_SCHEDULES,
   getEventMotifs,
   getPackageAddOns,
   sumSelectedAddOns,

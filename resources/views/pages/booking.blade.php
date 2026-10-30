@@ -27,6 +27,9 @@
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/booking-extras.css?v=20261026c" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/account-ui.css?v=20261030a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -189,6 +192,28 @@
             <div class="col-md-6 d-none" id="eventBirthdayPackageWrap">
               <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
               <select id="eventBirthdayPackage" class="form-select"></select>
+            </div>
+            <div class="col-12 d-none" id="eventBirthdaySessionWrap">
+              <span class="form-label text-brand d-block">Choose your session <span class="text-danger">*</span></span>
+              <div class="bk-session-picker" role="radiogroup" aria-label="Birthday session">
+                <label class="bk-session-card">
+                  <input type="radio" name="eventBirthdaySession" value="morning" checked>
+                  <span class="bk-session-body">
+                    <span class="bk-session-ico"><i class="bi bi-sunrise-fill" aria-hidden="true"></i></span>
+                    <span class="bk-session-text"><strong>Morning session</strong><small>8:00 AM – 5:00 PM</small></span>
+                    <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+                <label class="bk-session-card">
+                  <input type="radio" name="eventBirthdaySession" value="night">
+                  <span class="bk-session-body">
+                    <span class="bk-session-ico"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></span>
+                    <span class="bk-session-text"><strong>Night session</strong><small>7:00 PM – 5:00 AM (next day)</small></span>
+                    <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+              </div>
+              <p class="small text-muted-brand mb-0 mt-2"><i class="bi bi-clock-history me-1"></i>Birthday packages run on a fixed single session, so there's no duration, custom arrival time or multi-day stay to choose.</p>
             </div>
             <div class="col-12">
               <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
@@ -444,14 +469,14 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261025e"></script>
+  <script src="../js/main.js?v=20261030a"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261025a"></script>
+  <script src="../js/booking-data.js?v=20261030a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261026a"></script>
-  <script src="../js/package-media.js?v=20261026a"></script>
-  <script src="../js/booking.js?v=20261026c"></script>
+  <script src="../js/package-media.js?v=20261030a"></script>
+  <script src="../js/booking.js?v=20261030a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

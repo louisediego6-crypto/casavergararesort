@@ -56,7 +56,8 @@
     </span>`;
   }
 
-  function render(path, label) {
+  function render(path, label, opts) {
+    const themed = Boolean(opts && opts.themed);
     const raw = String(path || "").trim();
     if (!raw) return "";
     const url = resolve(raw);
@@ -66,7 +67,7 @@
       ? `<img class="cvr-media-img" src="${esc(url)}" alt="${esc(label)}" loading="lazy" decoding="async">
          <span class="cvr-media-zoom"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i><span>View</span></span>`
       : fileCard(url, label, kind, e);
-    return `<button type="button" class="cvr-media-thumb" data-cvr-media="${esc(url)}" data-cvr-media-label="${esc(label)}" data-cvr-media-kind="${kind}" aria-label="Open ${esc(label)} ${kind === "image" ? "photo" : "file"}">${inner}</button>`;
+    return `<button type="button" class="cvr-media-thumb${themed ? " cvr-themed-photo" : ""}"${themed ? ' data-cvr-media-themed="1"' : ""} data-cvr-media="${esc(url)}" data-cvr-media-label="${esc(label)}" data-cvr-media-kind="${kind}" aria-label="Open ${esc(label)} ${kind === "image" ? "photo" : "file"}">${inner}</button>`;
   }
 
   let viewer = null;
@@ -91,7 +92,7 @@
     }
   }
 
-  function open(url, label, kindHint) {
+  function open(url, label, kindHint, themed) {
     close();
     lastFocus = document.activeElement;
     const kind = kindHint || kindOf(url);
@@ -104,7 +105,7 @@
     else body = `<div class="cvr-media-view-file">${fileCard(url, label, kind, e)}<p>This file type can't be previewed here. Open or download it to view.</p></div>`;
 
     viewer = document.createElement("div");
-    viewer.className = "cvr-media-viewer";
+    viewer.className = "cvr-media-viewer" + (themed ? " cvr-themed-viewer" : "");
     viewer.setAttribute("role", "dialog");
     viewer.setAttribute("aria-modal", "true");
     viewer.setAttribute("aria-label", label || "Package media");
@@ -141,7 +142,7 @@
     const t = ev.target.closest("[data-cvr-media]");
     if (!t) return;
     ev.preventDefault();
-    open(t.dataset.cvrMedia, t.dataset.cvrMediaLabel || "", t.dataset.cvrMediaKind || "");
+    open(t.dataset.cvrMedia, t.dataset.cvrMediaLabel || "", t.dataset.cvrMediaKind || "", t.dataset.cvrMediaThemed === "1");
   });
   // A thumbnail photo that fails to load (unsupported format, missing file) becomes a file card.
   document.addEventListener("error", (ev) => {

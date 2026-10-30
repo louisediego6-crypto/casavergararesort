@@ -33,87 +33,101 @@
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/account-ui.css?v=20261030a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body id="customerSettingsRoot">
   <div id="site-navbar"></div>
 
-  <section class="section-pad pb-5">
-    <div class="container" style="max-width:900px;">
-      <nav class="mb-4" aria-label="breadcrumb">
+  <section class="section-pad pb-5 acct-page">
+    <div class="container acct-container acct-container--narrow">
+      <nav class="mb-3" aria-label="breadcrumb">
         <ol class="breadcrumb small mb-0">
           <li class="breadcrumb-item"><a href="customer-dashboard.html" class="text-decoration-none">Dashboard</a></li>
           <li class="breadcrumb-item active" aria-current="page">Settings</li>
         </ol>
       </nav>
 
-      <div class="soft-card p-4 p-md-5 customer-settings-card">
-        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
-          <div>
-            <h1 class="h3 text-brand mb-1"><i class="bi bi-gear me-2 text-primary"></i>Account settings</h1>
-            <p class="text-muted-brand small mb-0">Update your profile photo, display name, and password.</p>
-          </div>
-          <a href="customer-dashboard.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+      <header class="acct-settings-head">
+        <div>
+          <p class="acct-eyebrow">Profile</p>
+          <h1 class="acct-hero-title"><i class="bi bi-person-gear me-2"></i>Account settings</h1>
+          <p class="acct-hero-sub">Update your profile photo, display name, and password.</p>
         </div>
+        <a href="customer-dashboard.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to dashboard</a>
+      </header>
 
-        <div class="row g-4">
-          <div class="col-lg-4">
-            <h2 class="h6 text-brand mb-3">Profile picture</h2>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <section class="acct-panel acct-photo-panel">
+            <div class="acct-panel-head">
+              <h2 class="h6"><span class="acct-panel-ico"><i class="bi bi-camera"></i></span>Profile picture</h2>
+            </div>
             <div id="settingsPhotoAlert" class="alert d-none small mb-3" role="alert"></div>
-            <div class="settings-photo-frame mb-3">
-              <img id="settingsPhotoPreview" class="settings-photo-preview rounded-circle object-fit-cover d-none" width="120" height="120" alt="" onerror="this.classList.add('d-none'); document.getElementById('settingsPhotoPlaceholder')?.classList.remove('d-none');">
+            <div class="settings-photo-frame acct-photo-frame">
+              <img id="settingsPhotoPreview" class="settings-photo-preview rounded-circle object-fit-cover d-none" width="132" height="132" alt="" onerror="this.classList.add('d-none'); document.getElementById('settingsPhotoPlaceholder')?.classList.remove('d-none');">
               <div id="settingsPhotoPlaceholder" class="settings-photo-placeholder rounded-circle d-flex align-items-center justify-content-center text-white fw-semibold">
                 <i class="bi bi-person fs-1 opacity-75" aria-hidden="true"></i>
               </div>
             </div>
             <input type="file" id="settingsPhotoFile" class="d-none" accept="*/*">
-            <div class="d-flex flex-wrap gap-2">
+            <div class="acct-photo-actions">
               <button type="button" class="btn btn-brand btn-sm" id="settingsPhotoPickBtn"><i class="bi bi-upload me-1"></i>Upload photo</button>
               <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="removeCustomerPhotoBtn">Remove</button>
             </div>
-            <p class="small text-muted-brand mt-2 mb-0">All file types are supported &mdash; JPG, PNG, GIF, WebP, HEIC, SVG, PDF and more, up to 5MB. Non-image files are saved to your profile but shown as a placeholder.</p>
-          </div>
+            <p class="acct-panel-note mb-0">All file types are supported &mdash; JPG, PNG, GIF, WebP, HEIC, SVG, PDF and more, up to 5MB. Non-image files are saved to your profile but shown as a placeholder.</p>
+          </section>
+        </div>
 
-          <div class="col-lg-8">
-            <div class="mb-4 pb-4 border-bottom border-light-subtle">
-              <h2 class="h6 text-brand mb-3">Profile details</h2>
-              <div id="settingsNameAlert" class="alert d-none small mb-3" role="alert"></div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label small text-brand mb-1" for="settingsFirstName">First name</label>
-                  <input type="text" class="form-control" id="settingsFirstName" autocomplete="given-name">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small text-brand mb-1" for="settingsLastName">Last name</label>
-                  <input type="text" class="form-control" id="settingsLastName" autocomplete="family-name">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small text-brand mb-1" for="settingsPhone">Phone number</label>
-                  <input type="tel" class="form-control" id="settingsPhone" autocomplete="tel" placeholder="09XXXXXXXXX">
-                </div>
-              </div>
-              <button type="button" class="btn btn-accent mt-3" id="saveCustomerNameBtn">Save changes</button>
+        <div class="col-lg-8">
+          <section class="acct-panel">
+            <div class="acct-panel-head">
+              <h2 class="h6"><span class="acct-panel-ico"><i class="bi bi-person-vcard"></i></span>Profile details</h2>
             </div>
+            <div id="settingsNameAlert" class="alert d-none small mb-3" role="alert"></div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small text-brand mb-1" for="settingsFirstName">First name</label>
+                <input type="text" class="form-control" id="settingsFirstName" autocomplete="given-name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-brand mb-1" for="settingsLastName">Last name</label>
+                <input type="text" class="form-control" id="settingsLastName" autocomplete="family-name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-brand mb-1" for="settingsPhone">Phone number</label>
+                <input type="tel" class="form-control" id="settingsPhone" autocomplete="tel" placeholder="09XXXXXXXXX">
+              </div>
+            </div>
+            <div class="acct-form-foot">
+              <button type="button" class="btn btn-accent" id="saveCustomerNameBtn"><i class="bi bi-check2-circle me-2"></i>Save changes</button>
+            </div>
+          </section>
 
-            <div>
-              <h2 class="h6 text-brand mb-3">Password</h2>
-              <div id="settingsPasswordAlert" class="alert d-none small mb-3" role="alert"></div>
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label small text-brand mb-1" for="settingsCurrentPassword">Current password</label>
-                  <input type="password" class="form-control" id="settingsCurrentPassword" autocomplete="current-password">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small text-brand mb-1" for="settingsNewPassword">New password</label>
-                  <input type="password" class="form-control" id="settingsNewPassword" autocomplete="new-password" minlength="6">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small text-brand mb-1" for="settingsConfirmPassword">Confirm new password</label>
-                  <input type="password" class="form-control" id="settingsConfirmPassword" autocomplete="new-password" minlength="6">
-                </div>
-              </div>
-              <button type="button" class="btn btn-outline-primary mt-3" id="saveCustomerPasswordBtn">Update password</button>
+          <section class="acct-panel">
+            <div class="acct-panel-head">
+              <h2 class="h6"><span class="acct-panel-ico"><i class="bi bi-shield-lock"></i></span>Password</h2>
             </div>
-          </div>
+            <div id="settingsPasswordAlert" class="alert d-none small mb-3" role="alert"></div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label small text-brand mb-1" for="settingsCurrentPassword">Current password</label>
+                <input type="password" class="form-control" id="settingsCurrentPassword" autocomplete="current-password">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-brand mb-1" for="settingsNewPassword">New password</label>
+                <input type="password" class="form-control" id="settingsNewPassword" autocomplete="new-password" minlength="6">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-brand mb-1" for="settingsConfirmPassword">Confirm new password</label>
+                <input type="password" class="form-control" id="settingsConfirmPassword" autocomplete="new-password" minlength="6">
+              </div>
+            </div>
+            <div class="acct-form-foot">
+              <button type="button" class="btn btn-outline-primary" id="saveCustomerPasswordBtn"><i class="bi bi-key me-2"></i>Update password</button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -121,7 +135,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261025e"></script>
+  <script src="../js/main.js?v=20261030a"></script>
   <script>
     renderNavbar("");
     renderFooter();

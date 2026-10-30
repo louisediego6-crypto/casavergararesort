@@ -414,7 +414,10 @@ function initBookingPage() {
     ];
     const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
 
-    const getFixedSchedule = (key) => cat.getFixedEventSchedule?.(key) || null;
+    const sessionRadios = () => Array.from(document.querySelectorAll('input[name="eventBirthdaySession"]'));
+    const getBirthdaySession = () => sessionRadios().find((r) => r.checked)?.value || "morning";
+    const getFixedSchedule = (key) => cat.getFixedEventSchedule?.(key, getBirthdaySession()) || null;
+    const isBirthdayKey = (key) => Boolean(cat.isBirthdayPackage?.(key));
 
     const FIXED_DURATION_ONLY = {
       "Wedding Package": "24hr",
@@ -426,6 +429,7 @@ function initBookingPage() {
     const venueGroupEl = document.getElementById("eventTypeVenueGroup");
     const birthdayWrapEl = document.getElementById("eventBirthdayPackageWrap");
     const birthdayEl = document.getElementById("eventBirthdayPackage");
+    const birthdaySessionWrapEl = document.getElementById("eventBirthdaySessionWrap");
     const otherSpecifyWrapEl = document.getElementById("eventOtherSpecifyWrap");
     const otherSpecifyEl = document.getElementById("eventOtherSpecify");
     const detailsEl = document.getElementById("eventPackageDetails");
@@ -494,10 +498,11 @@ function initBookingPage() {
       const selectedKey = getSelectedPackageKey();
       const schedule = getFixedSchedule(selectedKey);
       const fixedDurationKey = getFixedDurationOnly(selectedKey);
+      birthdaySessionWrapEl?.classList.toggle("d-none", !isBirthdayKey(selectedKey));
       durationWrapEl?.classList.toggle("d-none", Boolean(schedule) || Boolean(fixedDurationKey));
       checkInTimeWrapEl?.classList.toggle("d-none", Boolean(schedule));
       fixedNoteEl?.classList.toggle("d-none", !schedule);
-      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = schedule.label;
+      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = isBirthdayKey(selectedKey) ? `${schedule.name}: ${schedule.label}.` : schedule.label;
       if (schedule) {
 
         const durationEl = document.getElementById("eventDuration");
@@ -554,7 +559,10 @@ function initBookingPage() {
         : pkg.extraPaxRate && pkg.maxPax
         ? `Good for ${pkg.pax} pax (up to ${pkg.maxPax} pax, +₱${Number(pkg.extraPaxRate).toLocaleString()}/person past ${pkg.pax})`
         : `Good for ${pkg.pax} pax`;
-      const priceLabel = pkg.flatRate
+      const birthdaySchedule = isBirthdayKey(key) ? getFixedSchedule(key) : null;
+      const priceLabel = birthdaySchedule
+        ? `package price · ${birthdaySchedule.name} (${birthdaySchedule.label})`
+        : pkg.flatRate
         ? "flat package price — same regardless of duration selected"
         : pkg.isCustom
         ? `starting price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`
@@ -568,12 +576,12 @@ function initBookingPage() {
       const photo = !pkg.image
         ? ""
         : mediaKind === "image"
-        ? `<div class="room-cover-wrap bk-event-cover" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
+        ? `<div class="room-cover-wrap bk-event-cover${isBirthdayKey(key) ? " cvr-themed-photo" : ""}" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
             <img class="room-cover" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(key)}">
             <span class="bk-price-badge"><strong>${escapeHtml(money)}</strong></span>
             <div class="room-cover-overlay"><span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View package details</span></div>
           </div>`
-        : window.CVRPackageMedia.render(pkg.image, key);
+        : window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key) });
       lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, eventNights, guestCountVal, paxSurcharge };
       detailsEl.innerHTML = `
         <div class="soft-card overflow-hidden border bk-event-pkg">
@@ -621,13 +629,13 @@ function initBookingPage() {
         ? `+ ${cat.formatMoney(v.paxSurcharge.price, "PHP")} for ${v.guestCountVal} guests`
         : "";
       // Photo: click it to open the full-size viewer (works for any file type).
-      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key) : "";
+      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key) }) : "";
 
       const schedule = getFixedSchedule(key);
       const facts = [
         `Capacity: ${pkg.isCustom ? `flexible, up to ${pkg.pax} pax` : pkg.maxPax ? `${pkg.pax} pax included, up to ${pkg.maxPax} pax` : `${pkg.pax} pax`}`,
         pkg.extraPaxRate && pkg.maxPax ? `Extra guests: +${cat.formatMoney(pkg.extraPaxRate, "PHP")} per person past ${pkg.pax}` : "",
-        schedule ? `Schedule: ${schedule.label}` : "Check-in is flexible; check-out follows your chosen duration",
+        schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Check-in is flexible; check-out follows your chosen duration",
         pkg.flatRate ? "Flat package price, same regardless of duration" : "",
       ].filter(Boolean);
       q("#eventDetailsFacts").innerHTML = facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
@@ -675,6 +683,10 @@ function initBookingPage() {
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
+    sessionRadios().forEach((r) => r.addEventListener("change", () => {
+      syncFixedScheduleVisibility();
+      renderPackageDetails();
+    }));
     document.getElementById("eventDuration")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("input", renderPackageDetails);
@@ -830,11 +842,15 @@ function initBookingPage() {
         showMessage("Please select a valid event date and duration.", true);
         return;
       }
-      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "")) {
-        showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or duration.", true);
+      // Birthday sessions are checked against their real fixed hours (not a generic 12-hour window).
+      const overlapWin = fixedSchedule && isBirthdayKey(packageOption)
+        ? window.CVRDuration.buildFixedWindow(eventDateVal, fixedSchedule.checkInTime, fixedSchedule.checkOutTime) || win
+        : win;
+      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(overlapWin.scheduledCheckIn, overlapWin.scheduledCheckOut, "")) {
+        showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or session.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests)) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), isBirthdayKey(packageOption) ? getBirthdaySession() : null) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -858,6 +874,7 @@ function initBookingPage() {
         customCheckOutTime: win.customCheckOutTime,
         eventTime: win.checkInLabel,
         packageOption,
+        eventSession: isBirthdayKey(packageOption) ? getBirthdaySession() : null,
         additionalNotes,
         motif,
         ...totals,
