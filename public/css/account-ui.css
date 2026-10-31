@@ -419,6 +419,10 @@ html[data-theme="dark"] .acct-theme-seg [data-cvr-menu-theme="dark"] { color: #f
 .acct-next-btn:hover { background: #f4d77a; color: var(--acct-navy-deep); }
 html[data-theme="dark"] .acct-next { background: linear-gradient(135deg, #12324a 0%, #1b4f73 100%); box-shadow: 0 14px 40px rgba(0, 0, 0, .45); }
 @media (max-width: 575.98px) { .acct-next { padding: 1rem; } .acct-next-btn { width: 100%; text-align: center; } }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 25e92a2c3d03f4f2f3829ceee61803a37387c3d0
 
 /* ==========================================================================
    COMPACT PROFILE DROPDOWN (right-sized, scrolls on short screens)
@@ -504,3 +508,8 @@ html body .nav-profile-menu.acct-menu { width: 18.5rem; }
 @media (max-width: 575.98px) { html body .nav-profile-menu.acct-menu { width: min(18.5rem, calc(100vw - 1rem)); } }
 .acct-menu-theme-label, .acct-theme-seg button, .acct-foot-btn { white-space: nowrap; }
 html body .acct-menu .dropdown-item.acct-item { padding: .3rem .5rem; }
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b0ae15bfb096c52b66a248f07c8fe97ae0bed76e
+>>>>>>> 25e92a2c3d03f4f2f3829ceee61803a37387c3d0
