@@ -23,10 +23,7 @@
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-<<<<<<< HEAD
-=======
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
->>>>>>> c0e89b761c22c3ccc94ad70b9c35ee89ba76b63b
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
@@ -61,6 +58,7 @@
               <div class="col-md-6"><strong>Check-in / event date:</strong> <span id="statusCheckIn">—</span></div>
               <div class="col-md-6"><strong>Check-out:</strong> <span id="statusCheckOut">—</span></div>
               <div class="col-md-6"><strong>Event time:</strong> <span id="statusEventTime">—</span></div>
+              <div class="col-md-6 d-none" id="statusSessionRow"><strong>Session:</strong> <span id="statusSession" class="acct-session-chip">—</span></div>
               <div class="col-md-6"><strong>Guests:</strong> <span id="statusGuests">—</span></div>
               <div class="col-md-6"><strong>Duration:</strong> <span id="statusNights">—</span></div>
               <div class="col-md-6"><strong>Motif / theme:</strong> <span id="statusMotif">—</span></div>
@@ -140,8 +138,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261025a"></script>
-  <script src="../js/main.js?v=20261030a"></script>
+  <script src="../js/booking-data.js?v=20261031a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script>renderNavbar(""); renderFooter();</script>
 </body>
 </html>

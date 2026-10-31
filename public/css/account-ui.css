@@ -348,3 +348,74 @@ html[data-theme="dark"] .cvr-themed-photo::after {
   .acct-settings-head { padding: 1.2rem 1rem; }
   html body .nav-profile-menu.acct-menu { width: min(21rem, calc(100vw - 1rem)); }
 }
+
+/* ===== Separate light / dark package photos =====
+   When an admin uploads a dark-mode photo, both <img> tags render and CSS picks one.
+   The automatic birthday colour grading is switched off for those photos. */
+.cvr-has-dark .cvr-img-dark { display: none !important; }
+html[data-theme="dark"] .cvr-has-dark .cvr-img-light { display: none !important; }
+html[data-theme="dark"] .cvr-has-dark .cvr-img-dark { display: block !important; }
+html[data-theme] .cvr-themed-photo.cvr-has-dark img,
+html[data-theme] .cvr-themed-viewer.cvr-has-dark .cvr-media-view-img { filter: none; }
+html[data-theme] .cvr-themed-photo.cvr-has-dark::after { display: none; }
+html:not([data-theme]) .cvr-themed-photo.cvr-has-dark img { filter: none; }
+html:not([data-theme]) .cvr-themed-photo.cvr-has-dark::after { display: none; }
+
+/* ===== Birthday session badge (reservation status page) ===== */
+.acct-session-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .7rem; border-radius: 999px; font-size: .85rem; font-weight: 600; vertical-align: middle; }
+.acct-session-chip.is-morning { background: #fff3cf; color: #7a5300; border: 1px solid #f0d27a; }
+.acct-session-chip.is-night { background: #e6e9ff; color: #2c3485; border: 1px solid #b9c0f5; }
+html[data-theme="dark"] .acct-session-chip.is-morning { background: rgba(240, 190, 70, .16); color: #f6d98a; border-color: rgba(240, 190, 70, .4); }
+html[data-theme="dark"] .acct-session-chip.is-night { background: rgba(122, 134, 255, .18); color: #c3caff; border-color: rgba(122, 134, 255, .45); }
+
+/* ===== Appearance switch inside the profile dropdown ===== */
+.acct-menu .acct-menu-theme {
+  display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+  margin: .5rem .8rem 0; padding: .5rem .6rem .5rem .8rem;
+  border: 1px solid var(--acct-line); border-radius: .9rem; background: var(--acct-surface-2);
+}
+.acct-menu-theme-label { display: inline-flex; align-items: center; gap: .45rem; font-size: .82rem; font-weight: 700; color: var(--acct-ink); }
+.acct-menu-theme-label i { color: var(--acct-muted); }
+.acct-theme-seg { display: inline-flex; padding: .18rem; gap: .15rem; border-radius: 999px; background: rgba(var(--c-blue), .1); }
+.acct-theme-seg button {
+  display: inline-flex; align-items: center; gap: .35rem; border: 0; background: transparent;
+  padding: .32rem .75rem; border-radius: 999px; font-size: .78rem; font-weight: 600; color: var(--acct-muted);
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.acct-theme-seg button:hover { color: var(--acct-ink); }
+html:not([data-theme="dark"]) .acct-theme-seg [data-cvr-menu-theme="light"],
+html[data-theme="dark"] .acct-theme-seg [data-cvr-menu-theme="dark"] {
+  background: var(--acct-surface); color: var(--acct-heading); box-shadow: 0 2px 8px rgba(12, 35, 56, .18);
+}
+html[data-theme="dark"] .acct-theme-seg [data-cvr-menu-theme="dark"] { color: #f4d77a; }
+.acct-theme-seg button:focus-visible { outline: 2px solid rgba(var(--c-blue), .8); outline-offset: 1px; }
+
+/* ===== Dashboard: "Your next stay" card ===== */
+.acct-next {
+  display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap;
+  margin-bottom: 1.25rem; padding: 1.1rem 1.25rem; border-radius: var(--acct-radius);
+  color: #fff; background: linear-gradient(135deg, var(--acct-navy) 0%, #1f6f9f 100%);
+  box-shadow: var(--acct-shadow); position: relative; overflow: hidden;
+}
+.acct-next::after {
+  content: ""; position: absolute; right: -3rem; top: -3rem; width: 11rem; height: 11rem; border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 179, 18, .35), transparent 70%); pointer-events: none;
+}
+.acct-next.d-none { display: none !important; }
+.acct-next-count {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  min-width: 6.2rem; padding: .7rem .9rem; border-radius: 1rem;
+  background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .22);
+}
+.acct-next-count strong { font-size: 1.05rem; line-height: 1.1; }
+.acct-next-count span { font-size: .74rem; opacity: .85; margin-top: .2rem; }
+.acct-next-body { flex: 1 1 12rem; min-width: 0; position: relative; z-index: 1; }
+.acct-next .acct-eyebrow { color: #f4d77a; }
+.acct-next-title { margin: 0; font-size: 1.2rem; font-weight: 700; color: #fff; }
+.acct-next-meta { margin: .25rem 0 0; font-size: .86rem; opacity: .9; }
+.acct-next-btn {
+  position: relative; z-index: 1; background: #fff; color: var(--acct-navy); font-weight: 700; border-radius: 999px; padding: .5rem 1.1rem;
+}
+.acct-next-btn:hover { background: #f4d77a; color: var(--acct-navy-deep); }
+html[data-theme="dark"] .acct-next { background: linear-gradient(135deg, #12324a 0%, #1b4f73 100%); box-shadow: 0 14px 40px rgba(0, 0, 0, .45); }
+@media (max-width: 575.98px) { .acct-next { padding: 1rem; } .acct-next-btn { width: 100%; text-align: center; } }

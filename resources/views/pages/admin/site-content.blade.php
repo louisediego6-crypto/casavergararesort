@@ -43,10 +43,7 @@
   <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-<<<<<<< HEAD
-=======
   <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
->>>>>>> c0e89b761c22c3ccc94ad70b9c35ee89ba76b63b
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
@@ -673,6 +670,18 @@
               </div>
             </div>
             <div class="col-12">
+              <label class="form-label small text-muted-brand mb-1" for="epFormPhotoDark">Dark-mode photo <span class="text-muted">(optional)</span></label>
+              <div class="d-flex align-items-start gap-3 flex-wrap">
+                <img id="epFormPhotoDarkPreview" src="../../images/booking-photo-3.png" alt="Dark-mode photo preview" class="rounded-3 border" style="width:160px;height:110px;object-fit:cover;background:#10151c;">
+                <div class="flex-grow-1">
+                  <input type="file" class="form-control" id="epFormPhotoDark" accept="image/*">
+                  <input type="hidden" id="epFormImageDark" value="">
+                  <div class="form-text">Shown instead of the main photo when a guest uses dark mode. Leave empty to use the main photo (birthday packages get an automatic dark tint).</div>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none" id="epFormPhotoDarkRemove"><i class="bi bi-x-lg me-1"></i>Remove dark photo</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
               <label class="form-label small text-muted-brand mb-1" for="epFormInclusions">Inclusions (one per line)</label>
               <textarea class="form-control" id="epFormInclusions" rows="4" placeholder="Celebrant chair&#10;Cake table &amp; souvenir stand"></textarea>
             </div>
@@ -1038,11 +1047,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261030a"></script>
+  <script src="../../js/main.js?v=20261031a"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20261025a"></script>
-  <script src="../../js/admin-packages.js?v=20260830i"></script>
+  <script src="../../js/booking-data.js?v=20261031a"></script>
+  <script src="../../js/admin-packages.js?v=20261031a"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>
   <script src="../../js/admin-team.js?v=20260830i"></script>

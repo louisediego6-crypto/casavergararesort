@@ -34,11 +34,8 @@
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-<<<<<<< HEAD
-  <link href="../css/account-ui.css?v=20261030a" rel="stylesheet">
-=======
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
->>>>>>> c0e89b761c22c3ccc94ad70b9c35ee89ba76b63b
+  <link href="../css/account-ui.css?v=20261031a" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body id="customerDashboardRoot">
@@ -84,6 +81,8 @@
             <h2 class="acct-hero-title">Welcome back, <span id="dashWelcomeName">guest</span></h2>
             <p class="acct-hero-sub">Jump to reservations, payments, or track the status of your booking.</p>
           </header>
+
+          <section class="acct-next d-none" id="dashNextStay" aria-live="polite"></section>
 
           <div class="acct-tiles">
             <a href="booking.html" data-cvr-smart="reservation" class="acct-tile acct-tile--gold">
@@ -200,7 +199,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/main.js?v=20261030a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script>
     renderNavbar("");
     renderFooter();

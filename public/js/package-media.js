@@ -63,11 +63,13 @@
     const url = resolve(raw);
     const kind = kindOf(raw);
     const e = ext(raw);
+    const darkRaw = String((opts && opts.dark) || "").trim();
+    const darkUrl = darkRaw && kind === "image" && kindOf(darkRaw) === "image" ? resolve(darkRaw) : "";
     const inner = kind === "image"
-      ? `<img class="cvr-media-img" src="${esc(url)}" alt="${esc(label)}" loading="lazy" decoding="async">
+      ? `<img class="cvr-media-img${darkUrl ? " cvr-img-light" : ""}" src="${esc(url)}" alt="${esc(label)}" loading="lazy" decoding="async">${darkUrl ? `<img class="cvr-media-img cvr-img-dark" src="${esc(darkUrl)}" alt="${esc(label)}" loading="lazy" decoding="async">` : ""}
          <span class="cvr-media-zoom"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i><span>View</span></span>`
       : fileCard(url, label, kind, e);
-    return `<button type="button" class="cvr-media-thumb${themed ? " cvr-themed-photo" : ""}"${themed ? ' data-cvr-media-themed="1"' : ""} data-cvr-media="${esc(url)}" data-cvr-media-label="${esc(label)}" data-cvr-media-kind="${kind}" aria-label="Open ${esc(label)} ${kind === "image" ? "photo" : "file"}">${inner}</button>`;
+    return `<button type="button" class="cvr-media-thumb${themed ? " cvr-themed-photo" : ""}${darkUrl ? " cvr-has-dark" : ""}"${themed ? ' data-cvr-media-themed="1"' : ""}${darkUrl ? ` data-cvr-media-dark="${esc(darkUrl)}"` : ""} data-cvr-media="${esc(url)}" data-cvr-media-label="${esc(label)}" data-cvr-media-kind="${kind}" aria-label="Open ${esc(label)} ${kind === "image" ? "photo" : "file"}">${inner}</button>`;
   }
 
   let viewer = null;
@@ -92,20 +94,20 @@
     }
   }
 
-  function open(url, label, kindHint, themed) {
+  function open(url, label, kindHint, themed, darkUrl) {
     close();
     lastFocus = document.activeElement;
     const kind = kindHint || kindOf(url);
     const e = ext(url);
     let body;
-    if (kind === "image") body = `<img class="cvr-media-view-img" src="${esc(url)}" alt="${esc(label)}">`;
+    if (kind === "image") body = `<img class="cvr-media-view-img${darkUrl ? " cvr-img-light" : ""}" src="${esc(url)}" alt="${esc(label)}">${darkUrl ? `<img class="cvr-media-view-img cvr-img-dark" src="${esc(darkUrl)}" alt="${esc(label)}">` : ""}`;
     else if (kind === "pdf") body = `<iframe class="cvr-media-view-frame" src="${esc(url)}" title="${esc(label)}"></iframe>`;
     else if (kind === "video") body = `<video class="cvr-media-view-video" src="${esc(url)}" controls playsinline></video>`;
     else if (kind === "audio") body = `<audio class="cvr-media-view-audio" src="${esc(url)}" controls></audio>`;
     else body = `<div class="cvr-media-view-file">${fileCard(url, label, kind, e)}<p>This file type can't be previewed here. Open or download it to view.</p></div>`;
 
     viewer = document.createElement("div");
-    viewer.className = "cvr-media-viewer" + (themed ? " cvr-themed-viewer" : "");
+    viewer.className = "cvr-media-viewer" + (themed ? " cvr-themed-viewer" : "") + (darkUrl ? " cvr-has-dark" : "");
     viewer.setAttribute("role", "dialog");
     viewer.setAttribute("aria-modal", "true");
     viewer.setAttribute("aria-label", label || "Package media");
@@ -142,7 +144,7 @@
     const t = ev.target.closest("[data-cvr-media]");
     if (!t) return;
     ev.preventDefault();
-    open(t.dataset.cvrMedia, t.dataset.cvrMediaLabel || "", t.dataset.cvrMediaKind || "", t.dataset.cvrMediaThemed === "1");
+    open(t.dataset.cvrMedia, t.dataset.cvrMediaLabel || "", t.dataset.cvrMediaKind || "", t.dataset.cvrMediaThemed === "1", t.dataset.cvrMediaDark || "");
   });
   // A thumbnail photo that fails to load (unsupported format, missing file) becomes a file card.
   document.addEventListener("error", (ev) => {

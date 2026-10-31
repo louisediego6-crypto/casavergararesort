@@ -44,6 +44,7 @@ function cvrNormalizeServerEvent(row) {
     flatRate: Boolean(row.isFlatRate),
     doubleRateOn24hr: Boolean(row.doubleRateOn24hr),
     image: row.image || "",
+    imageDark: row.imageDark || "",
     inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
     motifs: Array.isArray(row.motifs) ? row.motifs : [],
     addOns: Array.isArray(row.addOns) ? row.addOns : [],
