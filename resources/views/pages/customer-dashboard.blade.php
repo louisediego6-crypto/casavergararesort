@@ -35,7 +35,11 @@
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+<<<<<<< HEAD
   <link href="../css/account-ui.css?v=20261031b" rel="stylesheet">
+=======
+  <link href="../css/account-ui.css?v=20261031a" rel="stylesheet">
+>>>>>>> b0ae15bfb096c52b66a248f07c8fe97ae0bed76e
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body id="customerDashboardRoot">
