@@ -1848,15 +1848,7 @@ function renderNavbar(active = "") {
               <li><a class="dropdown-item acct-item" href="${pageUrl("admin/dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-speedometer2"></i></span><span class="acct-item-text">${isAdminRole ? "Admin dashboard" : "Staff dashboard"}<small>Overview &amp; reports</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${pageUrl("admin/reservations.html")}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservations<small>Manage guest bookings</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Browse rooms &amp; events<small>See what guests see</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
-<<<<<<< HEAD
               <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
-=======
-<<<<<<< HEAD
-              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
-=======
-              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Appearance</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
->>>>>>> b0ae15bfb096c52b66a248f07c8fe97ae0bed76e
->>>>>>> 25e92a2c3d03f4f2f3829ceee61803a37387c3d0
               <li class="acct-menu-foot">
                 <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
                 <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
@@ -1892,15 +1884,7 @@ function renderNavbar(active = "") {
               <li><a class="dropdown-item acct-item" href="${smart.reservation}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservation<small>Complete your details</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${smart.payment}"><span class="acct-ico acct-ico--green"><i class="bi bi-credit-card-2-front"></i></span><span class="acct-item-text">Payment<small>Upload proof of payment</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${smart.status}"><span class="acct-ico acct-ico--violet"><i class="bi bi-activity"></i></span><span class="acct-item-text">Status<small>Track your booking</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
-<<<<<<< HEAD
               <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
-=======
-<<<<<<< HEAD
-              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
-=======
-              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Appearance</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
->>>>>>> b0ae15bfb096c52b66a248f07c8fe97ae0bed76e
->>>>>>> 25e92a2c3d03f4f2f3829ceee61803a37387c3d0
               <li class="acct-menu-foot">
                 <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
                 <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
