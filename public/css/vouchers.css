@@ -1,0 +1,215 @@
+/* =============================================================================
+   Casa Vergara — vouchers, payment option picker, voucher box
+   Loaded on the quotation, payment, dashboard and admin voucher pages.
+   ========================================================================== */
+
+/* ---------- Voucher card (always shows the resort logo) ------------------- */
+.cvr-voucher {
+  --stub-w: 138px;
+  --v-accent: #0c3b5d;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--stub-w) 1fr;
+  min-height: 176px;
+  border-radius: 1.1rem;
+  background: var(--cv-surface, #fff);
+  color: var(--text, #3a4560);
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 10px 26px rgba(12, 35, 56, 0.14);
+  /* punched ticket notches where the stub meets the body */
+  -webkit-mask:
+    radial-gradient(circle 10px at var(--stub-w) 0, transparent 97%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle 10px at var(--stub-w) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle 10px at var(--stub-w) 0, transparent 97%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle 10px at var(--stub-w) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+}
+.cvr-voucher.is-dim { filter: grayscale(0.75); opacity: 0.7; }
+
+.cvr-voucher-stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 0.75rem;
+  color: #fff;
+  text-align: center;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.22), transparent 55%),
+    linear-gradient(160deg, var(--v-accent), color-mix(in srgb, var(--v-accent) 70%, #000));
+}
+.cvr-voucher-stub::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  right: 0;
+  border-right: 2px dashed rgba(255, 255, 255, 0.55);
+}
+.cvr-voucher-logo {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.28), 0 6px 14px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+.cvr-voucher-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block; }
+.cvr-voucher-brand {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+}
+
+.cvr-voucher-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 1.15rem 0.95rem 1.3rem;
+  min-width: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--v-accent) 7%, transparent), transparent 55%),
+    var(--cv-surface, #fff);
+}
+.cvr-voucher-kicker {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--v-accent);
+}
+.cvr-voucher-off { display: flex; align-items: baseline; gap: 0.35rem; line-height: 1; }
+.cvr-voucher-off strong { font-size: 2.15rem; font-weight: 800; color: var(--v-accent); letter-spacing: -0.02em; }
+.cvr-voucher-off span { font-size: 0.85rem; font-weight: 700; color: var(--v-accent); opacity: 0.8; }
+.cvr-voucher-title { font-weight: 700; color: var(--dark, #1c2733); font-size: 0.98rem; margin-top: 0.1rem; overflow-wrap: anywhere; }
+.cvr-voucher-desc { margin: 0; font-size: 0.8rem; color: var(--cv-muted, #6c7a8d); line-height: 1.35; }
+.cvr-voucher-meta { display: flex; flex-wrap: wrap; gap: 0.3rem 0.45rem; margin-top: 0.3rem; }
+.cvr-voucher-meta span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  color: var(--cv-muted, #6c7a8d);
+  background: color-mix(in srgb, var(--v-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--v-accent) 18%, transparent);
+}
+.cvr-voucher-foot { display: flex; align-items: center; gap: 0.6rem; margin-top: auto; padding-top: 0.55rem; flex-wrap: wrap; }
+.cvr-voucher-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 0.55rem;
+  border: 1.5px dashed var(--v-accent);
+  color: var(--v-accent);
+  background: color-mix(in srgb, var(--v-accent) 6%, transparent);
+  font-weight: 700;
+}
+.cvr-voucher-code code { color: inherit; font-size: 0.85rem; letter-spacing: 0.08em; background: none; padding: 0; }
+.cvr-voucher-foot .btn { margin-left: auto; }
+
+.cvr-voucher--compact { --stub-w: 92px; min-height: 112px; border-radius: 0.9rem; box-shadow: 0 4px 14px rgba(12, 35, 56, 0.12); }
+.cvr-voucher--compact .cvr-voucher-logo { width: 54px; height: 54px; padding: 4px; }
+.cvr-voucher--compact .cvr-voucher-brand { display: none; }
+.cvr-voucher--compact .cvr-voucher-main { padding: 0.7rem 0.85rem 0.65rem 1rem; }
+.cvr-voucher--compact .cvr-voucher-off strong { font-size: 1.5rem; }
+.cvr-voucher--compact .cvr-voucher-title { font-size: 0.85rem; }
+.cvr-voucher--compact .cvr-voucher-meta { display: none; }
+.cvr-voucher--compact .cvr-voucher-foot { padding-top: 0.35rem; }
+
+/* ---------- Admin grid ----------------------------------------------------- */
+.cvr-voucher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 1.4rem; }
+.cvr-voucher-cell { display: flex; flex-direction: column; gap: 0.6rem; }
+.cvr-voucher-admin-bar { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; padding: 0 0.2rem; }
+.cvr-voucher-actions {
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+  padding: 0.55rem 0.8rem; border: 1px solid var(--cv-line, #e5ebf1); border-radius: 0.85rem; background: var(--cv-surface, #fff);
+}
+.cvr-voucher-preview-wrap { position: sticky; top: 0.5rem; padding: 1rem; border-radius: 1rem; background: var(--cv-canvas, #f5f7fa); border: 1px dashed var(--cv-line-strong, #d5dee8); }
+.cvr-preview-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cv-muted, #6c7a8d); margin-bottom: 0.75rem; }
+
+/* ---------- Form helpers (voucher modal) ----------------------------------- */
+.cvr-segmented { display: inline-flex; width: 100%; padding: 0.2rem; border-radius: 0.8rem; background: var(--cv-canvas, #f5f7fa); border: 1px solid var(--cv-line, #e5ebf1); }
+.cvr-segmented label { flex: 1; text-align: center; padding: 0.45rem 0.6rem; border-radius: 0.6rem; font-size: 0.85rem; font-weight: 600; color: var(--cv-muted, #6c7a8d); cursor: pointer; margin: 0; transition: background 0.2s, color 0.2s, box-shadow 0.2s; white-space: nowrap; }
+.cvr-segmented .btn-check:checked + label { background: var(--cv-surface, #fff); color: var(--primary, #0c3b5d); box-shadow: 0 1px 4px rgba(12, 35, 56, 0.14); }
+.cvr-segmented .btn-check:focus-visible + label { outline: 2px solid var(--secondary, #2f86bd); outline-offset: 1px; }
+.cvr-swatches { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.cvr-swatch { position: relative; width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--cv-surface, #fff); background: var(--c, #0c3b5d); box-shadow: 0 0 0 1px var(--cv-line-strong, #d5dee8); cursor: pointer; padding: 0; transition: transform 0.15s; }
+.cvr-swatch:hover { transform: scale(1.08); }
+.cvr-swatch.is-active { box-shadow: 0 0 0 2px var(--c, #0c3b5d); }
+.cvr-swatch--custom { display: grid; place-items: center; background: conic-gradient(#f43f5e, #f59e0b, #22c55e, #0ea5e9, #8b5cf6, #f43f5e); color: #fff; overflow: hidden; }
+.cvr-swatch--custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.cvr-swatch--custom i { font-size: 0.8rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none; }
+
+/* ---------- Payment option picker ------------------------------------------ */
+.cvr-plan-picker { display: grid; gap: 0.55rem; }
+.cvr-plan-heading, .cvr-voucher-box-title { font-weight: 700; font-size: 0.9rem; color: var(--primary, #0c3b5d); display: flex; align-items: center; gap: 0.45rem; }
+.cvr-voucher-box-title { margin-bottom: 0.55rem; }
+.cvr-plan-option {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  padding: 0.75rem 0.9rem; margin: 0;
+  border: 1.5px solid var(--cv-line-strong, #d5dee8); border-radius: 0.9rem;
+  background: var(--cv-surface, #fff); cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.cvr-plan-option:hover:not(.is-locked) { border-color: var(--secondary, #2f86bd); }
+.cvr-plan-option input { position: absolute; opacity: 0; pointer-events: none; }
+.cvr-plan-radio { flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; border: 2px solid var(--cv-line-strong, #b9c6d4); display: grid; place-items: center; transition: border-color 0.2s; }
+.cvr-plan-radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--primary, #0c3b5d); transform: scale(0); transition: transform 0.18s var(--cv-ease, ease); }
+.cvr-plan-option.is-selected { border-color: var(--primary, #0c3b5d); background: var(--primary-50, #eef4f9); box-shadow: 0 0 0 3px rgba(47, 134, 189, 0.15); }
+.cvr-plan-option.is-selected .cvr-plan-radio { border-color: var(--primary, #0c3b5d); }
+.cvr-plan-option.is-selected .cvr-plan-radio::after { transform: scale(1); }
+.cvr-plan-option input:focus-visible ~ .cvr-plan-radio { outline: 2px solid var(--secondary, #2f86bd); outline-offset: 2px; }
+.cvr-plan-option.is-locked { cursor: default; }
+.cvr-plan-option.is-locked:not(.is-selected) { opacity: 0.55; }
+.cvr-plan-body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.cvr-plan-body strong { font-size: 0.92rem; color: var(--dark, #1c2733); }
+.cvr-plan-body small { color: var(--cv-muted, #6c7a8d); line-height: 1.35; }
+.cvr-plan-note { font-size: 0.78rem; color: var(--cv-muted, #6c7a8d); }
+
+/* ---------- Voucher box (guest) -------------------------------------------- */
+.cvr-voucher-box { padding: 0.9rem; border: 1px solid var(--cv-line, #e5ebf1); border-radius: 0.95rem; background: var(--cv-surface, #fff); }
+.cvr-voucher-box .form-control { font-weight: 600; letter-spacing: 0.06em; }
+.cvr-voucher-applied { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; padding: 0.6rem 0.75rem; border-radius: 0.8rem; background: rgba(25, 135, 84, 0.09); border: 1px dashed rgba(25, 135, 84, 0.5); }
+.cvr-voucher-applied-info { display: flex; flex-direction: column; gap: 0.1rem; font-size: 0.85rem; min-width: 0; }
+.cvr-voucher-applied-info code { color: #146c43; font-weight: 800; letter-spacing: 0.08em; font-size: 0.9rem; background: none; padding: 0; }
+.cvr-voucher-available { display: grid; gap: 0.7rem; margin-top: 0.9rem; }
+.cvr-voucher-available:empty { display: none; }
+.cvr-voucher-available-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cv-muted, #6c7a8d); }
+.cvr-pay-now-card { background: #eef6fd; border-color: #d5e9fa; }
+
+/* ---------- Dark theme ------------------------------------------------------ */
+html[data-theme="dark"] .cvr-voucher { background: #16212c; color: #c9d6e2; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45); }
+html[data-theme="dark"] .cvr-voucher-main { background: linear-gradient(135deg, color-mix(in srgb, var(--v-accent) 16%, transparent), transparent 60%), #16212c; }
+html[data-theme="dark"] .cvr-voucher-title { color: #eaf1f8; }
+html[data-theme="dark"] .cvr-voucher-desc, html[data-theme="dark"] .cvr-voucher-meta span { color: #9fb2c4; }
+html[data-theme="dark"] .cvr-voucher-kicker, html[data-theme="dark"] .cvr-voucher-off strong, html[data-theme="dark"] .cvr-voucher-off span, html[data-theme="dark"] .cvr-voucher-code { color: color-mix(in srgb, var(--v-accent) 45%, #fff); }
+html[data-theme="dark"] .cvr-voucher-code { border-color: color-mix(in srgb, var(--v-accent) 55%, #fff); }
+html[data-theme="dark"] .cvr-voucher-actions, html[data-theme="dark"] .cvr-voucher-box, html[data-theme="dark"] .cvr-plan-option { background: #16212c; border-color: #27384a; }
+html[data-theme="dark"] .cvr-plan-option.is-selected { background: #1b2d3e; border-color: #5aa9dc; }
+html[data-theme="dark"] .cvr-plan-radio::after { background: #5aa9dc; }
+html[data-theme="dark"] .cvr-plan-option.is-selected .cvr-plan-radio { border-color: #5aa9dc; }
+html[data-theme="dark"] .cvr-plan-body strong, html[data-theme="dark"] .cvr-plan-heading, html[data-theme="dark"] .cvr-voucher-box-title { color: #eaf1f8; }
+html[data-theme="dark"] .cvr-plan-body small, html[data-theme="dark"] .cvr-plan-note { color: #9fb2c4; }
+html[data-theme="dark"] .cvr-voucher-preview-wrap { background: #101923; border-color: #27384a; }
+html[data-theme="dark"] .cvr-segmented { background: #101923; border-color: #27384a; }
+html[data-theme="dark"] .cvr-segmented label { color: #9fb2c4; }
+html[data-theme="dark"] .cvr-segmented .btn-check:checked + label { background: #1b2d3e; color: #eaf1f8; }
+html[data-theme="dark"] .cvr-pay-now-card { background: #14283a !important; border-color: #27475f !important; }
+html[data-theme="dark"] .cvr-voucher-applied { background: rgba(25, 135, 84, 0.16); }
+html[data-theme="dark"] .cvr-voucher-applied-info code { color: #75d6a3; }
+
+@media (max-width: 420px) {
+  .cvr-voucher { --stub-w: 104px; }
+  .cvr-voucher-logo { width: 58px; height: 58px; }
+  .cvr-voucher-off strong { font-size: 1.8rem; }
+}

@@ -8,19 +8,19 @@ const SITE_IMAGE_SLOTS = [
         'default' => 'images/booking-photo-1.png',
     ],
     'landing_room_deluxe' => [
-        'label' => 'Homepage "Deluxe Room" card photo',
+        'label' => 'Homepage "Standard Room" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-1.png',
     ],
     'landing_room_single' => [
-        'label' => 'Homepage "Single Room" card photo',
+        'label' => 'Homepage "Private Venue" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-2.png',
     ],
     'landing_room_family' => [
-        'label' => 'Homepage "Family Room" card photo',
+        'label' => 'Homepage "Weddings & Debuts" card photo',
         'group' => 'Landing Page',
         'page' => 'pages/landing.html',
         'default' => 'images/booking-photo-3.png',
@@ -84,6 +84,18 @@ const SITE_IMAGE_SLOTS = [
         'group' => 'About Page',
         'page' => 'pages/about.html',
         'default' => 'images/booking-photo-1.png',
+    ],
+    'about_hero_bg' => [
+        'label' => 'About page hero background photo',
+        'group' => 'About Page',
+        'page' => 'pages/about.html',
+        'default' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1800&q=80',
+    ],
+    'site_logo' => [
+        'label' => 'Resort logo (navbar, footer, login & register pages)',
+        'group' => 'Global (Logo)',
+        'page' => 'components/navbar.html',
+        'default' => 'images/logo.png',
     ],
 ];
 

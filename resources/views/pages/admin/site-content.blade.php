@@ -2,8 +2,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../../js/theme.js?v=20261024f"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <title>Site Content - Casa Vergara Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,6 +17,7 @@
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../../css/admin-modern.css?v=20261018a" rel="stylesheet">
+  <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <style>
 
     .site-image-card { display: flex; flex-direction: column; gap: .75rem; }
@@ -31,6 +36,15 @@
     .site-text-card { display: flex; flex-direction: column; gap: .5rem; }
     #siteContentTabs .nav-link { display: flex; align-items: center; gap: .4rem; }
   </style>
+  <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../../css/vouchers.css?v=20261025a" rel="stylesheet">
+  <link href="../../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div class="admin-wrap admin-page">
@@ -78,6 +92,11 @@
           </button>
         </li>
         <li class="nav-item">
+          <button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-vouchers" type="button">
+            <i class="bi bi-ticket-perforated"></i>Vouchers
+          </button>
+        </li>
+        <li class="nav-item">
           <button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-team" type="button">
             <i class="bi bi-people-fill"></i>Our Team
           </button>
@@ -87,7 +106,15 @@
       <div class="tab-content" id="siteContentTabContent">
 
         <div class="tab-pane fade show active" id="tab-text" role="tabpanel">
-          <p class="text-muted-brand small mb-3">Headlines, intro paragraphs and shared details (like the footer's address and phone number) that appear on the public pages. Fields under "Global (Footer)" appear on every page at once, so there's only one place to fix them.</p>
+          <p class="text-muted-brand small mb-3">Headlines, intro paragraphs and shared details (like the footer's address and phone number) that appear on the public pages. Fields under "Global (Footer)" and "Global (Navigation Bar)" appear on every page at once, so there's only one place to fix them. Use the search box to jump to any wording.</p>
+          <div class="mb-4" style="max-width:28rem;">
+            <label class="visually-hidden" for="siteTextSearch">Search page text</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="search" class="form-control" id="siteTextSearch" placeholder="Search by label, page or wording (e.g. footer, hero, Book now)" autocomplete="off">
+            </div>
+            <div class="form-text d-none" id="siteTextSearchEmpty">No text fields match that search.</div>
+          </div>
           <div id="siteTextAlert" class="alert d-none small mb-4" role="alert"></div>
           <div id="siteTextLoading" class="text-center text-muted-brand py-5">
             <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading page text&hellip;
@@ -96,7 +123,7 @@
         </div>
 
         <div class="tab-pane fade" id="tab-photos" role="tabpanel">
-          <p class="text-muted-brand small mb-3">Swap out the photos shown on your public website — no code changes needed.</p>
+          <p class="text-muted-brand small mb-3">Swap out the photos shown on your public website — including the logo and the About page banner — no code changes needed. Room, event and team photos are changed in their own tabs.</p>
           <div id="siteContentAlert" class="alert d-none small mb-4" role="alert"></div>
           <div id="siteContentLoading" class="text-center text-muted-brand py-5">
             <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading photos&hellip;
@@ -313,6 +340,46 @@
           </div>
         </div>
 
+        <div class="tab-pane fade" id="tab-vouchers" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+            <p class="text-muted-brand mb-0">Create and edit the discount vouchers guests can apply to their booking. Every voucher carries the Casa Vergara Resort logo. Admin and staff accounts can both manage this.</p>
+            <button type="button" class="btn btn-brand" id="voucherAddBtn"><i class="bi bi-plus-lg me-1"></i>New voucher</button>
+          </div>
+<div id="voucherAlert" class="alert d-none" role="alert"></div>
+
+      <div class="row g-3 mb-4 admin-kpi-grid">
+        <div class="col-6 col-md-3"><div class="soft-card p-3"><small>Total vouchers</small><h3 class="text-brand" id="voucherKpiTotal">—</h3></div></div>
+        <div class="col-6 col-md-3"><div class="soft-card p-3"><small>Active now</small><h3 class="text-success" id="voucherKpiActive">—</h3></div></div>
+        <div class="col-6 col-md-3"><div class="soft-card p-3"><small>Expired / used up</small><h3 class="text-danger" id="voucherKpiExpired">—</h3></div></div>
+        <div class="col-6 col-md-3"><div class="soft-card p-3"><small>Times redeemed</small><h3 class="text-primary" id="voucherKpiUsed">—</h3></div></div>
+      </div>
+
+      <div class="soft-card p-3 mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-6">
+            <input type="search" class="form-control" id="voucherSearch" placeholder="Search by title or code" aria-label="Search vouchers">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="voucherStatusFilter" aria-label="Filter vouchers">
+              <option value="all">All vouchers</option>
+              <option value="active">Active</option>
+              <option value="inactive">Hidden / off</option>
+              <option value="expired">Expired / used up</option>
+            </select>
+          </div>
+          <div class="col-md-3 text-md-end small text-muted-brand" id="voucherResultCount"></div>
+        </div>
+      </div>
+
+      <div id="voucherGrid" class="cvr-voucher-grid"></div>
+      <div id="voucherEmpty" class="soft-card p-5 text-center d-none">
+        <i class="bi bi-ticket-perforated fs-1 text-primary d-block mb-2"></i>
+        <h2 class="h5 text-brand">No vouchers yet</h2>
+        <p class="text-muted-brand mb-3">Create your first voucher and guests can apply it on the quotation and payment pages.</p>
+        <button type="button" class="btn btn-brand" id="voucherEmptyAddBtn">Create a voucher</button>
+      </div>
+        </div>
+
         <div class="tab-pane fade" id="tab-team" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
             <p class="text-muted-brand mb-0">Edit the "Meet Our Leadership" profiles shown on the public About Us page. Admin and staff accounts can both manage this.</p>
@@ -358,7 +425,7 @@
           <small class="text-muted-brand" data-role="page"></small>
         </div>
         <div class="alert d-none small py-2 mb-0" data-role="alert" role="alert"></div>
-        <input type="file" class="d-none" accept="image/jpeg,image/png,image/webp,image/gif" data-role="file">
+        <input type="file" class="d-none" accept="image/*" data-role="file">
         <div class="d-flex flex-wrap gap-2">
           <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" data-role="upload-btn">
             <i class="bi bi-upload me-1"></i><span class="admin-btn-label">Replace photo</span>
@@ -603,6 +670,18 @@
               </div>
             </div>
             <div class="col-12">
+              <label class="form-label small text-muted-brand mb-1" for="epFormPhotoDark">Dark-mode photo <span class="text-muted">(optional)</span></label>
+              <div class="d-flex align-items-start gap-3 flex-wrap">
+                <img id="epFormPhotoDarkPreview" src="../../images/booking-photo-3.png" alt="Dark-mode photo preview" class="rounded-3 border" style="width:160px;height:110px;object-fit:cover;background:#10151c;">
+                <div class="flex-grow-1">
+                  <input type="file" class="form-control" id="epFormPhotoDark" accept="image/*">
+                  <input type="hidden" id="epFormImageDark" value="">
+                  <div class="form-text">Shown instead of the main photo when a guest uses dark mode. Leave empty to use the main photo (birthday packages get an automatic dark tint).</div>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none" id="epFormPhotoDarkRemove"><i class="bi bi-x-lg me-1"></i>Remove dark photo</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
               <label class="form-label small text-muted-brand mb-1" for="epFormInclusions">Inclusions (one per line)</label>
               <textarea class="form-control" id="epFormInclusions" rows="4" placeholder="Celebrant chair&#10;Cake table &amp; souvenir stand"></textarea>
             </div>
@@ -781,7 +860,6 @@
     </div>
   </div>
 
-   (opens when a row is clicked). -->
   <div class="modal fade" id="reviewViewModal" tabindex="-1" aria-labelledby="reviewViewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
@@ -813,16 +891,172 @@
     </div>
   </div>
 
+  <!-- Create / edit voucher -->
+  <div class="modal fade cvr-modal" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-lg-down">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="cvr-modal-icon"><i class="bi bi-ticket-perforated"></i></span>
+          <div class="cvr-modal-heading">
+            <h5 class="modal-title" id="voucherModalLabel">New voucher</h5>
+            <p class="cvr-modal-sub mb-0">Changes appear on the guest booking pages as soon as you save.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <form id="voucherForm" novalidate>
+                <input type="hidden" id="voucherId" value="0">
+                <div id="voucherFormAlert" class="alert alert-danger d-none py-2 small" role="alert"></div>
+
+                <div class="row g-3">
+                  <div class="col-md-7">
+                    <label class="form-label" for="voucherTitle">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="voucherTitle" maxlength="120" placeholder="e.g. Summer Escape Voucher">
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label" for="voucherCode">Code <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <input type="text" class="form-control text-uppercase" id="voucherCode" maxlength="40" placeholder="SUMMER15" autocomplete="off" spellcheck="false">
+                      <button type="button" class="btn btn-outline-secondary" id="voucherGenCode" title="Generate a code"><i class="bi bi-magic"></i></button>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="voucherDescription">Short description</label>
+                    <input type="text" class="form-control" id="voucherDescription" maxlength="255" placeholder="Shown on the voucher card">
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label d-block">Discount type</label>
+                    <div class="cvr-segmented" role="group" aria-label="Discount type">
+                      <input type="radio" class="btn-check" name="voucherType" id="voucherTypePercent" value="percent" checked>
+                      <label for="voucherTypePercent">Percentage %</label>
+                      <input type="radio" class="btn-check" name="voucherType" id="voucherTypeFixed" value="fixed">
+                      <label for="voucherTypeFixed">Fixed amount ₱</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="form-label" for="voucherValue">Value <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="voucherValue" min="0" step="0.01" placeholder="10">
+                  </div>
+                  <div class="col-md-3 col-6" id="voucherMaxWrap">
+                    <label class="form-label" for="voucherMax">Max discount ₱</label>
+                    <input type="number" class="form-control" id="voucherMax" min="0" step="0.01" placeholder="No cap">
+                  </div>
+
+                  <div class="col-md-4 col-6">
+                    <label class="form-label" for="voucherMinSpend">Minimum spend ₱</label>
+                    <input type="number" class="form-control" id="voucherMinSpend" min="0" step="0.01" placeholder="0">
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="form-label" for="voucherAppliesTo">Applies to</label>
+                    <select class="form-select" id="voucherAppliesTo">
+                      <option value="all">Rooms &amp; events</option>
+                      <option value="room">Room bookings only</option>
+                      <option value="event">Event bookings only</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="voucherUsageLimit">Usage limit</label>
+                    <input type="number" class="form-control" id="voucherUsageLimit" min="1" step="1" placeholder="Unlimited">
+                  </div>
+
+                  <div class="col-6">
+                    <label class="form-label" for="voucherValidFrom">Valid from</label>
+                    <input type="date" class="form-control" id="voucherValidFrom">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label" for="voucherValidUntil">Valid until</label>
+                    <input type="date" class="form-control" id="voucherValidUntil">
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label d-block">Card colour</label>
+                    <div class="cvr-swatches" id="voucherSwatches"></div>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label d-block">Logo on the voucher</label>
+                    <div class="cvr-logo-choice">
+                      <div class="cvr-segmented" role="group" aria-label="Voucher logo">
+                        <input type="radio" class="btn-check" name="voucherLogoMode" id="voucherLogoResort" value="resort" checked>
+                        <label for="voucherLogoResort"><i class="bi bi-building me-1"></i>Resort logo</label>
+                        <input type="radio" class="btn-check" name="voucherLogoMode" id="voucherLogoCustom" value="custom">
+                        <label for="voucherLogoCustom"><i class="bi bi-upload me-1"></i>Custom logo</label>
+                      </div>
+                      <div id="voucherLogoUploadWrap" class="mt-2 d-none">
+                        <input type="file" class="form-control" id="voucherLogoFile" accept="image/png,image/jpeg,image/webp">
+                        <small class="text-muted-brand d-block mt-1" id="voucherLogoHint">PNG, JPG or WEBP up to 2 MB. A square logo looks best.</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label" for="voucherTerms">Terms &amp; conditions</label>
+                    <textarea class="form-control" id="voucherTerms" rows="3" maxlength="2000" placeholder="e.g. One voucher per reservation. Cannot be combined with other offers."></textarea>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" role="switch" id="voucherActive" checked>
+                      <label class="form-check-label" for="voucherActive">Active (guests can use it)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" role="switch" id="voucherPublic" checked>
+                      <label class="form-check-label" for="voucherPublic">Show to guests in “Available vouchers”</label>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="col-lg-5">
+              <div class="cvr-voucher-preview-wrap">
+                <div class="cvr-preview-label"><i class="bi bi-eye me-1"></i>Live preview</div>
+                <div id="voucherPreview"></div>
+                <div class="cvr-preview-terms small text-muted-brand mt-3" id="voucherPreviewTerms"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-brand" id="voucherSaveBtn"><i class="bi bi-check2 me-1"></i>Save voucher</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete voucher -->
+  <div class="modal fade cvr-modal cvr-modal--confirm" id="voucherDeleteModal" tabindex="-1" aria-labelledby="voucherDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <span class="cvr-modal-hero is-danger"><i class="bi bi-trash3"></i></span>
+          <h5 class="modal-title d-block mb-2" id="voucherDeleteLabel">Delete this voucher?</h5>
+          <p class="text-muted-brand mb-0" id="voucherDeleteText">This cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep it</button>
+          <button type="button" class="btn btn-danger" id="voucherDeleteConfirmBtn">Delete voucher</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20260926b"></script>
+  <script src="../../js/main.js?v=20261031a"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20260924d"></script>
-  <script src="../../js/admin-packages.js?v=20260830i"></script>
+  <script src="../../js/booking-data.js?v=20261031a"></script>
+  <script src="../../js/admin-packages.js?v=20261031a"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>
   <script src="../../js/admin-team.js?v=20260830i"></script>
   <script src="../../js/admin-reviews.js?v=20260926b"></script>
+  <script src="../../js/admin-vouchers.js?v=20261025a"></script>
   <script>
     renderAdminSidebar("site-content");
 
@@ -859,6 +1093,7 @@
     initAdminFaqsPage();
     initAdminTeamPage();
     initAdminReviewsPage();
+    initAdminVouchersPage();
   </script>
 </body>
 </html>

@@ -56,20 +56,147 @@ class UserController extends Controller
             json_response(false, 'This account has ' . $bookingCount . ' reservation record(s) and cannot be deleted. Suspend it instead to preserve reservation history.', [], 422);
         }
 
-        $avatarStmt = $pdo->prepare('SELECT avatar_path FROM users WHERE id = ?');
-        $avatarStmt->execute([$userId]);
-        $avatarPath = $avatarStmt->fetchColumn();
-
-        $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$userId]);
-
-        if ($avatarPath) {
-            $absolute = cvr_path($avatarPath);
-            if (is_file($absolute)) {
-                @unlink($absolute);
-            }
+        // "Delete" archives the account: a full snapshot goes to archived_users, then the live row is removed.
+        // The avatar file is kept on disk so a restore can bring the account back exactly as it was.
+        $userStmt = $pdo->prepare('SELECT id, first_name, last_name, email, phone, password_hash, avatar_path, role, is_verified, status, created_at FROM users WHERE id = ?');
+        $userStmt->execute([$userId]);
+        $snapshotRow = $userStmt->fetch();
+        if (!$snapshotRow) {
+            json_response(false, 'That account could not be found.', [], 404);
         }
 
-        json_response(true, 'Account deleted.');
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare(
+                'INSERT INTO archived_users (original_user_id, first_name, last_name, email, phone, role, snapshot, archived_by)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            )->execute([
+                $userId,
+                $snapshotRow['first_name'],
+                $snapshotRow['last_name'],
+                $snapshotRow['email'],
+                $snapshotRow['phone'],
+                $snapshotRow['role'],
+                json_encode($snapshotRow, JSON_UNESCAPED_UNICODE),
+                (int) session('user_id') ?: null,
+            ]);
+            $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$userId]);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('admin/users-delete.php: archive failed: ' . $e->getMessage());
+            json_response(false, 'Could not archive this account.', [], 500);
+        }
+
+        json_response(true, 'Account archived. You can restore it from Archived accounts.');
+    }
+
+    /** Lists archived accounts, newest first. */
+    public function archived(Request $request)
+    {
+        if ($request->method() !== 'GET') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+
+        require_role(['admin']);
+
+        $pdo = get_db_connection();
+        $rows = $pdo->query(
+            'SELECT id, original_user_id, first_name, last_name, email, phone, role, archived_at
+             FROM archived_users
+             ORDER BY archived_at DESC, id DESC
+             LIMIT 500'
+        )->fetchAll();
+
+        $accounts = array_map(static function (array $row): array {
+            return [
+                'archiveId' => (int) $row['id'],
+                'userId' => (int) $row['original_user_id'],
+                'firstName' => $row['first_name'],
+                'lastName' => $row['last_name'],
+                'email' => $row['email'],
+                'phone' => $row['phone'],
+                'role' => $row['role'],
+                'archivedAt' => $row['archived_at'],
+            ];
+        }, $rows);
+
+        json_response(true, 'OK', ['accounts' => $accounts, 'count' => count($accounts)]);
+    }
+
+    /** Restores an archived account with its original details and password. */
+    public function restore(Request $request)
+    {
+        if ($request->method() !== 'POST') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+
+        require_role(['admin']);
+
+        $body = get_json_body();
+        $archiveId = (int) ($body['archiveId'] ?? 0);
+        if ($archiveId <= 0) {
+            json_response(false, 'A valid archived account is required.', [], 422);
+        }
+
+        $pdo = get_db_connection();
+
+        $stmt = $pdo->prepare('SELECT id, original_user_id, snapshot FROM archived_users WHERE id = ?');
+        $stmt->execute([$archiveId]);
+        $archived = $stmt->fetch();
+        if (!$archived) {
+            json_response(false, 'That archived account could not be found.', [], 404);
+        }
+
+        $snap = json_decode((string) $archived['snapshot'], true);
+        if (!is_array($snap) || empty($snap['email']) || empty($snap['password_hash'])) {
+            json_response(false, 'This archive record is damaged and cannot be restored.', [], 422);
+        }
+
+        $emailStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(?)');
+        $emailStmt->execute([$snap['email']]);
+        if ((int) $emailStmt->fetchColumn() > 0) {
+            json_response(false, 'An active account already uses this email, so this archived account cannot be restored.', [], 422);
+        }
+
+        // Keep the original user ID when it is still free (history points at it); otherwise let the database assign one.
+        $originalId = (int) $archived['original_user_id'];
+        $idStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE id = ?');
+        $idStmt->execute([$originalId]);
+        $useOriginalId = $originalId > 0 && (int) $idStmt->fetchColumn() === 0;
+
+        $defaults = [
+            'first_name' => '', 'last_name' => '', 'phone' => '', 'role' => 'customer',
+            'is_verified' => 0, 'status' => 'active',
+        ];
+        $cols = ['first_name', 'last_name', 'email', 'phone', 'password_hash', 'avatar_path', 'role', 'is_verified', 'status', 'created_at'];
+        if ($useOriginalId) {
+            array_unshift($cols, 'id');
+        }
+        $params = [];
+        foreach ($cols as $col) {
+            $params[] = $col === 'id' ? $originalId : ($snap[$col] ?? ($defaults[$col] ?? null));
+        }
+
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare(
+                'INSERT INTO users (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')'
+            )->execute($params);
+            $newUserId = $useOriginalId ? $originalId : (int) $pdo->lastInsertId();
+            $pdo->prepare('DELETE FROM archived_users WHERE id = ?')->execute([$archiveId]);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('admin/users-restore.php: restore failed: ' . $e->getMessage());
+            json_response(false, 'Could not restore this account.', [], 500);
+        }
+
+        json_response(true, 'Account restored.', ['userId' => $newUserId]);
     }
 
     /** Ported from api/admin/users-list.php */

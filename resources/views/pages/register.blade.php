@@ -4,10 +4,14 @@
 <html lang="en">
 
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
 
   <meta charset="UTF-8" />
+  <script src="../js/theme.js?v=20261024f"></script>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <title>Casa Vergara - Register</title>
 
@@ -21,7 +25,16 @@
   <link href="../css/polish.css?v=20260830i" rel="stylesheet">
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
+  <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
 
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 
 <body class="login-bg">
@@ -39,15 +52,12 @@
           src="../images/logo.png"
           alt="Casa Vergara"
           class="brand-logo mb-2"
+          data-site-image-slot="site_logo"
         >
 
-        <h2 class="text-brand mb-1">
-          Create Account
-        </h2>
+        <h2 class="text-brand mb-1" data-site-text-key="register_title">Create Account</h2>
 
-        <p class="text-muted-brand mb-0">
-          Create your guest access
-        </p>
+        <p class="text-muted-brand mb-0" data-site-text-key="register_subtitle">Create your guest access</p>
 
       </div>
 
@@ -445,7 +455,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
+  <script>applySiteText(); applySiteImages();</script>
 
   <script src="../js/legal-doc.js?v=20260830i"></script>
 

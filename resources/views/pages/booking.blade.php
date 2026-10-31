@@ -2,8 +2,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../js/theme.js?v=20261024f"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Reservations</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +17,20 @@
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/contact-booking-fixes.css?v=20261018a" rel="stylesheet">
+  <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/booking-ui.css?v=20261026b" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/booking-extras.css?v=20261026c" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../css/account-ui.css?v=20261031b" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -23,6 +40,11 @@
       <div class="text-center mb-4 booking-page-header">
         <p class="text-uppercase text-primary fw-semibold small mb-2">Reservations</p>
         <h1 class="display-5 fw-bold text-brand">Book Your Stay or Event</h1>
+        <ol class="bk-steps" aria-label="Booking steps">
+          <li class="active"><span class="n">1</span>Pick dates</li>
+          <li><span class="n">2</span>Choose a room</li>
+          <li><span class="n">3</span>Guest details &amp; payment</li>
+        </ol>
         <div id="staffRoomsIntro" class="alert alert-info d-none mt-3 mb-0 text-start">
           <i class="bi bi-shield-check me-2"></i>
           <strong>Staff view.</strong> Booking is disabled for admin and staff accounts. Below you can see event and room availability, and open any room for full details.
@@ -31,7 +53,8 @@
 
       <div id="staffAvailabilityPanel" class="d-none"></div>
 
-      <div class="soft-card p-4 mb-4 booking-filter-card booking-filter-unified">
+      <div class="soft-card p-4 mb-4 booking-filter-card booking-filter-unified" id="bkFilterCard">
+        <h2 class="bk-filter-title"><i class="bi bi-calendar-check"></i>Find your stay <small>Choose a date and how long you'd like to stay</small></h2>
         <div class="row g-3 align-items-start booking-filter-row" id="bookingFilterRow">
           <div class="col-12 col-sm-6 col-lg-2 cvr-filter-shrink-col">
             <label for="bookingType" class="form-label text-brand">Booking Type</label>
@@ -133,13 +156,23 @@
       </div>
 
       <div id="roomBookingSection">
+        <div class="bk-results-head" id="bkResultsHead">
+          <h2 class="text-brand">Choose your room</h2>
+          <p class="bk-results-meta" id="bkResultsMeta"></p>
+        </div>
         <div class="row g-4 booking-room-grid" id="roomPackagesGrid"></div>
       </div>
 
       <div id="eventBookingSection" class="d-none">
+        <div class="bk-results-head">
+          <h2 class="text-brand">Event Reservation</h2>
+          <p class="bk-results-meta">Four quick steps. Dates with an existing event or blocked day can't be selected.</p>
+        </div>
         <div class="soft-card p-4 booking-event-card">
-          <h4 class="text-brand mb-3">Event Reservation Details</h4>
           <form id="eventReservationForm" class="row g-4 booking-event-form">
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">1</span><div><h3>What are you celebrating?</h3><p>Pick the event type, and a package if you have one in mind.</p></div></div>
+              <div class="row g-3">
             <div class="col-md-6">
               <label for="eventType" class="form-label text-brand">Event Type</label>
               <select id="eventType" class="form-select" required>
@@ -153,10 +186,90 @@
                 <optgroup label="Full-Event Packages" id="eventTypeVenueGroup"></optgroup>
               </select>
             </div>
-            <div class="col-md-6">
-              <label for="eventGuests" class="form-label text-brand">Number of Guests</label>
-              <input id="eventGuests" type="number" min="1" class="form-control" placeholder="Enter number of guests" required>
+            <div class="col-md-6 d-none" id="eventOtherSpecifyWrap">
+              <label for="eventOtherSpecify" class="form-label text-brand">Please specify <span class="text-danger">*</span></label>
+              <input id="eventOtherSpecify" type="text" class="form-control" placeholder="Tell us what kind of event this is">
             </div>
+            <div class="col-md-6 d-none" id="eventBirthdayPackageWrap">
+              <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
+              <select id="eventBirthdayPackage" class="form-select"></select>
+            </div>
+            <div class="col-12 d-none" id="eventBirthdaySessionWrap">
+              <span class="form-label text-brand d-block">Choose your session <span class="text-danger">*</span></span>
+              <div class="bk-session-picker" role="radiogroup" aria-label="Birthday session">
+                <label class="bk-session-card">
+                  <input type="radio" name="eventBirthdaySession" value="morning" checked>
+                  <span class="bk-session-body">
+                    <span class="bk-session-ico"><i class="bi bi-sunrise-fill" aria-hidden="true"></i></span>
+                    <span class="bk-session-text"><strong>Morning session</strong><small>8:00 AM – 5:00 PM</small></span>
+                    <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+                <label class="bk-session-card">
+                  <input type="radio" name="eventBirthdaySession" value="night">
+                  <span class="bk-session-body">
+                    <span class="bk-session-ico"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></span>
+                    <span class="bk-session-text"><strong>Night session</strong><small>7:00 PM – 5:00 AM (next day)</small></span>
+                    <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
+                  </span>
+                </label>
+              </div>
+              <p class="small text-muted-brand mb-0 mt-2"><i class="bi bi-clock-history me-1"></i>Birthday packages run on a fixed single session, so there's no duration, custom arrival time or multi-day stay to choose.</p>
+            </div>
+            <div class="col-12">
+              <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
+            </div>
+            <div class="col-md-6 d-none" id="eventMotifBookingWrap">
+              <label for="eventMotifSelect" class="form-label text-brand">Motif / color theme (optional)</label>
+              <select id="eventMotifSelect" class="form-select">
+                <option value="">Select later on reservation form</option>
+              </select>
+            </div>
+              </div>
+            </div>
+            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">2</span><div><h3>Who is coming?</h3><p>Adults and kids always add up to your total guests.</p></div></div>
+              <div class="row g-3">
+            <div class="col-12 col-lg-8">
+              <span class="form-label text-brand d-block">Number of Guests <span class="text-danger">*</span></span>
+              <div class="bk-guest-grid" role="group" aria-label="Number of guests">
+                <div class="bk-guest-field bk-guest-field--total">
+                  <label for="eventGuests" class="small text-muted-brand mb-1">Total guests</label>
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventGuests" aria-label="Fewer total guests"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventGuests" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventGuests" aria-label="More total guests"><i class="bi bi-plus-lg"></i></button>
+                  </div>
+                </div>
+                <div class="bk-guest-eq" aria-hidden="true">=</div>
+                <div class="bk-guest-field">
+                  <label for="eventAdults" class="small text-muted-brand mb-1">Adults</label>
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventAdults" aria-label="Fewer adults"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventAdults" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventAdults" aria-label="More adults"><i class="bi bi-plus-lg"></i></button>
+                  </div>
+                </div>
+                <div class="bk-guest-eq" aria-hidden="true">+</div>
+                <div class="bk-guest-field">
+                  <label for="eventChildren" class="small text-muted-brand mb-1">Kids</label>
+                  <div class="bk-stepper">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventChildren" aria-label="Fewer kids"><i class="bi bi-dash-lg"></i></button>
+                    <input id="eventChildren" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventChildren" aria-label="More kids"><i class="bi bi-plus-lg"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="small text-muted-brand mt-2" id="eventGuestTotalText" aria-live="polite">No guests added yet</div>
+              <div class="small text-muted-brand">Total, adults and kids stay in sync: change any one and the others update.</div>
+            </div>
+              </div>
+            </div>
+            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">3</span><div><h3>When is it?</h3><p>Choose your date, then how long you need the venue.</p></div></div>
+              <div class="row g-3">
             <div class="col-12 booking-event-date-col">
               <label class="form-label text-brand">Preferred Date <span class="text-danger">*</span></label>
               <p class="small text-muted-brand mb-3 mb-md-2">Dates with an existing event booking or blocked days cannot be selected.</p>
@@ -243,29 +356,21 @@
               </div>
               <small class="text-muted-brand d-block mt-1">Pick your own departure time on the last day, or leave blank to use the default 12:00 NN.</small>
             </div>
-            <div class="col-md-6 d-none" id="eventBirthdayPackageWrap">
-              <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
-              <select id="eventBirthdayPackage" class="form-select"></select>
+              </div>
             </div>
-            <div class="col-md-6 d-none" id="eventOtherSpecifyWrap">
-              <label for="eventOtherSpecify" class="form-label text-brand">Please specify <span class="text-danger">*</span></label>
-              <input id="eventOtherSpecify" type="text" class="form-control" placeholder="Tell us what kind of event this is">
             </div>
-            <div class="col-12">
-              <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
-            </div>
-            <div class="col-md-6 d-none" id="eventMotifBookingWrap">
-              <label for="eventMotifSelect" class="form-label text-brand">Motif / color theme (optional)</label>
-              <select id="eventMotifSelect" class="form-select">
-                <option value="">Select later on reservation form</option>
-              </select>
-            </div>
+            <div class="col-12"><div class="bk-form-section">
+              <div class="bk-sec-head"><span class="n">4</span><div><h3>Anything else?</h3><p>Special requests, setup ideas, or questions for our team.</p></div></div>
+              <div class="row g-3">
             <div class="col-12">
               <label for="eventNotes" class="form-label text-brand">Additional Notes</label>
               <textarea id="eventNotes" class="form-control" rows="4" placeholder="Enter any special requests or notes"></textarea>
             </div>
-            <div class="col-12 col-sm-auto d-grid">
-              <button type="submit" class="btn btn-brand px-4">Submit Event Reservation</button>
+              </div>
+            </div>
+            </div>
+            <div class="col-12 bk-submit-bar">
+              <button type="submit" class="btn btn-brand px-4"><i class="bi bi-send-check me-2"></i>Submit Event Reservation</button>
             </div>
           </form>
         </div>
@@ -299,6 +404,21 @@
           </div>
           <p class="small text-muted-brand fst-italic mb-2">Reviews from guests who've stayed in this specific room, shown here so you can see what to expect before booking it.</p>
           <div id="roomDetailsReviews" class="room-details-reviews"></div>
+          <div class="room-guest-picker mt-3 p-3 rounded-3 border">
+            <h6 class="text-brand mb-2">Guests for this stay</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="roomAdults" class="small text-muted-brand mb-1">Adults</label>
+                <input id="roomAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
+              </div>
+              <div class="col-6">
+                <label for="roomChildren" class="small text-muted-brand mb-1">Kids</label>
+                <input id="roomChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
+              </div>
+            </div>
+            <div class="small text-muted-brand mt-2" id="roomGuestHint"></div>
+            <div class="small text-danger fw-semibold mt-1 d-none" id="roomGuestError" role="alert"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
@@ -309,16 +429,56 @@
     </div>
   </div>
 
+  <div class="modal fade cvr-room-modal" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-brand" id="eventDetailsTitle">Package details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="eventDetailsPhoto" class="mb-3"></div>
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <p class="text-muted-brand mb-1" id="eventDetailsTagline"></p>
+            <div class="text-end ms-auto">
+              <div class="fw-bold text-brand fs-5" id="eventDetailsPrice"></div>
+              <div class="small text-muted-brand" id="eventDetailsPriceNote"></div>
+              <div class="small text-primary" id="eventDetailsSurcharge"></div>
+            </div>
+          </div>
+          <h6 class="text-brand mt-4 mb-2">Package facts</h6>
+          <ul class="small text-muted-brand ps-3" id="eventDetailsFacts"></ul>
+          <h6 class="text-brand mt-4 mb-2">Inclusions</h6>
+          <ul class="small text-muted-brand ps-3" id="eventDetailsInclusions"></ul>
+          <div id="eventDetailsAddonsWrap">
+            <h6 class="text-brand mt-4 mb-2">Available add-ons</h6>
+            <ul class="small text-muted-brand ps-3" id="eventDetailsAddons"></ul>
+          </div>
+          <div id="eventDetailsMotifsWrap">
+            <h6 class="text-brand mt-4 mb-2">Motif / color themes</h6>
+            <div class="d-flex flex-wrap gap-2" id="eventDetailsMotifs"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="eventDetailsContinueBtn" class="btn btn-brand">Continue booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20260924d"></script>
+  <script src="../js/booking-data.js?v=20261031a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20260830i"></script>
-  <script src="../js/booking.js?v=20260927b"></script>
-  <script src="../js/booking-search-calendar.js?v=20260830i"></script>
+  <script src="../js/reservation-calendar.js?v=20261026a"></script>
+  <script src="../js/package-media.js?v=20261031a"></script>
+  <script src="../js/booking.js?v=20261031a"></script>
+  <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>
     (async () => {

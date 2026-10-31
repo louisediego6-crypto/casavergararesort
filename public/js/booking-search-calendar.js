@@ -47,9 +47,36 @@
       return;
     }
 
+    // Phones get a bottom-sheet calendar with a dimmed backdrop (see calendars.css).
+    const isPhone = () => window.matchMedia("(max-width: 575.98px)").matches;
+    function sheetOpen() {
+      if (isPhone()) document.body.classList.add("cvr-fp-sheet-open");
+    }
+    function sheetClose() {
+      // deferred: when switching check-in → check-out, one closes as the other opens
+      setTimeout(() => {
+        if (!document.querySelector(".flatpickr-calendar.cvr-search-fp.open")) {
+          document.body.classList.remove("cvr-fp-sheet-open");
+        }
+      }, 0);
+    }
+
+    // Keep both calendars showing the same highlighted stay (check-in → check-out).
+    function redrawStay() {
+      try { fpIn.redraw(); } catch (e) { /* not ready yet */ }
+      try { fpOut.redraw(); } catch (e) { /* not ready yet */ }
+    }
+
     function holidayDayCreate(_dObj, _dStr, _instance, dayElem) {
       if (!dayElem || !dayElem.dateObj) return;
       const ymd = formatYMD(dayElem.dateObj);
+      const ci = inHidden.value;
+      const co = outHidden.value;
+      if (ci && co && co > ci && ymd >= ci && ymd <= co) {
+        dayElem.classList.add("cvr-cal-day-stay");
+        if (ymd === ci) dayElem.classList.add("cvr-cal-day-stay-start");
+        if (ymd === co) dayElem.classList.add("cvr-cal-day-stay-end");
+      }
       const holiday = typeof window.getPHHoliday === "function" ? window.getPHHoliday(ymd) : null;
       if (!holiday) return;
       dayElem.classList.add("cvr-cal-day-holiday");
@@ -68,12 +95,15 @@
         <div class="cvr-search-fp-footer">
           <button type="button" class="cvr-search-fp-btn cvr-search-fp-clear">Clear</button>
           <button type="button" class="cvr-search-fp-btn cvr-search-fp-today">Today</button>
+          <button type="button" class="cvr-search-fp-btn cvr-search-fp-done">Done</button>
         </div>`;
     }
 
+    let fpIn;
     let fpOut;
 
     fpOut = flatpickr(outAnchor, {
+      disableMobile: true,
       mode: "single",
       inline: false,
       allowInput: false,
@@ -93,17 +123,22 @@
         instance.calendarContainer.querySelector(".cvr-search-fp-today")?.addEventListener("click", () => {
           instance.jumpToDate(new Date(), true);
         });
+        instance.calendarContainer.querySelector(".cvr-search-fp-done")?.addEventListener("click", () => instance.close());
       },
+      onOpen: sheetOpen,
+      onClose: sheetClose,
       onChange: function (selectedDates) {
         const co = selectedDates[0] ? formatYMD(selectedDates[0]) : "";
         outHidden.value = co;
         outDisplay.value = formatPretty(co);
         outHidden.dispatchEvent(new Event("change"));
+        redrawStay();
       },
       onDayCreate: holidayDayCreate,
     });
 
-    const fpIn = flatpickr(inAnchor, {
+    fpIn = flatpickr(inAnchor, {
+      disableMobile: true,
       mode: "single",
       inline: false,
       allowInput: false,
@@ -123,11 +158,15 @@
           outDisplay.value = "";
           fpOut.clear();
           fpOut.set("minDate", "today");
+          redrawStay();
         });
         instance.calendarContainer.querySelector(".cvr-search-fp-today")?.addEventListener("click", () => {
           instance.jumpToDate(new Date(), true);
         });
+        instance.calendarContainer.querySelector(".cvr-search-fp-done")?.addEventListener("click", () => instance.close());
       },
+      onOpen: sheetOpen,
+      onClose: sheetClose,
       onChange: function (selectedDates) {
         const ci = selectedDates[0] ? formatYMD(selectedDates[0]) : "";
         inHidden.value = ci;
@@ -145,6 +184,7 @@
         if (!co || co < formatYMD(minOut) || co > formatYMD(maxOut)) {
           fpOut.setDate(minOut, true);
         }
+        redrawStay();
       },
       onDayCreate: holidayDayCreate,
     });

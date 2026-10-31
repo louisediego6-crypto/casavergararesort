@@ -315,6 +315,26 @@
 
     renderRoomDetailsReviews(modalEl, pkg.id);
 
+    // Fresh guest picker for this room: one adult by default, and the room's allowed total shown plainly.
+    const roomAdultsEl = modalEl.querySelector("#roomAdults");
+    const roomChildrenEl = modalEl.querySelector("#roomChildren");
+    const capMin = Math.max(1, pkg.capacity?.min ?? 1);
+    const capMax = pkg.capacity?.max ?? capMin;
+    // Start at the room's minimum so a 2-guest room doesn't open with an invalid "1 guest".
+    if (roomAdultsEl) roomAdultsEl.value = String(capMin);
+    if (roomChildrenEl) roomChildrenEl.value = "0";
+    const guestErrorEl = modalEl.querySelector("#roomGuestError");
+    if (guestErrorEl) {
+      guestErrorEl.textContent = "";
+      guestErrorEl.classList.add("d-none");
+    }
+    const guestHint = modalEl.querySelector("#roomGuestHint");
+    if (guestHint) {
+      const min = pkg.capacity?.min ?? 1;
+      const max = pkg.capacity?.max ?? 1;
+      guestHint.textContent = `This room holds ${min}–${max} guest${max !== 1 ? "s" : ""} in total (adults + kids).`;
+    }
+
     const staff = typeof isStaffSession === "function" && isStaffSession(getCustomerSession?.());
     const calendarLink = modalEl.querySelector("#roomDetailsCalendarLink");
     const bookBtn = modalEl.querySelector("#roomDetailsBookBtn");
@@ -322,9 +342,27 @@
     bookBtn?.classList.toggle("d-none", staff);
     if (bookBtn) {
       bookBtn.onclick = () => {
+        const adults = Math.max(0, parseInt(roomAdultsEl?.value, 10) || 0);
+        const kids = Math.max(0, parseInt(roomChildrenEl?.value, 10) || 0);
+        const total = adults + kids;
+        let problem = "";
+        if (adults < 1) problem = "Please enter at least one adult.";
+        else if (total < capMin || total > capMax) problem = `This room allows ${capMin}\u2013${capMax} guests in total (adults + kids). You entered ${total}.`;
+        if (problem) {
+          // Keep the dialog open and show the problem right next to the guest fields.
+          if (guestErrorEl) {
+            guestErrorEl.textContent = problem;
+            guestErrorEl.classList.remove("d-none");
+          }
+          roomAdultsEl?.focus();
+          return;
+        }
         bootstrap.Modal.getOrCreateInstance(modalEl).hide();
         window.cvrBookRoom?.(pkg.id);
       };
+      [roomAdultsEl, roomChildrenEl].forEach((el) => {
+        if (el) el.oninput = () => guestErrorEl?.classList.add("d-none");
+      });
     }
 
     bootstrap.Modal.getOrCreateInstance(modalEl).show();

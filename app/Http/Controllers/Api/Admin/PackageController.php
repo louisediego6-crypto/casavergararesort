@@ -130,8 +130,9 @@ class PackageController extends Controller
              FROM room_packages ORDER BY sort_order ASC, id ASC'
         )->fetchAll();
 
+        $darkCol = \Illuminate\Support\Facades\Schema::hasColumn('event_packages', 'image_dark_path') ? 'image_dark_path' : 'NULL';
         $eventRows = $pdo->query(
-            'SELECT id, slug, name, price, included_pax, max_pax, extra_pax_rate, is_custom, image_path, inclusions_json, motifs_json, addons_json, sort_order, is_active
+            'SELECT id, slug, name, price, included_pax, max_pax, extra_pax_rate, is_custom, image_path, ' . $darkCol . ' AS image_dark_path, inclusions_json, motifs_json, addons_json, sort_order, is_active
              FROM event_packages ORDER BY sort_order ASC, id ASC'
         )->fetchAll();
 
@@ -169,6 +170,7 @@ class PackageController extends Controller
                 'extraPaxRate' => $e['extra_pax_rate'] !== null ? (float) $e['extra_pax_rate'] : null,
                 'isCustom' => (bool) $e['is_custom'],
                 'image' => $e['image_path'],
+                'imageDark' => $e['image_dark_path'] ?? null,
                 'inclusions' => json_decode((string) $e['inclusions_json'], true) ?: [],
                 'motifs' => json_decode((string) $e['motifs_json'], true) ?: [],
                 'addOns' => json_decode((string) $e['addons_json'], true) ?: [],
@@ -325,6 +327,9 @@ class PackageController extends Controller
         $isCustom = !empty($body['isCustom']) ? 1 : 0;
         $image = input_str($body, 'image');
         $image = $image !== '' ? $image : null;
+        $imageDark = input_str($body, 'imageDark');
+        $imageDark = $imageDark !== '' ? $imageDark : null;
+        $hasDarkCol = \Illuminate\Support\Facades\Schema::hasColumn('event_packages', 'image_dark_path');
         $inclusions = is_array($body['inclusions'] ?? null) ? array_values(array_filter(array_map('trim', $body['inclusions']))) : [];
         $motifs = is_array($body['motifs'] ?? null) ? $body['motifs'] : [];
         $addOns = is_array($body['addOns'] ?? null) ? $body['addOns'] : [];
@@ -347,6 +352,9 @@ class PackageController extends Controller
                 'UPDATE event_packages SET slug=?, name=?, price=?, included_pax=?, is_custom=?, image_path=?, inclusions_json=?, motifs_json=?, addons_json=?, sort_order=?, is_active=? WHERE id=?'
             );
             $stmt->execute([...$params, $id]);
+            if ($hasDarkCol) {
+                $pdo->prepare('UPDATE event_packages SET image_dark_path=? WHERE id=?')->execute([$imageDark, $id]);
+            }
             json_response(true, 'Event package updated.', ['id' => $id]);
         }
 
@@ -354,6 +362,10 @@ class PackageController extends Controller
             'INSERT INTO event_packages (slug, name, price, included_pax, is_custom, image_path, inclusions_json, motifs_json, addons_json, sort_order, is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
         );
         $stmt->execute($params);
-        json_response(true, 'Event package added.', ['id' => (int) $pdo->lastInsertId()]);
+        $newId = (int) $pdo->lastInsertId();
+        if ($hasDarkCol && $imageDark !== null) {
+            $pdo->prepare('UPDATE event_packages SET image_dark_path=? WHERE id=?')->execute([$imageDark, $newId]);
+        }
+        json_response(true, 'Event package added.', ['id' => $newId]);
     }
 }

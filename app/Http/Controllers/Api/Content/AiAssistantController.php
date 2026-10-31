@@ -60,7 +60,7 @@ class AiAssistantController extends Controller
 
         try {
             $roomDbRows = $pdo->query(
-                'SELECT title, tagline, price_per_night, capacity_min, capacity_max, area_sqm, bed_setup,
+                'SELECT title, tagline, description, price_per_night, capacity_min, capacity_max, area_sqm, bed_setup,
                         inclusions_json, addons_json, standard_check_in, standard_check_out
                  FROM room_packages WHERE is_active = 1 ORDER BY sort_order ASC, id ASC'
             )->fetchAll();
@@ -74,9 +74,10 @@ class AiAssistantController extends Controller
                 $inclusions = json_decode((string) $r['inclusions_json'], true) ?: [];
                 $addOns = json_decode((string) $r['addons_json'], true) ?: [];
                 $addOnStrs = array_map(static fn($a) => ($a['label'] ?? '') . ' — PHP ' . number_format((float) ($a['price'] ?? 0), 2), $addOns);
-                $roomBlock .= '- ' . $r['title'] . ($r['tagline'] ? ' ("' . $r['tagline'] . '")' : '') . ': PHP ' . number_format((float) $r['price_per_night'], 2) . ' per night, '
+                $roomBlock .= '- ' . $r['title'] . ($r['tagline'] ? ' ("' . $r['tagline'] . '")' : '') . ': PHP ' . number_format((float) $r['price_per_night'], 2) . ' for 24 hours, '
                     . $r['capacity_min'] . '–' . $r['capacity_max'] . ' guests'
                     . ($r['area_sqm'] ? ', ' . $r['area_sqm'] . ' m²' : '') . ($r['bed_setup'] ? ', ' . $r['bed_setup'] : '') . '. '
+                    . ($r['description'] ? $r['description'] . ' ' : '')
                     . 'Includes: ' . implode(', ', $inclusions) . '. '
                     . 'Check-in ' . $r['standard_check_in'] . ', check-out ' . $r['standard_check_out'] . '. '
                     . 'Optional add-ons: ' . (empty($addOnStrs) ? 'none' : implode('; ', $addOnStrs)) . ".\n";
@@ -178,7 +179,7 @@ class AiAssistantController extends Controller
             . "Keep replies concise and friendly, plain-text (no markdown headings or tables), long enough to fully answer the question but without padding. Use PHP peso amounts exactly as written below, and show your addition when a guest asks for a total (base package + add-ons).\n\n"
             . $resortBlock . "\n"
             . "SITE HIGHLIGHTS / AMENITIES:\n" . $highlightsBlock . "\n"
-            . "ROOM TYPES & PRICING (per night, from the live booking page):\n" . $roomBlock . "\n"
+            . "ROOM TYPES & PRICING (from the live booking page):\n" . $roomBlock . "\n"
             . "EVENT DECORATION PACKAGES & PRICING (from the live booking page — Ayesha/Anica/Amarah/Custom):\n" . $eventBlock . "\n"
             . "VENUE RENTAL, DAY-USE & CELEBRATION RATES (private/public entry, standard room hourly rates, cottages, wedding/debut — phone/walk-in booking only, not yet on the online reservation form):\n" . $venueRatesBlock . "\n"
             . "GUEST REVIEWS:\n" . $reviewsBlock . "\n"

@@ -256,13 +256,14 @@ function isFullAdminSession(session) {
 }
 window.isFullAdminSession = isFullAdminSession;
 
-const CVR_ADMIN_ONLY_SECTIONS = ["payments", "users", "settings"];
+const CVR_ADMIN_ONLY_SECTIONS = ["users", "settings"];
 
 function setCustomerSession(profile) {
   if (!profile?.email) return;
   const { password: _pw, ...rest } = profile;
   localStorage.setItem("cvrCustomerSession", JSON.stringify(rest));
-  rememberRecentAccount(rest);
+  // Accounts are NOT remembered automatically on sign-in. They are only saved
+  // when the person clicks "Save account" in the log-out dialog (or ticks "Remember me").
 }
 
 function clearCustomerSession() {
@@ -300,6 +301,15 @@ window.cvrClearSavedLoginEmail = cvrClearSavedLoginEmail;
 
 const CVR_RECENT_ACCOUNTS_KEY = "cvrRecentAccounts";
 const CVR_RECENT_ACCOUNTS_MAX = 5;
+
+// One-time cleanup: earlier versions auto-added every signed-in account to this list.
+(function cvrPurgeAutoSavedAccounts() {
+  try {
+    if (localStorage.getItem("cvrRecentAccountsPurged") === "1") return;
+    localStorage.removeItem("cvrRecentAccounts");
+    localStorage.setItem("cvrRecentAccountsPurged", "1");
+  } catch {}
+})();
 
 function getRecentAccounts() {
   try {
@@ -342,19 +352,46 @@ function ensureCvrLogoutModal() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="modal fade" id="cvrLogoutModal" tabindex="-1" aria-labelledby="cvrLogoutModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content cvr-logout-modal-content">
-          <div class="modal-body text-center pt-4 pb-3 px-4">
-            <div class="cvr-logout-modal-icon mb-3"><i class="bi bi-box-arrow-right"></i></div>
-            <h5 class="text-brand mb-2" id="cvrLogoutModalLabel">Log out of Casa Vergara?</h5>
-            <p class="text-muted-brand small mb-0">You'll need to sign in again to access your account.</p>
+      <div class="modal-dialog modal-dialog-centered cvr-lo-dialog">
+        <div class="modal-content cvr-lo-card">
+          <button type="button" class="cvr-lo-close" data-bs-dismiss="modal" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+
+          <div class="cvr-lo-head" id="cvrLogoutHead">
+            <div class="cvr-lo-avatar" id="cvrLogoutAvatar" aria-hidden="true"></div>
+            <div class="cvr-lo-who">
+              <div class="cvr-lo-eyebrow">Signed in as</div>
+              <div class="cvr-lo-name" id="cvrLogoutName"></div>
+              <div class="cvr-lo-email" id="cvrLogoutEmail"></div>
+            </div>
           </div>
-          <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-center gap-2">
-            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger px-4" id="cvrLogoutConfirmBtn">
-              <span class="cvr-logout-btn-label">Log out</span>
-              <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
-            </button>
+
+          <div class="cvr-lo-body">
+            <h5 class="cvr-lo-title" id="cvrLogoutModalLabel">Log out of Casa Vergara?</h5>
+            <p class="cvr-lo-sub">You'll need to sign in again to access your account.</p>
+
+            <div class="cvr-lo-actions">
+              <div class="d-none" id="cvrLogoutSaveWrap">
+                <button type="button" class="cvr-lo-opt cvr-lo-opt--save" id="cvrLogoutSaveBtn">
+                  <span class="cvr-lo-opt-icon"><i class="bi bi-person-check cvr-logout-save-icon"></i></span>
+                  <span class="cvr-lo-opt-text">
+                    <span class="cvr-lo-opt-title cvr-logout-save-label">Save account &amp; log out</span>
+                    <small id="cvrLogoutSaveHint">Sign back in with one tap next time.</small>
+                  </span>
+                  <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+              </div>
+
+              <button type="button" class="cvr-lo-opt cvr-lo-opt--out" id="cvrLogoutConfirmBtn">
+                <span class="cvr-lo-opt-icon"><i class="bi bi-box-arrow-right"></i></span>
+                <span class="cvr-lo-opt-text">
+                  <span class="cvr-lo-opt-title cvr-logout-btn-label">Log out</span>
+                  <small>Sign out without saving this account</small>
+                </span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <button type="button" class="cvr-lo-cancel" data-bs-dismiss="modal">Stay signed in</button>
           </div>
         </div>
       </div>
@@ -430,14 +467,20 @@ function cvrConfirmLogout(redirectUrl) {
   const btn = oldBtn.cloneNode(true);
   oldBtn.replaceWith(btn);
 
-  btn.addEventListener("click", async () => {
+  const performLogout = async () => {
     btn.disabled = true;
     btn.querySelector(".cvr-logout-btn-label")?.classList.add("d-none");
     btn.querySelector(".spinner-border")?.classList.remove("d-none");
     try { await cvrApiPost("auth/logout", {}); } catch {  }
     clearCustomerSession();
     window.location.href = redirectUrl;
-  });
+  };
+
+  btn.addEventListener("click", performLogout);
+
+  // "Save account" saves this account, then logs out and heads to the login page.
+  setupCvrLogoutSaveButton(modalEl, performLogout);
+  fillCvrLogoutUser(modalEl);
 
   if (window.bootstrap?.Modal) {
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -445,6 +488,108 @@ function cvrConfirmLogout(redirectUrl) {
 
     if (window.confirm("Log out of Casa Vergara?")) btn.click();
   }
+}
+
+function fillCvrLogoutUser(modalEl) {
+  const head = modalEl.querySelector("#cvrLogoutHead");
+  const avatarEl = modalEl.querySelector("#cvrLogoutAvatar");
+  const nameEl = modalEl.querySelector("#cvrLogoutName");
+  const emailEl = modalEl.querySelector("#cvrLogoutEmail");
+  const sess = getCustomerSession();
+  if (!head) return;
+  if (!sess?.email) { head.classList.add("d-none"); return; }
+  head.classList.remove("d-none");
+  const initials = customerProfileInitials(sess);
+  const showInitials = () => { avatarEl.textContent = initials; };
+  const src = customerAvatarSrc(sess);
+  avatarEl.textContent = "";
+  if (src) {
+    const img = document.createElement("img");
+    img.alt = "";
+    img.src = src;
+    img.addEventListener("error", showInitials);
+    avatarEl.appendChild(img);
+  } else {
+    showInitials();
+  }
+  if (nameEl) nameEl.textContent = customerProfileDisplayName(sess);
+  if (emailEl) emailEl.textContent = sess.email;
+}
+
+// Shows a "Save account" button in the log-out dialog when the current account
+// is not already saved on this browser.
+function setupCvrLogoutSaveButton(modalEl, onSaved) {
+  const wrap = modalEl.querySelector("#cvrLogoutSaveWrap");
+  const oldSaveBtn = modalEl.querySelector("#cvrLogoutSaveBtn");
+  if (!wrap || !oldSaveBtn) return;
+
+  // Reset to the default state every time the dialog opens.
+  wrap.classList.add("d-none");
+  const saveBtn = oldSaveBtn.cloneNode(true);
+  oldSaveBtn.replaceWith(saveBtn);
+  const labelEl = saveBtn.querySelector(".cvr-logout-save-label");
+  const iconEl = saveBtn.querySelector(".cvr-logout-save-icon");
+  const spinnerEl = saveBtn.querySelector(".spinner-border");
+  const hintEl = modalEl.querySelector("#cvrLogoutSaveHint");
+  saveBtn.disabled = false;
+  saveBtn.className = "cvr-lo-opt cvr-lo-opt--save";
+  if (labelEl) labelEl.textContent = "Save account & log out";
+  if (iconEl) iconEl.className = "bi bi-person-check cvr-logout-save-icon";
+  spinnerEl?.classList.add("d-none");
+  if (hintEl) {
+    hintEl.className = "";
+    hintEl.textContent = "Sign back in with one tap next time.";
+  }
+
+  const current = getCustomerSession();
+  if (!current?.email) return;
+
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.disabled = true;
+    spinnerEl?.classList.remove("d-none");
+    try {
+      const { body } = await cvrApiPost("auth/save-account", {});
+      if (body.success) {
+        rememberRecentAccount(current);
+        saveBtn.className = "cvr-lo-opt cvr-lo-opt--save is-done";
+        if (iconEl) iconEl.className = "bi bi-check-lg cvr-logout-save-icon";
+        if (labelEl) labelEl.textContent = "Account saved";
+        if (hintEl) hintEl.textContent = "Taking you to the login page…";
+        modalEl.querySelector("#cvrLogoutConfirmBtn")?.setAttribute("disabled", "disabled");
+        // Save, then sign out and go straight to the login page.
+        if (typeof onSaved === "function") setTimeout(onSaved, 600);
+      } else {
+        saveBtn.disabled = false;
+        if (hintEl) {
+          hintEl.className = "is-error";
+          hintEl.textContent = body.message || "Could not save this account. Please try again.";
+        }
+      }
+    } catch {
+      saveBtn.disabled = false;
+      if (hintEl) {
+        hintEl.className = "is-error";
+        hintEl.textContent = "Could not reach the server. Please try again.";
+      }
+    } finally {
+      spinnerEl?.classList.add("d-none");
+    }
+  });
+
+  // Only offer the button if this account isn't already saved.
+  (async () => {
+    try {
+      const { body } = await cvrApiGet("auth/saved-accounts");
+      if (!body.success || body.data?.available === false) return;
+      const accounts = Array.isArray(body.data?.accounts) ? body.data.accounts : [];
+      const alreadySaved = accounts.some(
+        (a) => String(a.email || "").toLowerCase() === String(current.email).toLowerCase()
+      );
+      if (!alreadySaved) wrap.classList.remove("d-none");
+    } catch {
+      // If we can't tell, don't show the button.
+    }
+  })();
 }
 
 function ensureCvrSwitchAccountModal() {
@@ -1606,14 +1751,32 @@ function applyCustomerAvatarElements(session) {
   if (rm) rm.classList.toggle("d-none", !photo);
 }
 
+/** Light / dark mode switch. Behaviour lives in js/theme.js (click handler is delegated on [data-cvr-theme-toggle]). */
+function cvrThemeToggleMarkup(extraClass = "") {
+  const dark = (document.documentElement.getAttribute("data-theme") || "light") === "dark";
+  const label = dark ? "Switch to light mode" : "Switch to dark mode";
+  return `<button type="button" class="cvr-theme-toggle ${extraClass}" data-cvr-theme-toggle aria-pressed="${dark ? "true" : "false"}" aria-label="${label}" title="${label}"><i class="bi bi-moon-stars-fill cvr-theme-icon-moon" aria-hidden="true"></i><i class="bi bi-sun-fill cvr-theme-icon-sun" aria-hidden="true"></i></button>`;
+}
+
+function cvrEnsureAccountUiCss() {
+  try {
+    if (document.querySelector('link[href*="account-ui.css"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = assetUrl("css/account-ui.css?v=20261031b");
+    document.head.appendChild(link);
+  } catch { /* styling only */ }
+}
+
 function renderNavbar(active = "") {
+  cvrEnsureAccountUiCss();
   const smart = getSmartNavUrls();
   const links = [
-    { id: "home", label: "Home", href: pageUrl("landing.html") },
-    { id: "about", label: "About Us", href: pageUrl("about.html") },
-    { id: "booking", label: "Booking", href: pageUrl("booking.html") },
-    { id: "faq", label: "FAQs", href: pageUrl("faq.html") },
-    { id: "contact", label: "Contacts", href: pageUrl("contact.html") },
+    { id: "home", label: "Home", href: pageUrl("landing.html"), key: "nav_home" },
+    { id: "about", label: "About Us", href: pageUrl("about.html"), key: "nav_about" },
+    { id: "booking", label: "Booking", href: pageUrl("booking.html"), key: "nav_booking" },
+    { id: "faq", label: "FAQs", href: pageUrl("faq.html"), key: "nav_faq" },
+    { id: "contact", label: "Contacts", href: pageUrl("contact.html"), key: "nav_contact" },
   ];
 
   if (isStaffSession(getCustomerSession())) {
@@ -1621,6 +1784,7 @@ function renderNavbar(active = "") {
     if (contactLink) {
       contactLink.href = pageUrl("contact-clients.html");
       contactLink.label = "Contact Clients";
+      contactLink.key = "";
     }
   }
 
@@ -1671,21 +1835,28 @@ function renderNavbar(active = "") {
               <span class="nav-profile-name d-none d-md-inline text-start">${shortName}</span>
               <i class="bi bi-chevron-down small opacity-75" aria-hidden="true"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 nav-profile-menu">
-              <li class="px-3 pb-2 mb-1 border-bottom border-light-subtle">
-                <div class="small text-muted-brand text-uppercase" style="letter-spacing:.06em;">Signed in &middot; ${staffBadgeLabel}</div>
-                <div class="fw-semibold text-brand text-truncate" style="max-width:14rem;">${escapeHtml(displayName)}</div>
-                <div class="small text-muted-brand text-truncate" style="max-width:14rem;">${escapeHtml(session.email)}</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 nav-profile-menu acct-menu">
+              <li class="acct-menu-head">
+                <span class="acct-menu-avatar">${navAvatarMarkup}</span>
+                <span class="acct-menu-who">
+                  <strong class="acct-menu-name">${escapeHtml(displayName)}</strong>
+                  <small class="acct-menu-email">${escapeHtml(session.email)}</small>
+                  <span class="acct-chip ${isAdminRole ? "acct-chip--admin" : "acct-chip--staff"}"><i class="bi ${staffBadgeIcon}" aria-hidden="true"></i>${staffBadgeLabel}</span>
+                </span>
               </li>
-              <li><a class="dropdown-item" href="${pageUrl("admin/dashboard.html")}"><i class="bi bi-bootstrap-fill me-2 text-primary"></i>${isAdminRole ? "Admin dashboard" : "Staff dashboard"}</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("admin/reservations.html")}"><i class="bi bi-journal-check me-2 text-primary"></i>Reservations</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("booking.html")}"><i class="bi bi-door-open me-2 text-primary"></i>Browse rooms &amp; events</a></li>
-              <li><hr class="dropdown-divider my-2" /></li>
-              <li><button type="button" class="dropdown-item" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Switch account</button></li>
-              <li><button type="button" class="dropdown-item text-danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+              <li class="acct-menu-label">Workspace</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("admin/dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-speedometer2"></i></span><span class="acct-item-text">${isAdminRole ? "Admin dashboard" : "Staff dashboard"}<small>Overview &amp; reports</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("admin/reservations.html")}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservations<small>Manage guest bookings</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Browse rooms &amp; events<small>See what guests see</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
+              <li class="acct-menu-foot">
+                <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
+                <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
+              </li>
             </ul>
           </div>
           <span class="badge ${staffBadgeClass} px-3 py-2 d-none d-lg-inline-flex" title="Staff accounts oversee the site and can't create bookings"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
+          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
 
@@ -1696,29 +1867,38 @@ function renderNavbar(active = "") {
               <span class="nav-profile-name d-none d-md-inline text-start">${shortName}</span>
               <i class="bi bi-chevron-down small opacity-75" aria-hidden="true"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2 nav-profile-menu">
-              <li class="px-3 pb-2 mb-1 border-bottom border-light-subtle">
-                <div class="small text-muted-brand text-uppercase" style="letter-spacing:.06em;">Signed in</div>
-                <div class="fw-semibold text-brand text-truncate" style="max-width:14rem;">${escapeHtml(displayName)}</div>
-                <div class="small text-muted-brand text-truncate" style="max-width:14rem;">${escapeHtml(session.email)}</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 nav-profile-menu acct-menu">
+              <li class="acct-menu-head">
+                <span class="acct-menu-avatar">${navAvatarMarkup}</span>
+                <span class="acct-menu-who">
+                  <strong class="acct-menu-name">${escapeHtml(displayName)}</strong>
+                  <small class="acct-menu-email">${escapeHtml(session.email)}</small>
+                  <span class="acct-chip"><i class="bi bi-patch-check-fill" aria-hidden="true"></i>Guest account</span>
+                </span>
               </li>
-              <li><a class="dropdown-item" href="${pageUrl("customer-dashboard.html")}"><i class="bi bi-bootstrap-fill me-2 text-primary"></i>Dashboard</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("customer-settings.html")}"><i class="bi bi-gear me-2 text-primary"></i>Settings</a></li>
-              <li><a class="dropdown-item" href="${smart.reservation}"><i class="bi bi-journal-check me-2 text-primary"></i>Reservation</a></li>
-              <li><a class="dropdown-item" href="${pageUrl("booking.html")}"><i class="bi bi-door-open me-2 text-primary"></i>Booking</a></li>
-              <li><a class="dropdown-item" href="${smart.payment}"><i class="bi bi-credit-card me-2 text-primary"></i>Payment</a></li>
-              <li><a class="dropdown-item" href="${smart.status}"><i class="bi bi-activity me-2 text-primary"></i>Status</a></li>
-              <li><hr class="dropdown-divider my-2" /></li>
-              <li><button type="button" class="dropdown-item" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Switch account</button></li>
-              <li><button type="button" class="dropdown-item text-danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+              <li class="acct-menu-label">My account</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("customer-dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-grid-1x2-fill"></i></span><span class="acct-item-text">Dashboard<small>Overview &amp; notifications</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("customer-settings.html")}"><span class="acct-ico acct-ico--slate"><i class="bi bi-person-gear"></i></span><span class="acct-item-text">Profile &amp; settings<small>Photo, name, password</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-label">Reservations</li>
+              <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Booking<small>Rooms &amp; events</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.reservation}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservation<small>Complete your details</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.payment}"><span class="acct-ico acct-ico--green"><i class="bi bi-credit-card-2-front"></i></span><span class="acct-item-text">Payment<small>Upload proof of payment</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li><a class="dropdown-item acct-item" href="${smart.status}"><span class="acct-ico acct-ico--violet"><i class="bi bi-activity"></i></span><span class="acct-item-text">Status<small>Track your booking</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
+              <li class="acct-menu-foot">
+                <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
+                <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
+              </li>
             </ul>
           </div>
-          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
+          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
     : `
-          <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex">Log in</a>
-          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}">Book now</a>
+          ${cvrThemeToggleMarkup()}
+          <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex" data-site-text-key="nav_login">Log in</a>
+          <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
 
   const mobileActions = session
@@ -1727,11 +1907,11 @@ function renderNavbar(active = "") {
           <span class="badge ${staffBadgeClass} w-100 justify-content-center py-2"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
         `
       : `
-          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `
     : `
-          <a class="btn btn-outline-brand nav-auth-link-mobile w-100" href="${pageUrl("login.html")}">Log in</a>
-          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}">Book now</a>
+          <a class="btn btn-outline-brand nav-auth-link-mobile w-100" href="${pageUrl("login.html")}" data-site-text-key="nav_login">Log in</a>
+          <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
 
   nav.innerHTML = `
@@ -1739,9 +1919,9 @@ function renderNavbar(active = "") {
     <nav class="navbar navbar-expand-lg site-navbar figma-navbar py-2" id="mainSiteNavbar">
       <div class="container nav-main-wrap">
         <a class="navbar-brand d-flex align-items-center gap-2 me-lg-4 figma-brand order-lg-1" href="${pageUrl("landing.html")}">
-          <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="brand-logo figma-brand-logo rounded-3 border p-1 shadow-sm" />
+          <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="brand-logo figma-brand-logo rounded-3 border p-1 shadow-sm" data-site-image-slot="site_logo" />
           <span class="brand-text-wrap">
-            <strong class="text-brand d-block brand-title figma-brand-title">Casa Vergara Resort</strong>
+            <strong class="text-brand d-block brand-title figma-brand-title" data-site-text-key="footer_copyright_name">Casa Vergara Resort</strong>
           </span>
         </a>
         <div class="d-flex align-items-center gap-2 gap-md-3 nav-auth-row order-lg-3 ms-auto ms-lg-0 justify-content-lg-end">
@@ -1753,7 +1933,7 @@ function renderNavbar(active = "") {
         <div class="collapse navbar-collapse order-lg-2" id="mainNav">
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 nav-links-row">
             ${links
-              .map((l) => `<li class="nav-item"><a class="nav-link nav-link-luxury ${active === l.id ? "fw-semibold text-brand" : ""}" href="${l.href}"${l.attrs || ""}>${l.label}</a></li>`)
+              .map((l) => `<li class="nav-item"><a class="nav-link nav-link-luxury ${active === l.id ? "fw-semibold text-brand" : ""}" href="${l.href}"${l.attrs || ""}${l.key ? ` data-site-text-key="${l.key}"` : ""}>${l.label}</a></li>`)
               .join("")}
           </ul>
           <div class="nav-mobile-actions d-lg-none">
@@ -1774,6 +1954,8 @@ function renderNavbar(active = "") {
   });
 
   applySmartNavLinks(nav);
+  applySiteText();
+  applySiteImages();
   initNavbarScrollEffect();
   initAutoCloseMobileNav();
   initMobileNavState();
@@ -2219,10 +2401,10 @@ function renderFooter() {
         <div class="footer-top-grid">
           <div class="footer-brand-col">
             <div class="footer-brand-stack">
-              <img src="${assetUrl("images/logo.png")}" alt="" width="44" height="44" class="footer-brand-logo brand-logo rounded-3 p-1" />
+              <img src="${assetUrl("images/logo.png")}" alt="" width="44" height="44" class="footer-brand-logo brand-logo rounded-3 p-1" data-site-image-slot="site_logo" />
               <div class="footer-brand-heading">
                 <h5 class="mb-0 text-brand" data-site-text-key="footer_copyright_name">Casa Vergara Resort</h5>
-                <small class="text-uppercase text-muted-brand d-block footer-brand-kicker">Luxury Resort</small>
+                <small class="text-uppercase text-muted-brand d-block footer-brand-kicker" data-site-text-key="footer_kicker">Luxury Resort</small>
               </div>
               <p class="text-muted-brand mb-0 footer-brand-text" data-site-text-key="footer_tagline">Experience luxury and tranquility at our exclusive pool resort. Where every moment becomes a cherished memory.</p>
               <div class="footer-brand-social d-flex gap-2 flex-wrap">
@@ -2237,17 +2419,17 @@ function renderFooter() {
             </div>
           </div>
           <div class="footer-links-col">
-            <h6 class="footer-title">Quick Links</h6>
+            <h6 class="footer-title" data-site-text-key="footer_links_title">Quick Links</h6>
             <ul class="list-unstyled small mb-0 footer-link-list">
-              <li><a href="${pageUrl("landing.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Home</span></a></li>
-              <li><a href="${pageUrl("booking.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Rooms and Events</span></a></li>
-              <li><a href="${pageUrl("about.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>About Us</span></a></li>
-              <li><a href="${pageUrl("contact.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>Contact</span></a></li>
-              <li><a href="${smart.myBookings}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span>My Bookings</span></a></li>
+              <li><a href="${pageUrl("landing.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_home">Home</span></a></li>
+              <li><a href="${pageUrl("booking.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_booking">Rooms and Events</span></a></li>
+              <li><a href="${pageUrl("about.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_about">About Us</span></a></li>
+              <li><a href="${pageUrl("contact.html")}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_contact">Contact</span></a></li>
+              <li><a href="${smart.myBookings}" class="footer-link"><i class="bi bi-chevron-right" aria-hidden="true"></i><span data-site-text-key="footer_link_mybookings">My Bookings</span></a></li>
             </ul>
           </div>
           <div class="footer-contact-col">
-            <h6 class="footer-title">Contact</h6>
+            <h6 class="footer-title" data-site-text-key="footer_contact_title">Contact</h6>
             <ul class="list-unstyled small mb-0 footer-contact-list text-muted-brand">
               <li class="footer-contact-line is-multiline"><i class="bi bi-geo-alt" aria-hidden="true"></i><span data-site-text-key="footer_address">Purok 3, Barangay Langkiwa, Biñan, Laguna</span></li>
               <li class="footer-contact-line"><i class="bi bi-telephone" aria-hidden="true"></i><a href="tel:+639703236544" id="footerPhoneLink2" data-site-text-key="footer_phone">0970 323 6544</a></li>
@@ -2259,13 +2441,13 @@ function renderFooter() {
       </div>
       <div class="footer-bottom py-3">
         <div class="container footer-bottom-inner">
-          <small>© <span id="year"></span> <span data-site-text-key="footer_copyright_name">Casa Vergara Resort</span>. All rights reserved.</small>
+          <small>© <span id="year"></span> <span data-site-text-key="footer_copyright_name">Casa Vergara Resort</span>. <span data-site-text-key="footer_rights">All rights reserved.</span></small>
           <div class="footer-bottom-right">
             <div class="small footer-bottom-links">
-              <a href="${pageUrl("privacy.html")}" class="text-decoration-none">Privacy Policy</a>
-              <a href="${pageUrl("terms.html")}" class="text-decoration-none">Terms of Service</a>
-              <a href="${pageUrl("user-manual.html")}" class="text-decoration-none">User Manual</a>
-              <a href="${pageUrl("sitemap.html")}" class="text-decoration-none">Sitemap</a>
+              <a href="${pageUrl("privacy.html")}" class="text-decoration-none" data-site-text-key="footer_link_privacy">Privacy Policy</a>
+              <a href="${pageUrl("terms.html")}" class="text-decoration-none" data-site-text-key="footer_link_terms">Terms of Service</a>
+              <a href="${pageUrl("user-manual.html")}" class="text-decoration-none" data-site-text-key="footer_link_manual">User Manual</a>
+              <a href="${pageUrl("sitemap.html")}" class="text-decoration-none" data-site-text-key="footer_link_sitemap">Sitemap</a>
             </div>
             <button type="button" class="footer-back-to-top" id="footerBackToTop" title="Back to top" aria-label="Back to top">
               <i class="bi bi-arrow-up" aria-hidden="true"></i>
@@ -2292,7 +2474,7 @@ function bootLiveChatWidget() {
   if (location.pathname.includes("/pages/admin/")) return;
   if (document.querySelector("script[data-cvr-live-chat]")) return;
   const script = document.createElement("script");
-  script.src = `${assetUrl("js/live-chat.js")}?v=20261004f`;
+  script.src = `${assetUrl("js/live-chat.js")}?v=20261024c`;
   script.dataset.cvrLiveChat = "1";
   document.body.appendChild(script);
 }
@@ -2351,6 +2533,7 @@ function renderAdminSidebar(active = "") {
             <span class="admin-role-pill ${isFullAdmin ? "" : "is-staff"}">${isFullAdmin ? "Admin Portal" : "Staff Portal"}</span>
           </span>
         </a>
+        ${cvrThemeToggleMarkup()}
         <span class="admin-topbar-divider" aria-hidden="true"></span>
         <span class="admin-topbar-section">
           <span class="admin-topbar-section-eyebrow">You're viewing</span>
@@ -3495,48 +3678,80 @@ function assetUrl(relativeAsset) {
   return `${getSitePathContext().assetPrefix}${relativeAsset}`;
 }
 
+let cvrSiteImagesPromise = null;
+let cvrSiteTextPromise = null;
+
+function cvrLoadSiteImages() {
+  if (!cvrSiteImagesPromise) {
+    cvrSiteImagesPromise = cvrApiGet("content/site-images")
+      .then(({ body }) => (body?.success ? body.data?.images || null : null))
+      .catch(() => null);
+    cvrSiteImagesPromise.then((v) => { if (!v) cvrSiteImagesPromise = null; });
+  }
+  return cvrSiteImagesPromise;
+}
+
+function cvrLoadSiteText() {
+  if (!cvrSiteTextPromise) {
+    cvrSiteTextPromise = cvrApiGet("content/site-text")
+      .then(({ body }) => (body?.success ? body.data?.text || null : null))
+      .catch(() => null);
+    cvrSiteTextPromise.then((v) => { if (!v) cvrSiteTextPromise = null; });
+  }
+  return cvrSiteTextPromise;
+}
+
 function applySiteImages() {
   const nodes = document.querySelectorAll("[data-site-image-slot]");
-  if (!nodes.length) return;
-  cvrApiGet("content/site-images")
-    .then(({ body }) => {
-      const images = body?.data?.images;
-      if (!body?.success || !images) return;
-      nodes.forEach((img) => {
-        const url = images[img.dataset.siteImageSlot];
-        if (url) img.src = url;
-      });
-    })
-    .catch(() => {  });
+  const bgNodes = document.querySelectorAll("[data-site-bg-slot]");
+  if (!nodes.length && !bgNodes.length) return;
+  cvrLoadSiteImages().then((images) => {
+    if (!images) return;
+    nodes.forEach((img) => {
+      const url = images[img.dataset.siteImageSlot];
+      if (url) img.src = url;
+    });
+    bgNodes.forEach((el) => {
+      const url = images[el.dataset.siteBgSlot];
+      if (url) el.style.backgroundImage = `url("${String(url).replace(/"/g, "%22")}")`;
+    });
+  });
 }
 
 function applySiteText() {
   const nodes = document.querySelectorAll("[data-site-text-key]");
-  if (!nodes.length) return;
-  cvrApiGet("content/site-text")
-    .then(({ body }) => {
-      const text = body?.data?.text;
-      if (!body?.success || !text) return;
-      nodes.forEach((el) => {
-        const value = text[el.dataset.siteTextKey];
-        if (value) el.textContent = value;
-      });
+  const linkNodes = document.querySelectorAll("[data-site-href]");
+  if (!nodes.length && !linkNodes.length) return;
+  cvrLoadSiteText().then((text) => {
+    if (!text) return;
+    nodes.forEach((el) => {
+      const value = text[el.dataset.siteTextKey];
+      if (value) el.textContent = value;
+    });
 
-      const fbUrl = text.footer_facebook_url;
-      if (fbUrl) document.getElementById("footerFacebookLink")?.setAttribute("href", fbUrl);
-      const phone = text.footer_phone;
-      if (phone) {
-        const telHref = `tel:${phone.replace(/[^0-9+]/g, "")}`;
-        document.getElementById("footerPhoneLink1")?.setAttribute("href", telHref);
-        document.getElementById("footerPhoneLink2")?.setAttribute("href", telHref);
-      }
-      const email = text.footer_email;
-      if (email) {
-        document.getElementById("footerEmailLink1")?.setAttribute("href", `mailto:${email}`);
-        document.getElementById("footerEmailLink2")?.setAttribute("href", `mailto:${email}`);
-      }
-    })
-    .catch(() => {  });
+    // Links that follow an editable value, e.g. data-site-href="tel:footer_phone"
+    linkNodes.forEach((el) => {
+      const [scheme, key] = String(el.dataset.siteHref || "").split(":");
+      const value = text[key];
+      if (!value) return;
+      if (scheme === "tel") el.setAttribute("href", `tel:${value.replace(/[^0-9+]/g, "")}`);
+      else if (scheme === "mailto") el.setAttribute("href", `mailto:${value.trim()}`);
+    });
+
+    const fbUrl = text.footer_facebook_url;
+    if (fbUrl) document.getElementById("footerFacebookLink")?.setAttribute("href", fbUrl);
+    const phone = text.footer_phone;
+    if (phone) {
+      const telHref = `tel:${phone.replace(/[^0-9+]/g, "")}`;
+      document.getElementById("footerPhoneLink1")?.setAttribute("href", telHref);
+      document.getElementById("footerPhoneLink2")?.setAttribute("href", telHref);
+    }
+    const email = text.footer_email;
+    if (email) {
+      document.getElementById("footerEmailLink1")?.setAttribute("href", `mailto:${email}`);
+      document.getElementById("footerEmailLink2")?.setAttribute("href", `mailto:${email}`);
+    }
+  });
 }
 
 function cvrResolvePackageImage(path) {
@@ -3696,10 +3911,11 @@ function renderQuotationBreakdownHtml(record, cat) {
           <tr><td colspan="3" class="text-end fw-semibold">Package subtotal</td><td class="text-end">${fmt(q.subtotalPackage)}</td></tr>
           <tr><td colspan="3" class="text-end fw-semibold">Add-ons</td><td class="text-end">${fmt(q.subtotalAddOns)}</td></tr>
           <tr><td colspan="3" class="text-end fw-semibold">Special / custom services</td><td class="text-end">${fmt(q.subtotalSpecial)}</td></tr>
+          ${(q.subtotalDiscount || 0) > 0 ? `<tr class="cvr-quote-discount-row"><td colspan="3" class="text-end fw-semibold text-success"><i class="bi bi-ticket-perforated me-1"></i>Voucher / discount</td><td class="text-end fw-semibold text-success">−${fmt(q.subtotalDiscount)}</td></tr>` : ""}
           <tr class="table-light"><td colspan="3" class="text-end fw-bold text-brand">Total</td><td class="text-end fw-bold text-brand">${fmt(q.totalNumeric)}</td></tr>
           ${
             q.downpaymentAmount != null
-              ? `<tr><td colspan="3" class="text-end fw-semibold text-primary">Downpayment due now (${q.downpaymentPercent || 50}%)</td><td class="text-end fw-semibold text-primary">${fmt(q.downpaymentAmount)}</td></tr>
+              ? `<tr><td colspan="3" class="text-end fw-semibold text-primary">${(q.downpaymentPercent || 50) >= 100 ? "Full payment due now" : "Downpayment due now"} (${q.downpaymentPercent || 50}%)</td><td class="text-end fw-semibold text-primary">${fmt(q.downpaymentAmount)}</td></tr>
                  <tr><td colspan="3" class="text-end small text-muted-brand">Balance due before ${record.bookingType === "event" ? "the event date" : "check-in"}</td><td class="text-end small text-muted-brand">${fmt(q.balanceAmount)}</td></tr>`
               : ""
           }
@@ -3781,6 +3997,7 @@ function reservationToPending(record) {
     checkInLabel: record.checkInLabel || "",
     checkOutLabel: record.checkOutLabel || "",
     packageOption: record.packageOption,
+    eventSession: record.eventSession || (/^8:00 AM/.test(record.eventTime || "") ? "morning" : /^7:00 PM/.test(record.eventTime || "") ? "night" : null),
     additionalNotes: record.eventNotes || "",
     motif: record.motif || null,
     selectedAddOns: record.selectedAddOns || [],
@@ -3976,12 +4193,14 @@ function updateRoomFormSummary(cat, pkg) {
   const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "24hr";
   const checkIn = checkInEl?.value || "";
 
-  const guestInput = document.getElementById("resGuestCount");
-  let guests = guestInput ? parseInt(guestInput.value, 10) : flow?.guestCount ?? 2;
-  if (!Number.isFinite(guests)) guests = 2;
-  guests = Math.min(Math.max(guests, pkg.capacity.min), pkg.capacity.max);
-  if (guestInput) guestInput.value = String(guests);
-  if (flow) flow.guestCount = guests;
+  const split = readResGuestSplit();
+  const guests = split.total;
+  writeResGuestTotal(split);
+  if (flow) {
+    flow.guestCount = guests;
+    flow.adults = split.adults;
+    flow.children = split.children;
+  }
 
   const selectedAddOns = getSelectedAddOnIds();
   const nights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
@@ -4039,11 +4258,12 @@ function updateRoomFormSummary(cat, pkg) {
 
 function updateEventFormSummary(cat, pending) {
   const fmt = (n) => cat.formatMoney(n, pending.currency || "PHP");
-  const guestInput = document.getElementById("resGuestCount");
-  let guests = guestInput ? parseInt(guestInput.value, 10) : pending.eventGuests || 1;
-  if (!Number.isFinite(guests)) guests = pending.eventGuests || 1;
-  if (guestInput) guestInput.value = String(guests);
+  const split = readResGuestSplit();
+  const guests = Math.max(1, split.total);
+  writeResGuestTotal(split);
   pending.eventGuests = guests;
+  pending.adults = split.adults;
+  pending.children = split.children;
 
   const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
   const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
@@ -4055,7 +4275,7 @@ function updateEventFormSummary(cat, pending) {
   const eventNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
   const customCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests)
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests, pending.eventSession || null)
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
@@ -4115,6 +4335,38 @@ function updateEventFormSummary(cat, pending) {
   persistPendingReservation(pending);
 }
 
+// Adults and kids are entered separately; the total (adults + kids) is what pricing and capacity use.
+function readResGuestSplit() {
+  const adults = Math.max(0, parseInt(document.getElementById("resAdultCount")?.value, 10) || 0);
+  const children = Math.max(0, parseInt(document.getElementById("resChildCount")?.value, 10) || 0);
+  return { adults, children, total: adults + children };
+}
+
+function guestSplitLabel(split) {
+  const adultText = `${split.adults} adult${split.adults !== 1 ? "s" : ""}`;
+  const kidText = split.children ? `, ${split.children} kid${split.children !== 1 ? "s" : ""}` : "";
+  return `${adultText}${kidText}`;
+}
+
+function writeResGuestTotal(split) {
+  const totalInput = document.getElementById("resGuestCount");
+  if (totalInput) totalInput.value = String(split.total);
+  const text = document.getElementById("resGuestTotalText");
+  if (text) text.textContent = `${guestSplitLabel(split)} · ${split.total} guest${split.total !== 1 ? "s" : ""} in total`;
+}
+
+// Prefill the adult/kid fields from a saved record or the pending booking; older records only have a total.
+function populateResGuestSplit(source) {
+  const legacyTotal = Number(source?.guests ?? source?.eventGuests ?? 0) || 0;
+  const children = Math.max(0, Number(source?.children) || 0);
+  const adults = Math.max(1, Number(source?.adults) || Math.max(1, legacyTotal - children));
+  const adultInput = document.getElementById("resAdultCount");
+  const childInput = document.getElementById("resChildCount");
+  if (adultInput) adultInput.value = String(adults);
+  if (childInput) childInput.value = String(children);
+  writeResGuestTotal({ adults, children, total: adults + children });
+}
+
 function populateGuestFieldsFromSessionOrRecord(record) {
   const session = getCustomerSession();
   const nameParts = (record?.customerName || "").trim().split(/\s+/);
@@ -4148,9 +4400,15 @@ function buildReservationFromForm(cat, pending, flow) {
   const selectedAddOns = getSelectedAddOnIds();
   const excludeId = flow?.editId || "";
 
-  let guestsNum = parseInt(document.getElementById("resGuestCount")?.value, 10) || 2;
-  if (pending.bookingType === "event") {
-    guestsNum = parseInt(document.getElementById("resGuestCount")?.value, 10) || pending.eventGuests || 1;
+  const guestSplit = readResGuestSplit();
+  const guestsNum = guestSplit.total;
+  if (guestSplit.adults < 1) return { error: "Please enter at least one adult." };
+  if (guestsNum < 1) return { error: "Please enter the number of guests." };
+  if (pending.bookingType !== "event") {
+    const cap = flow?.pkg?.capacity;
+    if (cap && (guestsNum < cap.min || guestsNum > cap.max)) {
+      return { error: `This room holds ${cap.min}–${cap.max} guest${cap.max !== 1 ? "s" : ""} in total (adults + kids). Please adjust the number of guests.` };
+    }
   }
 
   if (!window.CVRDuration?.buildWindow || !window.CVRDuration?.isCustomCheckInTimeAllowed || !window.CVRDuration?.parse12HourTime) {
@@ -4176,7 +4434,9 @@ function buildReservationFromForm(cat, pending, flow) {
     checkIn,
     checkOut,
     guests: guestsNum,
-    guestsLabel: `${guestsNum} guest${guestsNum !== 1 ? "s" : ""}`,
+    adults: guestSplit.adults,
+    children: guestSplit.children,
+    guestsLabel: guestSplitLabel(guestSplit),
     arrivalTime: "",
     specialRequests,
     selectedAddOns,
@@ -4284,7 +4544,7 @@ function buildReservationFromForm(cat, pending, flow) {
       return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or duration." };
     }
 
-    const totals = cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, evCustomCheckInTime, evNights, evCustomCheckOutTime, guestsNum);
+    const totals = cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, evCustomCheckInTime, evNights, evCustomCheckOutTime, guestsNum, pending.eventSession || null);
     if (!totals) return { error: "Invalid event duration." };
     const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
     const maxGuests = pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999;
@@ -4307,6 +4567,7 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.customCheckInTime = totals.customCheckInTime || null;
     reservation.customCheckOutTime = totals.customCheckOutTime || null;
     reservation.packageOption = pending.packageOption;
+    reservation.eventSession = totals.eventSession || null;
     reservation.eventNotes = pending.additionalNotes || specialRequests;
     reservation.motif = motif;
     reservation.roomName = `Event — ${pending.eventType}`;
@@ -4610,12 +4871,13 @@ function initReservationFormPage() {
   layout.classList.remove("d-none");
   populateGuestFieldsFromSessionOrRecord(editRecord);
 
-  const guestInput = document.getElementById("resGuestCount");
-  if (guestInput) {
-    guestInput.addEventListener("input", () => {
+  populateResGuestSplit(editRecord || pending);
+  ["resAdultCount", "resChildCount"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", () => {
+      writeResGuestTotal(readResGuestSplit());
       if (typeof window.__cvrRecalcReservationSummary === "function") window.__cvrRecalcReservationSummary();
     });
-  }
+  });
 
   const excludeId = editRecord?.id || "";
 
@@ -4648,10 +4910,11 @@ function initReservationFormPage() {
     document.getElementById("summaryPackageMeta").innerHTML = `${pkg.areaSqm} m² · ${pkg.bed} · ${pkg.capacity.min}–${pkg.capacity.max} guests · Standard check-in ${pkg.standardCheckIn}`;
     document.getElementById("summaryPackageInclusions").innerHTML = `<span class="fw-semibold text-brand">Includes:</span> ${pkg.inclusions.join(", ")}`;
 
-    if (guestInput) {
-      guestInput.min = String(pkg.capacity.min);
-      guestInput.max = String(pkg.capacity.max);
-      guestInput.value = String(pending.guests || editRecord?.guests || 2);
+    // Room guests: adults and kids are typed separately; the room's total limit is shown next to them.
+    const roomCapHint = document.getElementById("resGuestCapacityNote");
+    if (roomCapHint) {
+      roomCapHint.textContent = `This room holds ${pkg.capacity.min}–${pkg.capacity.max} guests in total.`;
+      roomCapHint.classList.remove("d-none");
     }
 
     renderPackageAddOnsUI(cat, "room", pkg.id, pending.selectedAddOns || editRecord?.selectedAddOns || []);
@@ -4666,7 +4929,7 @@ function initReservationFormPage() {
     const recalc = () => updateRoomFormSummary(cat, pkg);
     window.__cvrRecalcReservationSummary = recalc;
 
-    window.__cvrReservationFlow = { type: "room", pkg, pending, guestCount: parseInt(guestInput?.value, 10) || 2, editId: excludeId, mode: editCtx?.mode || "new", original: editRecord };
+    window.__cvrReservationFlow = { type: "room", pkg, pending, guestCount: readResGuestSplit().total || 1, editId: excludeId, mode: editCtx?.mode || "new", original: editRecord };
     if (typeof window.initReservationAvailabilityCalendars === "function") {
       window.initReservationAvailabilityCalendars({ packageId: pending.packageId, roomTitle: pkg.title, excludeReservationId: excludeId, onChange: recalc });
     } else {
@@ -4710,12 +4973,13 @@ function initReservationFormPage() {
     const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
     pending.durationKey = initialDuration;
 
-    if (guestInput) {
-      const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
-      guestInput.min = "1";
-      guestInput.max = String(pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999);
-      guestInput.value = String(pending.eventGuests || editRecord?.guests || 1);
+    // Birthday packages run on a fixed session (Morning / Night), so there is no arrival time to pick.
+    if (cat.isBirthdayPackage?.(pending.packageOption)) {
+      document.getElementById("cvrResCheckInTimeWrap")?.classList.add("d-none");
+      setResCheckInTimeSelection("");
     }
+
+    populateResGuestSplit(editRecord || pending);
 
     document.getElementById("resCheckIn").value = pending.preferredDate;
     document.getElementById("resCheckOut").value = pending.preferredDate;
@@ -4849,21 +5113,34 @@ function initQuotationReviewPage() {
     statusEl.className = `status-chip ${getQuotationStatusChipClass(q.status)}`;
   }
 
-  const breakdown = document.getElementById("quotationBreakdown");
-  if (breakdown) breakdown.innerHTML = renderQuotationBreakdownHtml(record, cat);
+  const paintQuotationAmounts = () => {
+    const qq = record.quotation || q;
+    const breakdown = document.getElementById("quotationBreakdown");
+    if (breakdown) breakdown.innerHTML = renderQuotationBreakdownHtml(record, cat);
 
-  window.initResponsiveEnhancements?.();
+    window.initResponsiveEnhancements?.();
 
-  const totalEl = document.getElementById("quotationTotalAmount");
-  if (totalEl) totalEl.textContent = record.totalAmount || cat?.formatMoney(q.totalNumeric, q.currency);
+    const totalEl = document.getElementById("quotationTotalAmount");
+    if (totalEl) totalEl.textContent = record.totalAmount || cat?.formatMoney(qq.totalNumeric, qq.currency);
 
-  const dpPctEl = document.getElementById("quotationDownpaymentPercent");
-  const dpAmtEl = document.getElementById("quotationDownpaymentAmount");
-  const balAmtEl = document.getElementById("quotationBalanceAmount");
-  const dpFmt = (n) => (cat ? cat.formatMoney(n, q.currency || record.currency || "PHP") : String(n));
-  if (dpPctEl) dpPctEl.textContent = q.downpaymentPercent ?? record.downpaymentPercent ?? 50;
-  if (dpAmtEl) dpAmtEl.textContent = dpFmt(q.downpaymentAmount ?? record.downpaymentAmount ?? 0);
-  if (balAmtEl) balAmtEl.textContent = dpFmt(q.balanceAmount ?? record.balanceAmount ?? 0);
+    const dpPctEl = document.getElementById("quotationDownpaymentPercent");
+    const dpAmtEl = document.getElementById("quotationDownpaymentAmount");
+    const balAmtEl = document.getElementById("quotationBalanceAmount");
+    const dpFmt = (n) => (cat ? cat.formatMoney(n, qq.currency || record.currency || "PHP") : String(n));
+    const pct = qq.downpaymentPercent ?? record.downpaymentPercent ?? 50;
+    if (dpPctEl) dpPctEl.textContent = pct;
+    setText("quotationDpLabel", pct >= 100 ? "Full payment due now" : "Downpayment due now");
+    if (dpAmtEl) dpAmtEl.textContent = dpFmt(qq.downpaymentAmount ?? record.downpaymentAmount ?? 0);
+    if (balAmtEl) balAmtEl.textContent = dpFmt(qq.balanceAmount ?? record.balanceAmount ?? 0);
+    const discRow = document.getElementById("quotationDiscountRow");
+    if (discRow) {
+      discRow.classList.toggle("d-none", !((qq.subtotalDiscount || 0) > 0));
+      setText("quotationDiscountAmount", "−" + dpFmt(qq.subtotalDiscount || 0));
+    }
+  };
+  paintQuotationAmounts();
+  cvrMountPaymentPlanPicker(document.getElementById("quotationPaymentPlanBox"), record, paintQuotationAmounts);
+  cvrMountVoucherBox(document.getElementById("quotationVoucherBox"), record, paintQuotationAmounts);
 
   const versionEl = document.getElementById("quotationVersion");
   if (versionEl) versionEl.textContent = `Version ${q.version || 1}`;
@@ -5005,12 +5282,27 @@ function initPaymentPageSummary() {
   const fmt = (v) => (cat ? cat.formatMoney(v, r.currency || "PHP") : String(v));
   setTxt("paySubtotal", r.roomSubtotal != null ? fmt(r.roomSubtotal) : "—");
   setTxt("payPackageTotal", r.totalAmount || fmt(r.totalNumeric));
+  const discRow = document.getElementById("payDiscountRow");
+  if (discRow) {
+    const disc = Number(r.quotation?.subtotalDiscount ?? r.discountAmount) || 0;
+    discRow.classList.toggle("d-none", !(disc > 0));
+    setTxt("payDiscount", "−" + fmt(disc));
+  }
   const dpPercent = r.downpaymentPercent ?? (cat ? cat.DOWNPAYMENT_PERCENT : 50);
+  setTxt("payNowLabel", dpPercent >= 100 ? "Full payment to Pay Now" : "Downpayment to Pay Now");
   const dpAmount = r.downpaymentAmount != null ? r.downpaymentAmount : (cat ? cat.computeDownpayment(r.totalNumeric).downpayment : r.totalNumeric);
   const balAmount = r.balanceAmount != null ? r.balanceAmount : (cat ? cat.computeDownpayment(r.totalNumeric).balance : 0);
   setTxt("payDownpaymentPercent", dpPercent);
   setTxt("payBalanceDue", fmt(balAmount));
   setTxt("payTotal", fmt(dpAmount));
+  if (!document.getElementById("paymentPlanBox")?.dataset.cvrMounted) {
+    const planBox = document.getElementById("paymentPlanBox");
+    const voucherBox = document.getElementById("paymentVoucherBox");
+    const repaint = () => initPaymentPageSummary();
+    if (planBox) { planBox.dataset.cvrMounted = "1"; }
+    cvrMountPaymentPlanPicker(planBox, r, repaint);
+    cvrMountVoucherBox(voucherBox, r, repaint);
+  }
 
   const addRow = document.getElementById("payAddOnsRow");
   const addAmt = document.getElementById("payAddOns");
@@ -5266,7 +5558,7 @@ function initQrPaymentUpload() {
 
     target.paymentStatus = "Waiting for Verification";
     target.paymentMethod = "QR / GCash";
-    target.paymentType = "downpayment";
+    target.paymentType = target.paymentPlan === "full" ? "full" : "downpayment";
     target.termsAcceptedAt = new Date().toISOString();
     target.proofOfPayment = {
       filename: uploaded?.fileName || safeName,
@@ -5358,6 +5650,22 @@ async function initReservationStatusView() {
           : "Same day (event)"
   );
   setIf("statusEventTime", target.eventTime || "—");
+  {
+    // Birthday packages run on a fixed Morning / Night session — show it as a badge.
+    const bcat = window.CVRBookingCatalog;
+    const sessionRow = document.getElementById("statusSessionRow");
+    const sessionEl = document.getElementById("statusSession");
+    const sched = target.bookingType === "event" && target.eventSession && bcat?.isBirthdayPackage?.(target.packageOption)
+      ? bcat.BIRTHDAY_SESSION_SCHEDULES?.[target.eventSession]
+      : null;
+    if (sessionRow && sessionEl) {
+      sessionRow.classList.toggle("d-none", !sched);
+      if (sched) {
+        sessionEl.className = `acct-session-chip is-${sched.key}`;
+        sessionEl.innerHTML = `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ${escapeHtml(sched.name)} · ${escapeHtml(sched.label)}`;
+      }
+    }
+  }
   setIf("statusDurationType", target.durationLabel || "—");
   setIf("statusGuests", String(target.guestsLabel || target.guests || "—"));
   setIf("statusNights", target.durationLabel || (target.nights != null ? formatStayLength(target.nights) : "—"));
@@ -5374,6 +5682,12 @@ async function initReservationStatusView() {
   }
   setIf("statusPayTotal", target.totalAmount || fmt(target.totalNumeric));
   setIf("statusDownpaymentPercent", target.downpaymentPercent ?? (cat ? cat.DOWNPAYMENT_PERCENT : 50));
+  setIf("statusDpLabel", (target.downpaymentPercent ?? 50) >= 100 ? "Full payment" : "Downpayment");
+  const statusDisc = Number(target.quotation?.subtotalDiscount ?? target.discountAmount) || 0;
+  if (statusDisc > 0) {
+    document.getElementById("statusPayDiscountRow")?.classList.remove("d-none");
+    setIf("statusPayDiscount", "−" + fmt(statusDisc));
+  }
   setIf("statusDownpaymentAmount", fmt(target.downpaymentAmount ?? 0));
   setIf("statusBalanceAmount", fmt(target.balanceAmount ?? 0));
   setIf("statusBalanceLabel", target.bookingType === "event" ? "the event date" : "check-in");
@@ -5676,7 +5990,9 @@ const SITEMAP_PAGE_INFO = {
   "admin/dashboard.html": ["Admin Dashboard", "Operational overview: today's arrivals, pending payments, revenue snapshot and recent activity.", "Staff only"],
   "admin/reservations.html": ["Reservations", "Full reservation list with filters, status changes, guest details and approvals.", "Staff only"],
   "admin/calendar.html": ["Booking Calendar", "Month and day view of every booking, blocked date and holiday.", "Staff only"],
-  "admin/payments.html": ["Payment Verification", "Review uploaded payment proofs and approve or reject them.", "Admin only"],
+  "admin/payments.html": ["Payment Verification", "Review uploaded payment proofs and approve or reject them.", "Staff only"],
+  "admin/site-content.html?tab=vouchers": ["Vouchers & Discounts", "Create and edit discount vouchers that guests can apply to their booking. Admin and staff can both manage them.", "Staff only"],
+  "admin/vouchers.html": ["Vouchers & Discounts", "Create and edit discount vouchers that guests can apply to their booking. Admin and staff can both manage them.", "Staff only"],
   "admin/packages.html": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/site-content.html?tab=packages": ["Packages & Rooms", "Create and edit rooms, cottages, event packages, rates and inclusions.", "Staff only"],
   "admin/messages.html": ["Messages", "Inbox for guest enquiries, plus a composer for messaging clients directly.", "Staff only"],
@@ -5834,10 +6150,6 @@ function enforceRouteGuards() {
       return false;
     }
 
-    if (session && !isFullAdminSession(session) && path.includes("/pages/admin/payments.html")) {
-      window.location.replace(pageUrl("admin/dashboard.html"));
-      return false;
-    }
   }
 
   cvrVerifyServerSession(onAdminProtectedPage);
@@ -5872,9 +6184,13 @@ function initCustomerLoginForm() {
   const showAlert = (message, kind) => {
     if (!alertEl) return;
     alertEl.textContent = message;
-    alertEl.classList.remove("d-none", "alert-success", "alert-danger");
-    alertEl.classList.add(kind === "success" ? "alert-success" : "alert-danger");
+    alertEl.classList.remove("d-none", "alert-success", "alert-danger", "alert-info");
+    alertEl.classList.add(kind === "success" ? "alert-success" : kind === "info" ? "alert-info" : "alert-danger");
   };
+
+  if (cvrPeekPostAuthRedirect()) {
+    showAlert("Please log in to continue your booking. Your selection is saved.", "info");
+  }
 
   const verifyStatus = new URLSearchParams(window.location.search).get("verify");
   const verifyMessages = {
@@ -5956,7 +6272,8 @@ function initCustomerLoginForm() {
         sessionStorage.setItem("cvrLoginToast", JSON.stringify({ name: body.data.user.firstName || "" }));
       } catch {}
 
-      window.location.href = role === "admin" || role === "event_manager" ? "admin/dashboard.html" : "landing.html";
+      window.location.href =
+        role === "admin" || role === "event_manager" ? "admin/dashboard.html" : cvrConsumePostAuthRedirect() || "landing.html";
     } catch (err) {
       showAlert("Could not reach the server. Please make sure the site is running and try again.");
     } finally {
@@ -5999,9 +6316,29 @@ function initCustomerLoginPicker() {
 
   const backToSavedBtn = document.getElementById("loginBackToSavedBtn");
 
-  const showPanel = createCvrPanelSwitcher({ picker, form: formPanel, password: passwordPanel }, (which) => {
+  // Top-left arrow: on the sign-in form / password step it goes back to the saved
+  // accounts; on the saved-accounts screen (or when none are saved) it goes to the landing page.
+  const topBackBtn = document.getElementById("loginTopBackBtn");
+  let currentPanel = "";
+  const syncTopBack = () => {
+    if (!topBackBtn) return;
+    const toSaved = !!accounts.length && (currentPanel === "form" || currentPanel === "password");
+    topBackBtn.setAttribute("aria-label", toSaved ? "Back to saved accounts" : "Back to home");
+    topBackBtn.title = toSaved ? "Back to saved accounts" : "Back to home";
+  };
+  topBackBtn?.addEventListener("click", (e) => {
+    if (!!accounts.length && (currentPanel === "form" || currentPanel === "password")) {
+      e.preventDefault();
+      showPwAlert(null);
+      showPanel("picker");
+    }
+    // otherwise follow the link to landing.html
+  });
 
+  const showPanel = createCvrPanelSwitcher({ picker, form: formPanel, password: passwordPanel }, (which) => {
+    currentPanel = which;
     backToSavedBtn?.classList.toggle("cvr-fade-hidden", which !== "form" || !accounts.length);
+    syncTopBack();
   });
 
   const showPwAlert = (message) => {
@@ -6076,7 +6413,8 @@ function initCustomerLoginPicker() {
       sessionStorage.setItem("cvrLoginToast", JSON.stringify({ name: user.firstName || "" }));
     } catch {}
     const role = String(user.role || "").toLowerCase();
-    window.location.href = role === "admin" || role === "event_manager" ? "admin/dashboard.html" : "landing.html";
+    window.location.href =
+      role === "admin" || role === "event_manager" ? "admin/dashboard.html" : cvrConsumePostAuthRedirect() || "landing.html";
   }
 
   function renderRows() {
@@ -6687,12 +7025,42 @@ function initCustomerRegisterForm() {
   });
 }
 
+function cvrRenderDashNextStay(list) {
+  const el = document.getElementById("dashNextStay");
+  if (!el) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const upcoming = (list || [])
+    .filter((r) => !r.checkedOutAt && !String(r.reservationStatus || "").toLowerCase().includes("cancel"))
+    .map((r) => ({ r, d: new Date(`${String(r.checkIn || r.preferredDate || "").slice(0, 10)}T00:00:00`) }))
+    .filter((x) => !Number.isNaN(x.d.getTime()) && x.d >= today)
+    .sort((a, b) => a.d - b.d)[0];
+  if (!upcoming) { el.classList.add("d-none"); el.innerHTML = ""; return; }
+  const { r, d } = upcoming;
+  const days = Math.round((d - today) / 86400000);
+  const when = days === 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days} days`;
+  const cat = window.CVRBookingCatalog;
+  const sched = r.bookingType === "event" && r.eventSession && cat?.isBirthdayPackage?.(r.packageOption)
+    ? cat.BIRTHDAY_SESSION_SCHEDULES?.[r.eventSession] : null;
+  const timeText = sched ? `${sched.name} · ${sched.label}` : (r.checkInLabel ? `Check-in ${r.checkInLabel}` : (r.eventTime || ""));
+  el.innerHTML = `
+    <div class="acct-next-count"><strong>${escapeHtml(when)}</strong><span>${escapeHtml(formatDateReserved(r.checkIn || r.preferredDate))}</span></div>
+    <div class="acct-next-body">
+      <p class="acct-eyebrow mb-1">Your next stay</p>
+      <h3 class="acct-next-title">${escapeHtml(r.roomName || r.eventType || "Reservation")}</h3>
+      <p class="acct-next-meta">${sched ? `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ` : ""}${escapeHtml(timeText)}${timeText && r.id ? " · " : ""}${escapeHtml(r.id || "")}</p>
+    </div>
+    <a class="btn btn-sm acct-next-btn" href="reservation-status.html?id=${encodeURIComponent(r.id)}">View status <i class="bi bi-arrow-right" aria-hidden="true"></i></a>`;
+  el.classList.remove("d-none");
+}
+
 function renderDashboardNotificationsList(items) {
   const listEl = document.getElementById("dashNotificationsList");
   if (!listEl) return;
 
   const unreadCount = items.filter((i) => !i.read).length;
   const unreadBadge = document.getElementById("dashNotifUnreadBadge");
+  const unreadStat = document.getElementById("dashStatUnread");
+  if (unreadStat) unreadStat.textContent = String(unreadCount);
   if (unreadBadge) {
     if (unreadCount > 0) {
       unreadBadge.textContent = `${unreadCount} new`;
@@ -6703,7 +7071,7 @@ function renderDashboardNotificationsList(items) {
   }
 
   if (!items.length) {
-    listEl.innerHTML = `<p class="small text-muted-brand mb-0">Nothing here yet. Replies to your messages and updates about your reservations will show up here.</p>`;
+    listEl.innerHTML = `<div class="acct-empty"><span class="acct-empty-ico"><i class="bi bi-bell-slash"></i></span><strong>You're all caught up</strong><p>Replies to your messages and updates about your reservations will show up here.</p></div>`;
     return;
   }
 
@@ -6835,6 +7203,7 @@ async function initCustomerDashboardPage() {
     const s = getCustomerSession();
     if (!s) return;
     setText("dashProfileName", customerProfileDisplayName(s));
+    setText("dashWelcomeName", (s.firstName || customerProfileDisplayName(s) || "guest").split(" ")[0]);
     setText("dashProfileEmail", s.email || "—");
     setText("dashProfilePhone", s.phone || "—");
     const joined = s.joinedAt ? formatMemberSince(s.joinedAt) : "—";
@@ -6862,9 +7231,13 @@ async function initCustomerDashboardPage() {
 
   const email = (session.email || "").toLowerCase();
   const mine = getStoredReservations().filter((r) => (r.email || "").toLowerCase() === email);
+  setText("dashStatTotal", String(mine.length));
+  setText("dashStatActive", String(mine.filter((r) => !r.checkedOutAt && !String(r.reservationStatus || "").toLowerCase().includes("cancel")).length));
+
+  cvrRenderDashNextStay(mine);
 
   if (!mine.length) {
-    listEl.innerHTML = `<p class="small text-muted-brand mb-0">No reservations linked to your account yet. Book a room or event to see them here.</p>`;
+    listEl.innerHTML = `<div class="acct-empty"><span class="acct-empty-ico"><i class="bi bi-calendar2-x"></i></span><strong>No reservations yet</strong><p>No reservations linked to your account yet. Book a room or event to see them here.</p><a href="${pageUrl("booking.html")}" class="btn btn-accent btn-sm">Start a booking</a></div>`;
     return;
   }
 
@@ -6884,7 +7257,7 @@ async function initCustomerDashboardPage() {
       const scheduleLabel = r.checkInLabel && r.checkOutLabel ? ` · ${r.checkInLabel} → ${r.checkOutLabel}` : "";
       const live = !isCheckedOut && canCheckout ? getLiveOvertimeStatus(r) : { isLate: false };
       return `
-      <div class="border rounded-3 p-3 mb-2">
+      <div class="dash-res-card">
         <div class="d-flex flex-wrap justify-content-between gap-2 mb-1">
           <strong class="text-brand small">${escapeHtml(r.id)}</strong>
           <span class="status-chip ${isCancelled ? "chip-red" : getStatusChipClass(r.paymentStatus)}">${isCancelled ? "Cancelled" : escapeHtml(r.paymentStatus || "")}</span>
@@ -6928,6 +7301,8 @@ async function initCustomerDashboardPage() {
       const fmt = (v) => (cat ? cat.formatMoney(v, record.currency || "PHP") : String(v));
       if (payModalId) payModalId.textContent = record.id;
       if (payModalTotal) payModalTotal.textContent = record.totalAmount || fmt(record.totalNumeric ?? 0);
+      const payModalDpLabel = document.getElementById("dashPayModalDpLabel");
+      if (payModalDpLabel) payModalDpLabel.textContent = (q?.downpaymentPercent ?? record.downpaymentPercent ?? 50) >= 100 ? "Full payment due now" : "Downpayment due now";
       if (payModalDownpayment) payModalDownpayment.textContent = fmt(q?.downpaymentAmount ?? record.downpaymentAmount ?? record.totalNumeric ?? 0);
       if (payModalBalance) payModalBalance.textContent = fmt(q?.balanceAmount ?? record.balanceAmount ?? 0);
       if (payModalConfirmBtn) payModalConfirmBtn.href = payUrl;
@@ -7460,8 +7835,131 @@ function initAdminMobileTables() {
   });
 }
 
+
+/* ---------- Account required before booking ---------- */
+
+const CVR_POST_AUTH_KEY = "cvrPostAuthRedirect";
+
+function cvrSetPostAuthRedirect(target) {
+  try {
+    sessionStorage.setItem(CVR_POST_AUTH_KEY, String(target || ""));
+  } catch {}
+}
+
+function cvrPeekPostAuthRedirect() {
+  try {
+    return sessionStorage.getItem(CVR_POST_AUTH_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function cvrConsumePostAuthRedirect() {
+  const target = cvrPeekPostAuthRedirect();
+  try {
+    sessionStorage.removeItem(CVR_POST_AUTH_KEY);
+  } catch {}
+  // Only ever return to a booking page of this site (never an arbitrary URL).
+  return /^(reservation-form|quotation|payment|booking)\.html(\?.*)?$/.test(target) ? target : "";
+}
+window.cvrConsumePostAuthRedirect = cvrConsumePostAuthRedirect;
+
+function cvrIsCustomerSignedIn() {
+  const session = getCustomerSession();
+  return !!(session && !isStaffSession(session));
+}
+
+function ensureCvrAuthRequiredModal() {
+  let modalEl = document.getElementById("cvrAuthRequiredModal");
+  if (modalEl) return modalEl;
+
+  modalEl = document.createElement("div");
+  modalEl.className = "modal fade";
+  modalEl.id = "cvrAuthRequiredModal";
+  modalEl.tabIndex = -1;
+  modalEl.setAttribute("aria-labelledby", "cvrAuthRequiredTitle");
+  modalEl.setAttribute("aria-hidden", "true");
+  modalEl.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-body text-center p-4 p-md-5">
+          <div class="mb-3"><i class="bi bi-person-lock text-brand" style="font-size:2.75rem" aria-hidden="true"></i></div>
+          <h5 class="text-brand mb-2" id="cvrAuthRequiredTitle">Account required</h5>
+          <p class="text-muted-brand mb-4" id="cvrAuthRequiredText">
+            Please log in or create an account to book a stay or event at Casa Vergara. It only takes a minute, and your selection will be saved.
+          </p>
+          <div class="d-grid gap-2">
+            <a class="btn btn-brand" id="cvrAuthRequiredLogin" href="${pageUrl("login.html")}"><i class="bi bi-box-arrow-in-right me-2"></i>Log in</a>
+            <a class="btn btn-outline-primary" id="cvrAuthRequiredRegister" href="${pageUrl("register.html")}"><i class="bi bi-person-plus me-2"></i>Create an account</a>
+            <button type="button" class="btn btn-link text-muted-brand" id="cvrAuthRequiredDismiss" data-bs-dismiss="modal">Maybe later</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modalEl);
+  return modalEl;
+}
+
+/**
+ * Shows the "log in or register" popup.
+ * returnTo: booking page (relative to /pages/) to come back to after signing in.
+ * locked:   true on pages that cannot be used without an account (no close / Esc / backdrop click).
+ */
+function cvrShowAuthRequiredModal({ returnTo = "reservation-form.html", locked = false } = {}) {
+  const modalEl = ensureCvrAuthRequiredModal();
+  cvrSetPostAuthRedirect(returnTo);
+
+  const dismiss = modalEl.querySelector("#cvrAuthRequiredDismiss");
+  if (dismiss) {
+    if (locked) {
+      dismiss.removeAttribute("data-bs-dismiss");
+      dismiss.textContent = "Back to rooms & events";
+      dismiss.onclick = () => {
+        window.location.href = pageUrl("booking.html");
+      };
+    } else {
+      dismiss.setAttribute("data-bs-dismiss", "modal");
+      dismiss.textContent = "Maybe later";
+      dismiss.onclick = null;
+    }
+  }
+
+  if (!window.bootstrap?.Modal) {
+    window.location.href = pageUrl("login.html");
+    return;
+  }
+  const existing = window.bootstrap.Modal.getInstance(modalEl);
+  if (existing) existing.dispose();
+  window.bootstrap.Modal.getOrCreateInstance(modalEl, locked ? { backdrop: "static", keyboard: false } : {}).show();
+}
+window.cvrShowAuthRequiredModal = cvrShowAuthRequiredModal;
+
+/** Called by the booking page once the guest has chosen a room/event. */
+function cvrGoToReservationForm() {
+  if (cvrIsCustomerSignedIn()) {
+    window.location.href = "reservation-form.html";
+    return;
+  }
+  cvrShowAuthRequiredModal({ returnTo: "reservation-form.html" });
+}
+window.cvrGoToReservationForm = cvrGoToReservationForm;
+
+/** Direct visits to reservation / quotation / payment pages without an account get a locked popup. */
+function initBookingAuthGate() {
+  const path = window.location.pathname.toLowerCase();
+  const gated = ["reservation-form.html", "quotation.html", "payment.html"].find((p) => path.endsWith("/pages/" + p));
+  if (!gated) return;
+
+  const session = getCustomerSession();
+  if (session) return; // signed in (staff are redirected by enforceRouteGuards)
+
+  const file = path.split("/").pop();
+  cvrShowAuthRequiredModal({ returnTo: file + (window.location.search || ""), locked: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   if (!enforceRouteGuards()) return;
+  initBookingAuthGate();
   initAuthPageTransitions();
   initConnectedNavigation();
   initInteractiveOptions();
@@ -7620,3 +8118,431 @@ window.cvrConfirmModal = cvrConfirmModal;
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
+
+
+/* ===== Log-out dialog styles + animated password "eye" (injected so every page gets them) ===== */
+(function cvrUiExtras() {
+  const css = `
+  /* --- Log-out dialog --- */
+  .cvr-lo-dialog { max-width: 400px; }
+  .cvr-lo-card { position: relative; border: 0; border-radius: 22px; overflow: hidden; background: #fff;
+    box-shadow: 0 30px 70px rgba(10, 37, 56, .28); }
+  .modal.fade .cvr-lo-dialog { transform: translateY(18px) scale(.97); transition: transform .28s cubic-bezier(.2,.9,.3,1.2), opacity .2s; }
+  .modal.show .cvr-lo-dialog { transform: none; }
+  .cvr-lo-close { position: absolute; top: .7rem; right: .7rem; z-index: 2; width: 30px; height: 30px; border: 0; border-radius: 50%;
+    background: rgba(255,255,255,.16); color: #fff; font-size: .75rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+  .cvr-lo-close:hover { background: rgba(255,255,255,.3); }
+  .cvr-lo-head { display: flex; align-items: center; gap: .9rem; padding: 1.35rem 1.4rem 1.2rem;
+    background: linear-gradient(135deg, #0a3d57 0%, #0e6d8c 100%); color: #fff; }
+  .cvr-lo-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.75); font-weight: 700; font-size: 1.1rem; letter-spacing: .02em; }
+  .cvr-lo-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .cvr-lo-who { min-width: 0; }
+  .cvr-lo-eyebrow { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; opacity: .75; }
+  .cvr-lo-name { font-weight: 600; font-size: 1.05rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cvr-lo-email { font-size: .8rem; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cvr-lo-body { padding: 1.25rem 1.4rem 1.2rem; }
+  .cvr-lo-title { margin: 0 0 .25rem; font-weight: 700; color: #0b4f6c; }
+  .cvr-lo-sub { margin: 0 0 1rem; color: #6b7c8e; font-size: .88rem; }
+  .cvr-lo-actions { display: flex; flex-direction: column; gap: .6rem; }
+  .cvr-lo-opt { width: 100%; display: flex; align-items: center; gap: .85rem; padding: .75rem .9rem; border-radius: 14px; text-align: left;
+    cursor: pointer; border: 1.5px solid transparent; transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease, color .2s ease; }
+  .cvr-lo-opt:active:not(:disabled) { transform: scale(.985); }
+  .cvr-lo-opt:disabled { opacity: .75; cursor: default; }
+  .cvr-lo-opt-icon { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+  .cvr-lo-opt-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .cvr-lo-opt-title { font-weight: 600; font-size: .95rem; }
+  .cvr-lo-opt-text small { font-size: .76rem; opacity: .8; }
+  .cvr-lo-opt-text small.is-error { color: #ffd2d6; opacity: 1; }
+  .cvr-lo-opt--save { background: linear-gradient(135deg, #0b5f82, #0e8aa8); color: #fff; box-shadow: 0 8px 18px rgba(14, 109, 140, .28); }
+  .cvr-lo-opt--save .cvr-lo-opt-icon { background: rgba(255,255,255,.18); }
+  .cvr-lo-opt--save:hover:not(:disabled) { box-shadow: 0 10px 22px rgba(14, 109, 140, .38); transform: translateY(-1px); }
+  .cvr-lo-opt--save.is-done { background: linear-gradient(135deg, #198754, #2fa66d); box-shadow: 0 8px 18px rgba(25,135,84,.3); }
+  .cvr-lo-opt--out { background: #fff; color: #c62839; border-color: #f2c5cb; }
+  .cvr-lo-opt--out .cvr-lo-opt-icon { background: rgba(220, 53, 69, .1); }
+  .cvr-lo-opt--out:hover:not(:disabled) { background: #dc3545; color: #fff; border-color: #dc3545; }
+  .cvr-lo-opt--out:hover:not(:disabled) .cvr-lo-opt-icon { background: rgba(255,255,255,.2); }
+  .cvr-lo-cancel { display: block; margin: .85rem auto 0; background: none; border: 0; color: #6b7c8e; font-size: .88rem; font-weight: 500; padding: .35rem .8rem; border-radius: 8px; cursor: pointer; }
+  .cvr-lo-cancel:hover { color: #0b4f6c; background: rgba(11, 79, 108, .07); }
+  html[data-theme="dark"] .cvr-lo-card { background: #18222c; color: #e6edf3; box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+  html[data-theme="dark"] .cvr-lo-title { color: #8fd3ea; }
+  html[data-theme="dark"] .cvr-lo-sub, html[data-theme="dark"] .cvr-lo-cancel { color: #9fb0c1; }
+  html[data-theme="dark"] .cvr-lo-cancel:hover { color: #fff; background: rgba(255,255,255,.08); }
+  html[data-theme="dark"] .cvr-lo-opt--out { background: transparent; color: #ff8793; border-color: #5a3038; }
+  html[data-theme="dark"] .cvr-lo-opt--out:hover:not(:disabled) { background: #dc3545; color: #fff; border-color: #dc3545; }
+
+  /* --- Animated password eye --- */
+  .cvr-pw-wrap { position: relative; }
+  .cvr-pw-wrap > input, .cvr-pw-group > input.cvr-pw-input { padding-right: 2.9rem; }
+  .cvr-pw-group { position: relative; }
+  .cvr-eye-btn { position: absolute; top: 0; bottom: 0; right: 0; width: 2.9rem; z-index: 5; display: flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; color: #7a8b9c; cursor: pointer; border-radius: 0 .5rem .5rem 0; transition: color .2s ease; padding: 0; }
+  .cvr-eye-btn:hover { color: #0b5f82; }
+  .cvr-eye-btn:focus-visible { outline: 2px solid #0e8aa8; outline-offset: -3px; }
+  .cvr-eye-btn.is-on { color: #0b5f82; }
+  .cvr-eye-svg { width: 22px; height: 22px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cvr-eye-ball { transform-box: fill-box; transform-origin: center; }
+  .cvr-eye-pupil { fill: currentColor; stroke: none; transform-box: fill-box; transform-origin: center; transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+  .cvr-eye-slash { stroke-dasharray: 26; stroke-dashoffset: 0; transition: stroke-dashoffset .3s ease; }
+  .cvr-eye-btn:not(.is-on) .cvr-eye-pupil { transform: scale(.55); }
+  .cvr-eye-btn.is-on .cvr-eye-slash { stroke-dashoffset: 26; }
+  .cvr-eye-btn.is-on .cvr-eye-pupil { transform: scale(1); }
+  .cvr-eye-btn.is-blink .cvr-eye-ball { animation: cvrEyeBlink .38s ease; }
+  .cvr-eye-btn.is-on.is-blink .cvr-eye-pupil { animation: cvrEyeGlance .7s ease .1s; }
+  .cvr-eye-btn:hover .cvr-eye-svg { animation: cvrEyeNudge .5s ease; }
+  @keyframes cvrEyeBlink { 0% { transform: scaleY(1); } 45% { transform: scaleY(.08); } 100% { transform: scaleY(1); } }
+  @keyframes cvrEyeGlance { 0%,100% { transform: translateX(0) scale(1); } 30% { transform: translateX(-2.2px) scale(1); } 65% { transform: translateX(2.2px) scale(1); } }
+  @keyframes cvrEyeNudge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  html[data-theme="dark"] .cvr-eye-btn { color: #9fb0c1; }
+  html[data-theme="dark"] .cvr-eye-btn:hover, html[data-theme="dark"] .cvr-eye-btn.is-on { color: #8fd3ea; }
+  @media (prefers-reduced-motion: reduce) {
+    .cvr-eye-btn *, .cvr-eye-btn, .modal.fade .cvr-lo-dialog { animation: none !important; transition: none !important; }
+  }`;
+  const style = document.createElement("style");
+  style.id = "cvr-ui-extras";
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  const EYE_SVG = `
+    <svg class="cvr-eye-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <g class="cvr-eye-ball">
+        <path d="M1.8 12S5.6 5.2 12 5.2 22.2 12 22.2 12 18.4 18.8 12 18.8 1.8 12 1.8 12z"/>
+        <circle class="cvr-eye-pupil" cx="12" cy="12" r="3.1"/>
+      </g>
+      <line class="cvr-eye-slash" x1="4" y1="4" x2="20" y2="20"/>
+    </svg>`;
+
+  function enhance(input) {
+    if (input.dataset.cvrEye) return;
+    input.dataset.cvrEye = "1";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cvr-eye-btn";
+    btn.setAttribute("aria-label", "Show password");
+    btn.setAttribute("aria-pressed", "false");
+    btn.tabIndex = 0;
+    btn.innerHTML = EYE_SVG;
+
+    const parent = input.parentElement;
+    if (parent && parent.classList.contains("input-group")) {
+      parent.classList.add("cvr-pw-group");
+      input.classList.add("cvr-pw-input");
+      parent.appendChild(btn);
+    } else {
+      const wrap = document.createElement("div");
+      wrap.className = "cvr-pw-wrap";
+      const mb = getComputedStyle(input).marginBottom;
+      if (mb && mb !== "0px") { wrap.style.marginBottom = mb; input.style.marginBottom = "0"; }
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      wrap.appendChild(btn);
+    }
+
+    // Keep focus (and caret) in the field when the eye is pressed.
+    btn.addEventListener("mousedown", (e) => e.preventDefault());
+    btn.addEventListener("click", () => {
+      const show = input.type === "password";
+      let start = null, end = null;
+      try { start = input.selectionStart; end = input.selectionEnd; } catch {}
+      input.type = show ? "text" : "password";
+      try { if (start !== null) input.setSelectionRange(start, end); } catch {}
+      btn.classList.toggle("is-on", show);
+      btn.setAttribute("aria-pressed", show ? "true" : "false");
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      btn.classList.remove("is-blink");
+      void btn.offsetWidth; // restart the blink animation
+      btn.classList.add("is-blink");
+    });
+    btn.addEventListener("animationend", (e) => {
+      if (e.animationName === "cvrEyeBlink") btn.classList.remove("is-blink");
+    });
+
+    // Always go back to hidden after the form is submitted or reset.
+    input.form?.addEventListener("submit", () => { if (input.type === "text" && btn.classList.contains("is-on")) btn.click(); });
+  }
+
+  function scan(root) {
+    (root || document).querySelectorAll('input[type="password"]:not([data-cvr-eye])').forEach(enhance);
+  }
+
+  let queued = false;
+  function queueScan() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; scan(); });
+  }
+
+  function start() {
+    scan();
+    new MutationObserver(queueScan).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+
+
+/* =============================================================================
+   Payment option (50% downpayment / full payment) and vouchers
+   Shared by the quotation page, the payment page and the admin voucher manager.
+   ========================================================================== */
+
+function cvrMoney(amount, currency = "PHP") {
+  const cat = window.CVRBookingCatalog;
+  return cat ? cat.formatMoney(amount, currency) : "₱" + Number(amount || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 });
+}
+
+function cvrSaveReservationRecord(record) {
+  const all = getStoredReservations();
+  const idx = all.findIndex((item) => item.id === record.id);
+  if (idx >= 0) all[idx] = record;
+  else all.push(record);
+  saveStoredReservations(all);
+  syncReservationToServer(record, true);
+}
+
+/** True while the guest can still change how they pay (nothing has been submitted yet). */
+function cvrCanEditPaymentChoices(record) {
+  if (!record) return false;
+  if (String(record.reservationStatus || "").toLowerCase().includes("cancel")) return false;
+  const pay = String(record.paymentStatus || "Pending Payment");
+  if (pay !== "Pending Payment" && pay !== "Rejected") return false;
+  const qStatus = record.quotation?.status;
+  return qStatus !== "Pending Admin Review";
+}
+
+function cvrHexColor(value, fallback = "#0c3b5d") {
+  return /^#[0-9a-fA-F]{6}$/.test(String(value || "")) ? value : fallback;
+}
+
+function cvrTrimNumber(n) {
+  const num = Number(n) || 0;
+  return Number.isInteger(num) ? String(num) : String(Math.round(num * 100) / 100);
+}
+
+/**
+ * The voucher card. Always carries the resort logo (the site logo set in Admin > Site Content, or a
+ * custom logo uploaded for that one voucher). Used on guest pages and in the admin voucher manager.
+ */
+function cvrVoucherCardHtml(v, opts = {}) {
+  if (!v) return "";
+  const logo = v.logoUrl || assetUrl("images/logo.png");
+  const slot = v.logoUrl ? "" : ' data-site-image-slot="site_logo"';
+  const off = v.discountType === "percent" ? `${cvrTrimNumber(v.discountValue)}%` : cvrMoney(v.discountValue);
+  const meta = [];
+  if (v.discountType === "percent" && Number(v.maxDiscount) > 0) meta.push(`Up to ${cvrMoney(v.maxDiscount)} off`);
+  if (Number(v.minSpend) > 0) meta.push(`Min. spend ${cvrMoney(v.minSpend)}`);
+  if (v.appliesTo === "room") meta.push("Room bookings");
+  if (v.appliesTo === "event") meta.push("Event bookings");
+  const fmtDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+  if (v.validUntil) meta.push(`Valid until ${fmtDate(v.validUntil)}`);
+  else meta.push("No expiry");
+  if (v.validFrom && new Date(v.validFrom + "T00:00:00") > new Date()) meta.push(`Starts ${fmtDate(v.validFrom)}`);
+
+  return `
+    <div class="cvr-voucher ${opts.compact ? "cvr-voucher--compact" : ""} ${opts.dim ? "is-dim" : ""}" style="--v-accent:${cvrHexColor(v.accentColor)}">
+      <div class="cvr-voucher-stub">
+        <span class="cvr-voucher-logo"><img src="${escapeHtml(logo)}" alt="Casa Vergara Resort logo"${slot}></span>
+        <span class="cvr-voucher-brand">Casa Vergara<br>Resort</span>
+      </div>
+      <div class="cvr-voucher-main">
+        <div class="cvr-voucher-kicker">Discount voucher</div>
+        <div class="cvr-voucher-off"><strong>${escapeHtml(off)}</strong><span>OFF</span></div>
+        <div class="cvr-voucher-title">${escapeHtml(v.title || "")}</div>
+        ${v.description && !opts.compact ? `<p class="cvr-voucher-desc">${escapeHtml(v.description)}</p>` : ""}
+        <div class="cvr-voucher-meta">${meta.map((m) => `<span>${escapeHtml(m)}</span>`).join("")}</div>
+        <div class="cvr-voucher-foot">
+          <span class="cvr-voucher-code"><i class="bi bi-ticket-perforated"></i><code>${escapeHtml(v.code || "")}</code></span>
+          ${opts.footerHtml || ""}
+        </div>
+      </div>
+    </div>`;
+}
+window.cvrVoucherCardHtml = cvrVoucherCardHtml;
+
+function cvrMountPaymentPlanPicker(host, record, onChange) {
+  if (!host || !record) return;
+  const cat = window.CVRBookingCatalog;
+  if (!cat?.PAYMENT_PLANS) return;
+
+  const render = () => {
+    const q = ensureReservationQuotation(record);
+    const total = Number(record.totalNumeric ?? q?.totalNumeric) || 0;
+    const plan = cat.normalizePaymentPlan(record.paymentPlan);
+    const editable = cvrCanEditPaymentChoices(record);
+    const half = cat.computeDownpayment(total, 50);
+    const laterWhen = record.bookingType === "event" ? "the event date" : "check-in";
+
+    const option = (key, title, line) => `
+      <label class="cvr-plan-option ${plan === key ? "is-selected" : ""} ${editable ? "" : "is-locked"}">
+        <input type="radio" name="cvrPaymentPlan" value="${key}" ${plan === key ? "checked" : ""} ${editable ? "" : "disabled"}>
+        <span class="cvr-plan-radio" aria-hidden="true"></span>
+        <span class="cvr-plan-body"><strong>${title}</strong><small>${line}</small></span>
+      </label>`;
+
+    host.innerHTML = `
+      <div class="cvr-plan-picker" role="radiogroup" aria-label="Payment option">
+        <div class="cvr-plan-heading"><i class="bi bi-wallet2"></i> Payment option</div>
+        ${option("downpayment", "50% downpayment", `Pay <b>${cvrMoney(half.downpayment, record.currency)}</b> now · <b>${cvrMoney(half.balance, record.currency)}</b> balance before ${laterWhen}`)}
+        ${option("full", "Pay in full", `Pay <b>${cvrMoney(total, record.currency)}</b> now · nothing left to pay later`)}
+        ${editable ? "" : `<div class="cvr-plan-note"><i class="bi bi-lock"></i> Your payment has been submitted, so the option can no longer be changed.</div>`}
+      </div>`;
+
+    host.querySelectorAll('input[name="cvrPaymentPlan"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        record.paymentPlan = cat.normalizePaymentPlan(input.value);
+        cat && window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+        cvrSaveReservationRecord(record);
+        render();
+        onChange?.();
+      });
+    });
+  };
+  render();
+}
+window.cvrMountPaymentPlanPicker = cvrMountPaymentPlanPicker;
+
+function cvrMountVoucherBox(host, record, onChange) {
+  if (!host || !record || !window.CVRQuotation) return;
+  let available = null;
+
+  const loadAvailable = async () => {
+    if (available) return available;
+    try {
+      const { body } = await cvrApiGet("content/vouchers");
+      available = body?.success ? body.data?.vouchers || [] : [];
+    } catch {
+      available = [];
+    }
+    return available;
+  };
+
+  const apply = async (code, msgEl, btn) => {
+    const clean = String(code || "").trim();
+    if (!clean) {
+      msgEl.className = "cvr-voucher-msg text-danger";
+      msgEl.textContent = "Enter a voucher code first.";
+      return;
+    }
+    const q = ensureReservationQuotation(record);
+    const withoutVoucher = JSON.parse(JSON.stringify((q.lines || []).filter((l) => !(l.type === "discount" && l.voucherCode))));
+    const gross = window.CVRQuotation.recalculateQuotationTotals(withoutVoucher).grossTotal;
+    if (btn) btn.disabled = true;
+    msgEl.className = "cvr-voucher-msg text-muted-brand";
+    msgEl.textContent = "Checking voucher…";
+    try {
+      const { body } = await cvrApiPost("content/voucher-validate", {
+        code: clean,
+        subtotal: gross,
+        bookingType: record.bookingType,
+        reservationId: record.id,
+      });
+      if (!body?.success) {
+        msgEl.className = "cvr-voucher-msg text-danger";
+        msgEl.textContent = body?.message || "We couldn't apply that voucher.";
+        return;
+      }
+      window.CVRQuotation.addVoucherToQuotation(record.quotation, body.data.voucher);
+      window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+      cvrSaveReservationRecord(record);
+      render();
+      onChange?.();
+    } catch {
+      msgEl.className = "cvr-voucher-msg text-danger";
+      msgEl.textContent = "Network problem. Please try again.";
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  const render = async () => {
+    const q = ensureReservationQuotation(record);
+    const line = window.CVRQuotation.getQuotationVoucherLine(q);
+    const editable = cvrCanEditPaymentChoices(record);
+
+    if (line) {
+      const discount = Math.abs(Number(line.amount) || 0);
+      host.innerHTML = `
+        <div class="cvr-voucher-box">
+          <div class="cvr-voucher-box-title"><i class="bi bi-ticket-perforated"></i> Voucher applied</div>
+          <div class="cvr-voucher-applied">
+            <div class="cvr-voucher-applied-info">
+              <code>${escapeHtml(line.voucherCode)}</code>
+              <span>${escapeHtml(line.voucherTitle || "")}</span>
+              <strong class="text-success">−${cvrMoney(discount, record.currency)}</strong>
+            </div>
+            ${editable ? `<button type="button" class="btn btn-sm btn-outline-danger" id="cvrVoucherRemoveBtn">Remove</button>` : ""}
+          </div>
+        </div>`;
+      host.querySelector("#cvrVoucherRemoveBtn")?.addEventListener("click", () => {
+        window.CVRQuotation.removeVoucherFromQuotation(record.quotation);
+        window.CVRQuotation.applyQuotationToReservation(record, record.quotation);
+        cvrSaveReservationRecord(record);
+        render();
+        onChange?.();
+      });
+      return;
+    }
+
+    if (!editable) {
+      host.innerHTML = "";
+      return;
+    }
+
+    host.innerHTML = `
+      <div class="cvr-voucher-box">
+        <div class="cvr-voucher-box-title"><i class="bi bi-ticket-perforated"></i> Voucher or discount code</div>
+        <div class="input-group">
+          <input type="text" class="form-control text-uppercase" id="cvrVoucherInput" placeholder="Enter code" maxlength="40" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn btn-brand" id="cvrVoucherApplyBtn">Apply</button>
+        </div>
+        <div class="cvr-voucher-msg small mt-2" id="cvrVoucherMsg" aria-live="polite"></div>
+        <div id="cvrVoucherAvailable" class="cvr-voucher-available"></div>
+      </div>`;
+
+    const input = host.querySelector("#cvrVoucherInput");
+    const btn = host.querySelector("#cvrVoucherApplyBtn");
+    const msg = host.querySelector("#cvrVoucherMsg");
+    btn.addEventListener("click", () => apply(input.value, msg, btn));
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        apply(input.value, msg, btn);
+      }
+    });
+
+    const list = await loadAvailable();
+    const slot = host.querySelector("#cvrVoucherAvailable");
+    if (slot && list.length) {
+      const bookingType = record.bookingType === "event" ? "event" : "room";
+      const usable = list.filter((v) => v.appliesTo === "all" || v.appliesTo === bookingType);
+      if (usable.length) {
+        slot.innerHTML = `<div class="cvr-voucher-available-title">Available vouchers</div>` +
+          usable.map((v) => cvrVoucherCardHtml(v, {
+            compact: true,
+            footerHtml: `<button type="button" class="btn btn-sm btn-brand cvr-voucher-use-btn" data-code="${escapeHtml(v.code)}">Use</button>`,
+          })).join("");
+        applySiteImages();
+        slot.querySelectorAll(".cvr-voucher-use-btn").forEach((b) =>
+          b.addEventListener("click", () => {
+            input.value = b.dataset.code;
+            apply(b.dataset.code, msg, btn);
+          })
+        );
+      }
+    }
+  };
+
+  render();
+}
+window.cvrMountVoucherBox = cvrMountVoucherBox;
+
+
+// Light / Dark switch inside the profile dropdown (capture phase so the menu stays open).
+document.addEventListener("click", (ev) => {
+  const btn = ev.target.closest && ev.target.closest("[data-cvr-menu-theme]");
+  if (!btn) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  const next = btn.getAttribute("data-cvr-menu-theme") === "dark" ? "dark" : "light";
+  if (window.cvrTheme && window.cvrTheme.get() !== next) window.cvrTheme.set(next, true);
+}, true);

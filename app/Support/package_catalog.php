@@ -4,60 +4,12 @@ function cv_room_packages(): array
 {
     return [
         [
-            'title' => 'Standard Room', 'tagline' => 'Good for 2 pax — the resort\'s walk-in rate',
+            'title' => 'Standard Room', 'tagline' => 'Good for 2 pax',
+            'description' => 'Rates: PHP 250 for 3 hours, PHP 800 for 12 hours, PHP 1,400 for 24 hours.',
             'pricePerNight' => 1400, 'capacity' => '1–2 guests', 'areaSqm' => null, 'bed' => '1 Double Bed',
-            'inclusions' => ['Access to adult & kiddie pools', 'Parking space', 'Fan/AC room'],
+            'inclusions' => ['Good for 2 pax', 'Parking space', 'Access to the adult & kiddie pools'],
             'checkIn' => 'flexible', 'checkOut' => 'flexible',
-            'addOns' => ['Public day-use entrance, morning — PHP 150/pax', 'Public day-use entrance, night — PHP 180/pax', 'Table (6 pax) — PHP 400', 'Long table — PHP 600', 'Small cottage — PHP 750', 'Big cottage — PHP 1,000', 'Gazebo — PHP 1,200', 'Function hall (public rate) — PHP 1,500', 'Videoke — PHP 500', 'Public room rate (10 hrs) — PHP 1,500', 'Gas stove use per 6 hrs — PHP 400', 'Extended stay per additional hour — PHP 1,000'],
-        ],
-        [
-            'title' => 'Deluxe Room', 'tagline' => 'Private pool villa with garden views',
-            'pricePerNight' => 6500, 'capacity' => '1–4 guests', 'areaSqm' => 85, 'bed' => '1 King Bed',
-            'inclusions' => ['Private pool', 'Garden view', 'Butler service', 'Daily housekeeping', 'Wi-Fi'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Late checkout until 2:00 PM — PHP 800', 'In-villa breakfast setup — PHP 1,200', 'Celebration room décor — PHP 1,500'],
-        ],
-        [
-            'title' => 'Single Room', 'tagline' => 'Cozy stay for solo travelers',
-            'pricePerNight' => 1800, 'capacity' => '1 guest', 'areaSqm' => 28, 'bed' => '1 Single Bed',
-            'inclusions' => ['Workspace', 'Smart TV', 'Coffee/tea', 'Wi-Fi', 'Daily housekeeping'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Late checkout until 1:00 PM — PHP 400', 'Premium bedding upgrade — PHP 350'],
-        ],
-        [
-            'title' => 'Ocean View Suite', 'tagline' => 'Panoramic ocean views with balcony',
-            'pricePerNight' => 3800, 'capacity' => '1–3 guests', 'areaSqm' => 65, 'bed' => '1 King or 2 Twin',
-            'inclusions' => ['Ocean view', 'Balcony', 'Mini bar', 'Rain shower', 'Wi-Fi'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Balcony breakfast for two — PHP 950', 'Anniversary décor package — PHP 1,200'],
-        ],
-        [
-            'title' => 'Beach Bungalow', 'tagline' => 'Steps from the sand',
-            'pricePerNight' => 3200, 'capacity' => '1–2 guests', 'areaSqm' => 50, 'bed' => '1 Queen Bed',
-            'inclusions' => ['Beach access', 'Private patio', 'Breakfast included', 'Wi-Fi'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Beach picnic setup — PHP 1,100', 'Private bonfire arrangement — PHP 2,000'],
-        ],
-        [
-            'title' => 'Garden View Room', 'tagline' => 'Tranquil garden outlook',
-            'pricePerNight' => 2500, 'capacity' => '1–2 guests', 'areaSqm' => 42, 'bed' => '1 Queen Bed',
-            'inclusions' => ['Garden view', 'Smart TV', 'Coffee maker', 'Wi-Fi'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Garden afternoon tea — PHP 650'],
-        ],
-        [
-            'title' => 'Family Room', 'tagline' => 'Two bedrooms and living space',
-            'pricePerNight' => 4800, 'capacity' => '2–6 guests', 'areaSqm' => 95, 'bed' => '1 King + 2 Twin',
-            'inclusions' => ['2 bathrooms', 'Living area', 'Kitchenette', 'Wi-Fi', 'Sofa bed optional'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Late checkout until 2:00 PM — PHP 900', 'Baby crib & amenities — PHP 500', 'Kids welcome setup — PHP 750'],
-        ],
-        [
-            'title' => 'Honeymoon Suite', 'tagline' => 'Jacuzzi and ocean outlook',
-            'pricePerNight' => 5500, 'capacity' => '1–2 guests', 'areaSqm' => 75, 'bed' => '1 King Bed',
-            'inclusions' => ['Jacuzzi', 'Ocean view', 'Butler on call', 'Sparkling welcome', 'Wi-Fi'],
-            'checkIn' => '15:00', 'checkOut' => 'Anytime (flexible)',
-            'addOns' => ['Rose petal turndown — PHP 800', 'Couples spa voucher — PHP 2,500'],
+            'addOns' => ['Table (6 pax) — PHP 400', 'Long table — PHP 600', 'Small cottage — PHP 750', 'Big cottage — PHP 1,000', 'Gazebo — PHP 1,200', 'Function hall — PHP 1,500', 'Videoke — PHP 500', 'Gas stove use per 6 hrs — PHP 400'],
         ],
     ];
 }
@@ -223,8 +175,8 @@ function cv_render_room_packages_block(): string
 {
     $out = '';
     foreach (cv_room_packages() as $r) {
-        $out .= '- ' . $r['title'] . ' ("' . $r['tagline'] . '"): PHP ' . number_format($r['pricePerNight'], 2) . ' per night, '
-            . $r['capacity'] . ', ' . $r['areaSqm'] . ' m², ' . $r['bed'] . '. Includes: ' . implode(', ', $r['inclusions']) . '. '
+        $out .= '- ' . $r['title'] . ' ("' . $r['tagline'] . '"): PHP ' . number_format($r['pricePerNight'], 2) . ' for 24 hours, '
+            . $r['capacity'] . ', ' . $r['bed'] . '. ' . ($r['description'] ?? '') . ' Includes: ' . implode(', ', $r['inclusions']) . '. '
             . 'Check-in ' . $r['checkIn'] . ', check-out ' . $r['checkOut'] . '. '
             . 'Optional add-ons: ' . implode('; ', $r['addOns']) . ".\n";
     }

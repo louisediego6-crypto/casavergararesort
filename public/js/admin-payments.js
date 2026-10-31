@@ -11,6 +11,66 @@ function cvrEscapeHtml(value) {
 }
 
 let cvrLatestPaymentProofs = [];
+
+/** Shows a payment receipt in a Bootstrap modal (image, PDF, or a download card for other files). */
+function cvrOpenReceiptModal(proof) {
+  if (!proof) return;
+  let el = document.getElementById("cvrReceiptModal");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "modal fade";
+    el.id = "cvrReceiptModal";
+    el.tabIndex = -1;
+    el.setAttribute("aria-labelledby", "cvrReceiptModalTitle");
+    el.setAttribute("aria-hidden", "true");
+    el.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="min-w-0">
+              <h5 class="modal-title text-brand mb-0 text-truncate" id="cvrReceiptModalTitle">Proof of payment</h5>
+              <div class="small text-muted-brand text-truncate" id="cvrReceiptModalSub"></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-2 p-md-3 text-center" id="cvrReceiptModalBody" style="min-height:40vh;"></div>
+          <div class="modal-footer">
+            <a class="btn btn-outline-secondary btn-sm" id="cvrReceiptModalOpen" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Open in new tab</a>
+            <a class="btn btn-brand btn-sm" id="cvrReceiptModalDownload" download><i class="bi bi-download me-1"></i>Download</a>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+    // stop PDFs / images from lingering after the modal is closed
+    el.addEventListener("hidden.bs.modal", () => {
+      const b = el.querySelector("#cvrReceiptModalBody");
+      if (b) b.innerHTML = "";
+    });
+  }
+
+  const url = proof.fileUrl || "";
+  const type = (proof.fileType || "").toLowerCase();
+  const name = (proof.fileName || "").toLowerCase();
+  const isImage = type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp)$/.test(name);
+  const isPdf = type.includes("pdf") || name.endsWith(".pdf");
+
+  el.querySelector("#cvrReceiptModalSub").textContent = [proof.reservationId, proof.customerName].filter(Boolean).join(" · ");
+  const body = el.querySelector("#cvrReceiptModalBody");
+  if (isImage) {
+    body.innerHTML = `<img src="${cvrEscapeHtml(url)}" alt="Proof of payment" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;">`;
+  } else if (isPdf) {
+    body.innerHTML = `<iframe src="${cvrEscapeHtml(url)}" title="Proof of payment" style="width:100%;height:70vh;border:0;border-radius:8px;"></iframe>`;
+  } else {
+    body.innerHTML = `<div class="py-5"><i class="bi bi-file-earmark-text display-4 text-muted-brand"></i><p class="mt-3 mb-0 text-muted-brand">This file type can't be previewed here. Use Download to open it.</p></div>`;
+  }
+  el.querySelector("#cvrReceiptModalOpen").href = url;
+  const dl = el.querySelector("#cvrReceiptModalDownload");
+  dl.href = url;
+  dl.setAttribute("download", proof.fileName || "receipt");
+
+  window.bootstrap?.Modal.getOrCreateInstance(el).show();
+}
 window.getAdminPaymentProofs = () => cvrLatestPaymentProofs;
 
 async function initAdminSubmittedProofs() {
@@ -86,6 +146,28 @@ async function initAdminSubmittedProofs() {
         } else {
           thumb = `<i class="bi bi-file-earmark-text fs-4 text-muted-brand"></i>`;
         }
+        const money = (n) =>
+          "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // Payment check (server-computed): 50% downpayment, or the full amount when the guest chose to pay in full.
+        const isFullPlan = proof.paymentPlan === "full";
+        const planWord = isFullPlan ? "full payment" : "50% downpayment";
+        const dpBadge =
+          proof.downpaymentRequired == null
+            ? `<div class="small text-muted-brand mt-1">Reservation total not found</div>`
+            : proof.downpaymentVerified
+              ? `<span class="badge text-bg-success mt-1"><i class="bi bi-check2-circle me-1"></i>${isFullPlan ? "Full payment verified" : "50% verified"}</span>`
+              : `<span class="badge text-bg-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>${isFullPlan ? "Below full amount" : "Below 50%"}</span>
+                 <div class="small text-danger">Required ${money(proof.downpaymentRequired)}</div>`;
+
+        // Once approved the button is greyed out; it also stays disabled until the required payment is verified.
+        const isApproved = proof.status === "Approved";
+        const approveBtn = isApproved
+          ? `<button class="btn btn-sm btn-secondary proof-action-btn" data-action="Approved" disabled title="This payment is already approved"><i class="bi bi-check2-all me-1"></i>Approved</button>`
+          : proof.downpaymentVerified
+            ? `<button class="btn btn-sm btn-outline-success proof-action-btn" data-action="Approved">Approve</button>`
+            : `<button class="btn btn-sm btn-outline-secondary proof-action-btn" data-action="Approved" disabled title="The ${planWord} must be verified before approving">Approve</button>`;
+
         return `
           <tr data-proof-id="${proof.id}">
             <td>
@@ -97,24 +179,31 @@ async function initAdminSubmittedProofs() {
               <div class="small text-muted-brand">${cvrEscapeHtml(proof.email || "")}</div>
             </td>
             <td class="small">${cvrEscapeHtml(submitted)}</td>
-            <td class="small">${cvrEscapeHtml(proof.amount || "—")}<div class="small text-muted-brand">${cvrEscapeHtml(proof.paymentMethod || "")}</div></td>
+            <td class="small">${cvrEscapeHtml(proof.amount || "—")}<div class="small text-muted-brand">${cvrEscapeHtml(proof.paymentMethod || "")}</div>${dpBadge}</td>
             <td>
-              <a href="${cvrEscapeHtml(proof.fileUrl)}" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-2 text-decoration-none">
+              <button type="button" class="btn btn-link p-0 border-0 d-inline-flex align-items-center gap-2 text-decoration-none proof-view-btn" data-proof-view="${proof.id}" aria-label="View receipt">
                 ${thumb}<span class="small">View</span>
-              </a>
+              </button>
             </td>
             <td><span class="status-chip ${cvrProofStatusClass(proof.status)}">${cvrEscapeHtml(proof.status)}</span></td>
             <td>
               <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-outline-success proof-action-btn" data-action="Approved">Approve</button>
+                ${approveBtn}
                 <button class="btn btn-sm btn-outline-danger proof-action-btn" data-action="Rejected">Reject</button>
-                <button class="btn btn-sm btn-outline-secondary proof-delete-btn" title="Delete submission" aria-label="Delete submission"><i class="bi bi-trash3"></i></button>
+                <button class="btn btn-sm btn-outline-secondary proof-delete-btn admin-only-action" title="Delete submission" aria-label="Delete submission"><i class="bi bi-trash3"></i></button>
               </div>
             </td>
           </tr>
         `;
       })
       .join("");
+
+    tableBody.querySelectorAll("[data-proof-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = Number(btn.dataset.proofView);
+        cvrOpenReceiptModal(cvrLatestPaymentProofs.find((p) => Number(p.id) === id));
+      });
+    });
 
     tableBody.querySelectorAll(".proof-action-btn").forEach((button) => {
       button.addEventListener("click", async () => {

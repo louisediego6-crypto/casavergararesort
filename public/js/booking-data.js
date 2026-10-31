@@ -44,6 +44,7 @@ function cvrNormalizeServerEvent(row) {
     flatRate: Boolean(row.isFlatRate),
     doubleRateOn24hr: Boolean(row.doubleRateOn24hr),
     image: row.image || "",
+    imageDark: row.imageDark || "",
     inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
     motifs: Array.isArray(row.motifs) ? row.motifs : [],
     addOns: Array.isArray(row.addOns) ? row.addOns : [],
@@ -104,8 +105,40 @@ const PRIVATE_VENUE_FIXED_SCHEDULES = {
   },
 };
 
-function getFixedEventSchedule(packageOption) {
-  return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption] || null;
+/* Birthday packages run on the same fixed sessions as the Private Venue packages
+   (Morning 8 AM–5 PM or Night 7 PM–5 AM) but are always a single session —
+   no duration picker, no custom check-in time and no multi-day stay. */
+const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
+const BIRTHDAY_SESSION_SCHEDULES = {
+  morning: {
+    key: "morning",
+    name: "Morning session",
+    checkInTime: "08:00",
+    checkOutTime: "17:00",
+    label: "8:00 AM – 5:00 PM",
+    durationKey: "12hr",
+  },
+  night: {
+    key: "night",
+    name: "Night session",
+    checkInTime: "19:00",
+    checkOutTime: "05:00",
+    label: "7:00 PM – 5:00 AM (next day)",
+    durationKey: "12hr",
+  },
+};
+const BIRTHDAY_DEFAULT_SESSION = "morning";
+
+function isBirthdayPackage(packageOption) {
+  return BIRTHDAY_PACKAGE_KEYS.includes(packageOption);
+}
+
+function getFixedEventSchedule(packageOption, sessionKey) {
+  if (PRIVATE_VENUE_FIXED_SCHEDULES[packageOption]) return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption];
+  if (isBirthdayPackage(packageOption)) {
+    return BIRTHDAY_SESSION_SCHEDULES[sessionKey] || BIRTHDAY_SESSION_SCHEDULES[BIRTHDAY_DEFAULT_SESSION];
+  }
+  return null;
 }
 
 const EVENT_PACKAGE_CATALOG = {
@@ -510,47 +543,14 @@ const CVR_EVENT_PACKAGE_PRICES = Object.fromEntries(
 
 const ROOM_PACKAGE_ADDONS = {
   "standard-room": [
-    { id: "std-public-morning", label: "Public day-use entrance, morning (per pax)", price: 150 },
-    { id: "std-public-night", label: "Public day-use entrance, night (per pax)", price: 180 },
     { id: "std-table", label: "Table (6 pax)", price: 400 },
     { id: "std-long-table", label: "Long table", price: 600 },
     { id: "std-small-cottage", label: "Small cottage", price: 750 },
     { id: "std-big-cottage", label: "Big cottage", price: 1000 },
     { id: "std-gazebo", label: "Gazebo", price: 1200 },
-    { id: "std-function-hall", label: "Function hall (public rate)", price: 1500 },
+    { id: "std-function-hall", label: "Function hall", price: 1500 },
     { id: "std-videoke", label: "Videoke", price: 500 },
-    { id: "std-public-room", label: "Public room rate (10 hrs)", price: 1500 },
     { id: "std-gas-stove", label: "Gas stove use (per 6 hrs)", price: 400 },
-    { id: "std-extended-hour", label: "Extended stay (per additional hour)", price: 1000 },
-  ],
-  "deluxe-villa": [
-    { id: "dv-late-checkout", label: "Late checkout (until 2:00 PM)", price: 800 },
-    { id: "dv-breakfast", label: "In-villa breakfast setup", price: 1200 },
-    { id: "dv-decor", label: "Celebration room décor", price: 1500 },
-  ],
-  "single-room": [
-    { id: "sr-late-checkout", label: "Late checkout (until 1:00 PM)", price: 400 },
-    { id: "sr-extra-pillow", label: "Premium bedding upgrade", price: 350 },
-  ],
-  "family-suite": [
-    { id: "fs-late-checkout", label: "Late checkout (until 2:00 PM)", price: 900 },
-    { id: "fs-crib", label: "Baby crib & amenities", price: 500 },
-    { id: "fs-kids-setup", label: "Kids welcome setup", price: 750 },
-  ],
-  "ocean-view-suite": [
-    { id: "ovs-breakfast", label: "Balcony breakfast for two", price: 950 },
-    { id: "ovs-anniversary", label: "Anniversary décor package", price: 1200 },
-  ],
-  "beach-bungalow": [
-    { id: "bb-picnic", label: "Beach picnic setup", price: 1100 },
-    { id: "bb-bonfire", label: "Private bonfire arrangement", price: 2000 },
-  ],
-  "garden-view-room": [
-    { id: "gv-tea", label: "Garden afternoon tea", price: 650 },
-  ],
-  "honeymoon-suite": [
-    { id: "hm-rose-petals", label: "Rose petal turndown", price: 800 },
-    { id: "hm-spa", label: "Couples spa voucher", price: 2500 },
   ],
 };
 
@@ -818,11 +818,19 @@ function calculateDurationStayTotals(dateStr, durationKey, pricePerNight, select
   };
 }
 
-function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null) {
+const CVR_WHOLE_DAY_KEY = "Private Venue – Whole Day (2 Sessions)";
+
+// Per the printed price sheet, a 24-hour / 2-session private booking is ₱17,000 (not double the morning rate).
+function cvrWholeDayRate(pkg) {
+  const whole = Number(getEventPackageCatalog(CVR_WHOLE_DAY_KEY)?.price);
+  return whole > 0 ? whole : Math.max(0, Number(pkg?.price) || 0) * 2;
+}
+
+function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null) {
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
-  const fixedSchedule = getFixedEventSchedule(packageOption);
+  const fixedSchedule = getFixedEventSchedule(packageOption, sessionKey);
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
     : dur.buildWindow(dateStr, durationKey, nights, customCheckInTime, customCheckOutTime);
@@ -833,7 +841,7 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const rate = pkg?.flatRate
     ? Math.max(0, Number(basePrice) || 0)
     : pkg?.doubleRateOn24hr && durationKey === "24hr"
-    ? Math.max(0, Number(basePrice) || 0) * 2
+    ? cvrWholeDayRate(pkg)
     : dur.eventRate(basePrice, durationKey, nights);
   const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds);
   const paxSurcharge = calculatePaxSurcharge(pkg, guestCount);
@@ -845,7 +853,8 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
     durationKey,
-    durationLabel: fixedSchedule ? fixedSchedule.label : dur.get(durationKey).label,
+    durationLabel: fixedSchedule ? (fixedSchedule.name && isBirthdayPackage(packageOption) ? `${fixedSchedule.name} · ${fixedSchedule.label}` : fixedSchedule.label) : dur.get(durationKey).label,
+    eventSession: fixedSchedule && isBirthdayPackage(packageOption) ? fixedSchedule.key : null,
     ...window_,
     roomSubtotal: subRounded,
     addOnsTotal: addOns.total,
@@ -857,6 +866,20 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
 }
 
 const DOWNPAYMENT_PERCENT = 50;
+
+/** Guests can pay a 50% downpayment (default) or pay the full amount up front. */
+const PAYMENT_PLANS = {
+  downpayment: { key: "downpayment", percent: 50, label: "50% downpayment" },
+  full: { key: "full", percent: 100, label: "Full payment" },
+};
+
+function normalizePaymentPlan(plan) {
+  return plan === "full" ? "full" : "downpayment";
+}
+
+function paymentPlanPercent(plan) {
+  return PAYMENT_PLANS[normalizePaymentPlan(plan)].percent;
+}
 
 function computeDownpayment(totalNumeric, percent = DOWNPAYMENT_PERCENT) {
   const total = Number(totalNumeric) || 0;
@@ -871,146 +894,20 @@ const ROOM_PACKAGES = [
     id: "standard-room",
     title: "Standard Room",
     isActive: true,
-    tagline: "Good for 2 pax — the resort's walk-in rate",
+    tagline: "Good for 2 pax",
     description:
-      "Simple, no-frills room good for 2 guests, priced exactly like Casa Vergara's printed walk-in rate sheet: ₱250 for 3 hours, ₱800 for 12 hours, ₱1,400 for 24 hours.",
+      "Casa Vergara's standard room, good for 2 guests. Rates: ₱250 for 3 hours, ₱800 for 12 hours, ₱1,400 for 24 hours.",
     pricePerNight: 1400,
     currency: "PHP",
     capacity: { min: 1, max: 2 },
     areaSqm: null,
     bed: "1 Double Bed",
-    inclusions: ["Access to adult & kiddie pools", "Parking space", "Fan/AC room"],
+    inclusions: ["Good for 2 pax", "Parking space", "Access to the adult & kiddie pools"],
     image: "../images/booking-photo-4.png",
     standardCheckIn: "flexible",
     standardCheckOut: "flexible",
     availabilityNote:
-      "Non-refundable, no down payment / no reservation — first come, first served. A ₱1,000–₱2,000 refundable deposit is required for damages or losses.",
-  },
-  {
-    id: "deluxe-villa",
-    title: "Deluxe Room",
-    isActive: true,
-    tagline: "Private pool villa with garden views",
-    description:
-      "Spacious 85 m² villa with a private pool, king bed, and dedicated butler service — ideal for families or small groups seeking privacy.",
-    pricePerNight: 6500,
-    currency: "PHP",
-    capacity: { min: 1, max: 4 },
-    areaSqm: 85,
-    bed: "1 King Bed",
-    inclusions: ["Private pool", "Garden view", "Butler service", "Daily housekeeping", "Wi‑Fi"],
-    image: "../images/booking-photo-1.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Available year-round. Minimum 1 night. Peak season rates may apply.",
-  },
-  {
-    id: "single-room",
-    title: "Single Room",
-    isActive: true,
-    tagline: "Cozy stay for solo travelers",
-    description:
-      "Comfortable 28 m² room designed for one guest, with a single bed, workspace, and fast Wi‑Fi — great for quick stays and business trips.",
-    pricePerNight: 1800,
-    currency: "PHP",
-    capacity: { min: 1, max: 1 },
-    areaSqm: 28,
-    bed: "1 Single Bed",
-    inclusions: ["Workspace", "Smart TV", "Coffee/tea", "Wi‑Fi", "Daily housekeeping"],
-    image: "../images/booking-photo-4.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Limited rooms available. Best for 1 guest.",
-  },
-  {
-    id: "ocean-view-suite",
-    title: "Ocean View Suite",
-    isActive: true,
-    tagline: "Panoramic ocean views with balcony",
-    description:
-      "65 m² suite with king or twin setup, private balcony overlooking the sea, minibar, and premium bath amenities.",
-    pricePerNight: 3800,
-    currency: "PHP",
-    capacity: { min: 1, max: 3 },
-    areaSqm: 65,
-    bed: "1 King or 2 Twin",
-    inclusions: ["Ocean view", "Balcony", "Mini bar", "Rain shower", "Wi‑Fi"],
-    image: "../images/booking-photo-2.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "High demand — book early for weekends and holidays.",
-  },
-  {
-    id: "beach-bungalow",
-    title: "Beach Bungalow",
-    isActive: true,
-    tagline: "Steps from the sand",
-    description:
-      "Cozy 50 m² bungalow with queen bed, direct beach access, patio seating, and breakfast included.",
-    pricePerNight: 3200,
-    currency: "PHP",
-    capacity: { min: 1, max: 2 },
-    areaSqm: 50,
-    bed: "1 Queen Bed",
-    inclusions: ["Beach access", "Private patio", "Breakfast", "Wi‑Fi"],
-    image: "../images/booking-photo-3.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Limited units. Subject to tide and weather advisories.",
-  },
-  {
-    id: "garden-view-room",
-    title: "Garden View Room",
-    isActive: true,
-    tagline: "Tranquil garden outlook",
-    description:
-      "42 m² room with queen bed, smart TV, coffee maker, and quiet garden views.",
-    pricePerNight: 2500,
-    currency: "PHP",
-    capacity: { min: 1, max: 2 },
-    areaSqm: 42,
-    bed: "1 Queen Bed",
-    inclusions: ["Garden view", "Smart TV", "Coffee maker", "Wi‑Fi"],
-    image: "../images/booking-photo-4.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Best availability midweek.",
-  },
-  {
-    id: "family-suite",
-    title: "Family Room",
-    isActive: true,
-    tagline: "Two bedrooms and living space",
-    description:
-      "95 m² two-bedroom suite with king + twin beds, two bathrooms, living area, and kitchenette — perfect for families.",
-    pricePerNight: 4800,
-    currency: "PHP",
-    capacity: { min: 2, max: 6 },
-    areaSqm: 95,
-    bed: "1 King + 2 Twin",
-    inclusions: ["2 bathrooms", "Living area", "Kitchenette", "Wi‑Fi", "Sofa bed optional"],
-    image: "../images/booking-photo-1.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Connecting rooms available on request.",
-  },
-  {
-    id: "honeymoon-suite",
-    title: "Honeymoon Suite",
-    isActive: true,
-    tagline: "Jacuzzi and ocean outlook",
-    description:
-      "75 m² romantic suite with king bed, jacuzzi, ocean views, and enhanced turndown service.",
-    pricePerNight: 5500,
-    currency: "PHP",
-    capacity: { min: 1, max: 2 },
-    areaSqm: 75,
-    bed: "1 King Bed",
-    inclusions: ["Jacuzzi", "Ocean view", "Butler on call", "Sparkling welcome", "Wi‑Fi"],
-    image: "../images/booking-photo-2.png",
-    standardCheckIn: "15:00",
-    standardCheckOut: "Anytime (flexible)",
-    availabilityNote: "Includes honeymoon amenities package.",
+      "Public day-use entrance is ₱150/head (morning) or ₱180/head (night). First come, first served. Non-refundable. A ₱1,000–₱2,000 refundable deposit is required for damages or losses.",
   },
 ];
 
@@ -1235,6 +1132,25 @@ function createQuotationLineId() {
   return `ql-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/**
+ * Amount (positive PHP) a voucher gives on a subtotal. Mirrors cvr_voucher_discount() in PHP.
+ */
+function computeVoucherDiscount(voucher, subtotal) {
+  const base = Number(subtotal) || 0;
+  if (!voucher || base <= 0) return 0;
+  const value = Number(voucher.discountValue ?? voucher.voucherValue) || 0;
+  const type = voucher.discountType ?? voucher.voucherType;
+  let amount;
+  if (type === "percent") {
+    amount = (base * Math.min(100, value)) / 100;
+    const cap = Number(voucher.maxDiscount ?? voucher.voucherMax) || 0;
+    if (cap > 0) amount = Math.min(amount, cap);
+  } else {
+    amount = value;
+  }
+  return Math.round(Math.min(amount, base) * 100) / 100;
+}
+
 function recalculateQuotationTotals(lines) {
   const active = (lines || []).filter((line) => line.approved !== false);
   const sumType = (type) =>
@@ -1244,13 +1160,79 @@ function recalculateQuotationTotals(lines) {
   const specialTotal = active
     .filter((line) => line.type === "special" || line.type === "custom")
     .reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
-  const totalNumeric = Math.round((packageTotal + addonTotal + specialTotal) * 100) / 100;
+  const grossTotal = Math.round((packageTotal + addonTotal + specialTotal) * 100) / 100;
+
+  // Discount / voucher lines are stored as negative amounts. Voucher percentages are re-worked on the
+  // current gross so they stay right when an admin edits the quotation.
+  let remaining = grossTotal;
+  let discountTotal = 0;
+  (lines || []).forEach((line) => {
+    if (line.type !== "discount") return;
+    if (line.approved === false) {
+      return;
+    }
+    let amount;
+    if (line.voucherType) {
+      amount = computeVoucherDiscount(
+        { discountType: line.voucherType, discountValue: line.voucherValue, maxDiscount: line.voucherMax },
+        remaining
+      );
+    } else {
+      amount = Math.min(Math.abs(Number(line.amount) || 0), Math.max(0, remaining));
+    }
+    amount = Math.round(amount * 100) / 100;
+    line.amount = -amount;
+    line.unitPrice = -amount;
+    line.qty = 1;
+    remaining = Math.round((remaining - amount) * 100) / 100;
+    discountTotal = Math.round((discountTotal + amount) * 100) / 100;
+  });
+
+  const totalNumeric = Math.max(0, Math.round((grossTotal - discountTotal) * 100) / 100);
   return {
     subtotalPackage: packageTotal,
     subtotalAddOns: addonTotal,
     subtotalSpecial: specialTotal,
+    subtotalDiscount: discountTotal,
+    grossTotal,
     totalNumeric,
   };
+}
+
+/** The voucher line on a quotation, if any. */
+function getQuotationVoucherLine(quotation) {
+  return (quotation?.lines || []).find((line) => line.type === "discount" && line.voucherCode) || null;
+}
+
+/** Adds (or replaces) the voucher discount line. One voucher per reservation. */
+function addVoucherToQuotation(quotation, voucher) {
+  if (!quotation || !voucher) return quotation;
+  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
+  quotation.lines.push({
+    id: createQuotationLineId(),
+    type: "discount",
+    label: `Voucher ${voucher.code} — ${voucher.title}`,
+    description: voucher.discountType === "percent" ? `${Number(voucher.discountValue)}% off` : "",
+    qty: 1,
+    unitPrice: 0,
+    amount: 0,
+    approved: true,
+    source: "voucher",
+    voucherCode: voucher.code,
+    voucherTitle: voucher.title,
+    voucherType: voucher.discountType,
+    voucherValue: Number(voucher.discountValue) || 0,
+    voucherMax: voucher.maxDiscount != null ? Number(voucher.maxDiscount) : null,
+  });
+  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
+  return quotation;
+}
+
+function removeVoucherFromQuotation(quotation) {
+  if (!quotation) return quotation;
+  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
+  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
+  return quotation;
 }
 
 function cvrScheduleDescription(reservation) {
@@ -1363,7 +1345,13 @@ function applyQuotationToReservation(reservation, quotation) {
   reservation.totalAmount = cat ? cat.formatMoney(quotation.totalNumeric, currency) : String(quotation.totalNumeric);
   reservation.currency = currency;
 
-  const dp = computeDownpayment(quotation.totalNumeric);
+  const plan = normalizePaymentPlan(reservation.paymentPlan);
+  reservation.paymentPlan = plan;
+  const dp = computeDownpayment(quotation.totalNumeric, paymentPlanPercent(plan));
+  reservation.discountAmount = quotation.subtotalDiscount || 0;
+  const voucherLine = getQuotationVoucherLine(quotation);
+  reservation.voucherCode = voucherLine ? voucherLine.voucherCode : "";
+  quotation.paymentPlan = plan;
   reservation.downpaymentPercent = dp.percent;
   reservation.downpaymentAmount = dp.downpayment;
   reservation.balanceAmount = dp.balance;
@@ -1381,6 +1369,10 @@ window.CVRQuotation = {
   recalculateQuotationTotals,
   buildQuotationFromReservation,
   applyQuotationToReservation,
+  computeVoucherDiscount,
+  getQuotationVoucherLine,
+  addVoucherToQuotation,
+  removeVoucherFromQuotation,
 };
 
 window.CVRBookingCatalog = {
@@ -1391,6 +1383,8 @@ window.CVRBookingCatalog = {
   getRoomPackageById,
   getEventPackageCatalog,
   getFixedEventSchedule,
+  isBirthdayPackage,
+  BIRTHDAY_SESSION_SCHEDULES,
   getEventMotifs,
   getPackageAddOns,
   sumSelectedAddOns,
@@ -1401,6 +1395,7 @@ window.CVRBookingCatalog = {
   calculateDurationStayTotals,
   calculateDurationEventTotal,
   calculatePaxSurcharge,
+  cvrWholeDayRate,
   setPendingReservation,
   getPendingReservation,
   clearPendingReservation,
@@ -1412,6 +1407,9 @@ window.CVRBookingCatalog = {
   getEventPackageKeys,
   isEventPackageActive,
   DOWNPAYMENT_PERCENT,
+  PAYMENT_PLANS,
+  normalizePaymentPlan,
+  paymentPlanPercent,
   computeDownpayment,
   createEventPackage,
   updateEventPackage,

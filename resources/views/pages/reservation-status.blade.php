@@ -2,8 +2,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../js/theme.js?v=20261024f"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Reservation Payment Status</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,6 +16,15 @@
   <link href="../css/polish.css?v=20260830i" rel="stylesheet">
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
+  <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -45,6 +58,7 @@
               <div class="col-md-6"><strong>Check-in / event date:</strong> <span id="statusCheckIn">—</span></div>
               <div class="col-md-6"><strong>Check-out:</strong> <span id="statusCheckOut">—</span></div>
               <div class="col-md-6"><strong>Event time:</strong> <span id="statusEventTime">—</span></div>
+              <div class="col-md-6 d-none" id="statusSessionRow"><strong>Session:</strong> <span id="statusSession" class="acct-session-chip">—</span></div>
               <div class="col-md-6"><strong>Guests:</strong> <span id="statusGuests">—</span></div>
               <div class="col-md-6"><strong>Duration:</strong> <span id="statusNights">—</span></div>
               <div class="col-md-6"><strong>Motif / theme:</strong> <span id="statusMotif">—</span></div>
@@ -111,8 +125,9 @@
             <h5 class="text-brand">Payment summary</h5>
             <div class="d-flex justify-content-between small"><span>Package subtotal</span><span id="statusPaySubtotal">—</span></div>
             <div class="d-flex justify-content-between small d-none" id="statusPayAddOnsRow"><span>Add-ons</span><span id="statusPayAddOns">—</span></div>
+            <div class="d-flex justify-content-between small text-success d-none" id="statusPayDiscountRow"><span><i class="bi bi-ticket-perforated me-1"></i>Voucher discount</span><span id="statusPayDiscount">—</span></div>
             <hr><div class="d-flex justify-content-between"><strong>Total package price</strong><strong id="statusPayTotal">—</strong></div>
-            <div class="d-flex justify-content-between small mt-2"><span>Downpayment (<span id="statusDownpaymentPercent">50</span>%)</span><span id="statusDownpaymentAmount">—</span></div>
+            <div class="d-flex justify-content-between small mt-2"><span><span id="statusDpLabel">Downpayment</span> (<span id="statusDownpaymentPercent">50</span>%)</span><span id="statusDownpaymentAmount">—</span></div>
             <div class="d-flex justify-content-between small text-muted-brand"><span>Balance due before <span id="statusBalanceLabel">check-in</span></span><span id="statusBalanceAmount">—</span></div>
           </div>
         </div>
@@ -123,8 +138,8 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20260924d"></script>
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/booking-data.js?v=20261031a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script>renderNavbar(""); renderFooter();</script>
 </body>
 </html>

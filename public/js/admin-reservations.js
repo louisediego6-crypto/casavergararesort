@@ -9,6 +9,7 @@ function initAdminReservationsPage() {
   const dateTo = document.getElementById("reservationDateTo");
   const exportBtn = document.getElementById("reservationExportBtn");
   const exportPdfBtn = document.getElementById("reservationExportPdfBtn");
+  const exportXlsxBtn = document.getElementById("reservationExportXlsxBtn");
   const exportStatus = document.getElementById("reservationExportStatus");
   const quoteFilter = document.getElementById("quotationStatusFilter");
   const resultCountBadge = document.getElementById("reservationResultCount");
@@ -296,13 +297,13 @@ function initAdminReservationsPage() {
             ${line.description ? `<small class="text-muted-brand d-block mt-1">${escapeHtml(line.description)}</small>` : ""}
           </td>
           <td><input type="number" min="0" step="0.01" class="form-control form-control-sm admin-quote-qty" value="${line.qty ?? 1}"></td>
-          <td>${unitInputHtml(line.unitPrice ?? line.amount ?? 0)}</td>
-          <td class="admin-quote-amount fw-semibold">${fmtMoney(line.amount ?? 0, q.currency)}</td>
+          <td>${line.type === "discount" ? `<input type="text" class="form-control form-control-sm admin-quote-unit" value="Voucher" readonly data-real-unit="${Number(line.unitPrice ?? line.amount ?? 0)}">` : unitInputHtml(line.unitPrice ?? line.amount ?? 0)}</td>
+          <td class="admin-quote-amount fw-semibold">${line.type === "discount" ? "−" + fmtMoney(Math.abs(line.amount ?? 0), q.currency) : fmtMoney(line.amount ?? 0, q.currency)}</td>
           <td class="text-center">
             <input type="checkbox" class="form-check-input admin-quote-approved" ${line.approved !== false ? "checked" : ""}>
           </td>
           <td>
-            ${line.type === "custom" ? `<button type="button" class="btn btn-sm btn-outline-danger admin-quote-remove-line">Remove</button>` : ""}
+            ${line.type === "custom" || line.type === "discount" ? `<button type="button" class="btn btn-sm btn-outline-danger admin-quote-remove-line">Remove</button>` : ""}
           </td>
         </tr>`
       )
@@ -349,9 +350,10 @@ function initAdminReservationsPage() {
         <div class="d-flex justify-content-between small mb-1"><span>Package subtotal</span><strong id="adminQuotePackageTotal">${fmtMoney(q.subtotalPackage, q.currency)}</strong></div>
         <div class="d-flex justify-content-between small mb-1"><span>Add-ons</span><strong id="adminQuoteAddonTotal">${fmtMoney(q.subtotalAddOns, q.currency)}</strong></div>
         <div class="d-flex justify-content-between small mb-1"><span>Special / custom</span><strong id="adminQuoteSpecialTotal">${fmtMoney(q.subtotalSpecial, q.currency)}</strong></div>
+        <div class="d-flex justify-content-between small mb-1 text-success${q.subtotalDiscount > 0 ? "" : " d-none"}" id="adminQuoteDiscountRow"><span>Voucher / discount</span><strong id="adminQuoteDiscountTotal">−${fmtMoney(q.subtotalDiscount || 0, q.currency)}</strong></div>
         <hr class="my-2">
         <div class="d-flex justify-content-between"><span class="fw-bold text-brand">Quotation total</span><strong class="text-brand" id="adminQuoteGrandTotal">${isFullAdmin ? escapeHtml(r.totalAmount || fmtMoney(q.totalNumeric, q.currency)) : "—"}</strong></div>
-        <div class="d-flex justify-content-between small mt-2 text-primary"><span>Downpayment due (${q.downpaymentPercent ?? 50}%)</span><strong id="adminQuoteDownpayment">${fmtMoney(q.downpaymentAmount ?? 0, q.currency)}</strong></div>
+        <div class="d-flex justify-content-between small mt-2 text-primary"><span>${(q.downpaymentPercent ?? 50) >= 100 ? "Full payment due (guest chose to pay in full)" : `Downpayment due (${q.downpaymentPercent ?? 50}%)`}</span><strong id="adminQuoteDownpayment">${fmtMoney(q.downpaymentAmount ?? 0, q.currency)}</strong></div>
         <div class="d-flex justify-content-between small text-muted-brand"><span>Balance due</span><span id="adminQuoteBalance">${fmtMoney(q.balanceAmount ?? 0, q.currency)}</span></div>
       </div>
       <div id="adminQuoteMessage" class="small mt-2" aria-live="polite"></div>`;
@@ -368,6 +370,11 @@ function initAdminReservationsPage() {
       const source = row.dataset.source || existing.source || "";
       const catalogId = row.dataset.catalogId || existing.catalogId || "";
       const description = row.dataset.description || existing.description || "";
+      if (type === "discount") {
+        const dLabel = row.querySelector(".admin-quote-label")?.value?.trim() || existing.label || "Discount";
+        const dApproved = row.querySelector(".admin-quote-approved")?.checked !== false;
+        return { ...existing, id, type, label: dLabel, approved: dApproved };
+      }
       const qty = Math.max(1, Number(row.querySelector(".admin-quote-qty")?.value) || 1);
       const unitInput = row.querySelector(".admin-quote-unit");
       const unitPrice = isFullAdmin
@@ -391,7 +398,16 @@ function initAdminReservationsPage() {
     document.getElementById("adminQuoteAddonTotal").textContent = fmtMoney(q.subtotalAddOns, q.currency);
     document.getElementById("adminQuoteSpecialTotal").textContent = fmtMoney(q.subtotalSpecial, q.currency);
     document.getElementById("adminQuoteGrandTotal").textContent = q.totalAmount;
-    const dp = window.CVRBookingCatalog.computeDownpayment(totals.totalNumeric);
+    const discRow = document.getElementById("adminQuoteDiscountRow");
+    if (discRow) {
+      discRow.classList.toggle("d-none", !(totals.subtotalDiscount > 0));
+      const discEl = document.getElementById("adminQuoteDiscountTotal");
+      if (discEl) discEl.textContent = "−" + fmtMoney(totals.subtotalDiscount || 0, q.currency);
+    }
+    const dp = window.CVRBookingCatalog.computeDownpayment(
+      totals.totalNumeric,
+      window.CVRBookingCatalog.paymentPlanPercent(record.paymentPlan)
+    );
     const dpEl = document.getElementById("adminQuoteDownpayment");
     const balEl = document.getElementById("adminQuoteBalance");
     if (dpEl) dpEl.textContent = fmtMoney(dp.downpayment, q.currency);
@@ -608,6 +624,14 @@ function initAdminReservationsPage() {
       return;
     }
     window.CVRAdminExport.downloadReservationPageExport("docx", exportBtn, exportStatus);
+  });
+
+  exportXlsxBtn?.addEventListener("click", () => {
+    if (!window.CVRAdminExport) {
+      window.alert("Export module not loaded.");
+      return;
+    }
+    window.CVRAdminExport.downloadReservationPageExport("xlsx", exportXlsxBtn, exportStatus);
   });
 
   exportPdfBtn?.addEventListener("click", () => {

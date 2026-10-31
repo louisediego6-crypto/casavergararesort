@@ -28,7 +28,8 @@ function initBookingPage() {
     feedback.textContent = message;
     feedback.classList.remove("d-none", "alert-success", "alert-danger");
     feedback.classList.add(isError ? "alert-danger" : "alert-success");
-    window.setTimeout(() => feedback.classList.add("d-none"), 5000);
+    if (isError) feedback.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => feedback.classList.add("d-none"), 8000);
   };
 
   const playSwitchAnim = (el) => {
@@ -134,6 +135,14 @@ function initBookingPage() {
   });
   syncCheckOutVisibility();
 
+  // Mobile/tablet: floating shortcut back to the date filters once they scroll out of view.
+  const floatBtn = document.getElementById("bkFloat");
+  const filterCard = document.getElementById("bkFilterCard");
+  if (floatBtn && filterCard && "IntersectionObserver" in window) {
+    new IntersectionObserver(([entry]) => floatBtn.classList.toggle("show", !entry.isIntersecting && bookingTypeSelect.value === "room"), { threshold: 0 }).observe(filterCard);
+    floatBtn.addEventListener("click", () => filterCard.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
   const validateRoomBooking = (pkg, checkIn, durationKey, guestsNum, nights, checkInSelection, checkOutSelection) => {
     if (!checkIn) return "Please select your check-in date.";
     const today = new Date().toISOString().slice(0, 10);
@@ -186,10 +195,14 @@ function initBookingPage() {
     const nights = durationKey === "extended" ? getSelectedNights() : 1;
     const checkInSelection = getCheckInTimeSelection();
     const checkOutSelection = durationKey === "extended" ? getCheckOutTimeSelection() : { time: null, incomplete: false, outOfRange: false };
-    const guestsNum = Math.min(
-      Math.max(pkg.capacity?.min ?? 1, 1),
-      Math.max(pkg.capacity?.max ?? 1, 1)
-    );
+    // Guests are what the visitor typed in the room dialog: adults and kids are counted separately.
+    const roomAdults = Math.max(0, parseInt(document.getElementById("roomAdults")?.value, 10) || 0);
+    const roomChildren = Math.max(0, parseInt(document.getElementById("roomChildren")?.value, 10) || 0);
+    const guestsNum = roomAdults + roomChildren;
+    if (roomAdults < 1) {
+      showMessage("Please enter at least one adult.", true);
+      return;
+    }
 
     const err = validateRoomBooking(pkg, checkIn, durationKey, guestsNum, nights, checkInSelection, checkOutSelection);
     if (err) {
@@ -213,9 +226,12 @@ function initBookingPage() {
       checkInLabel: win.checkInLabel,
       checkOutLabel: win.checkOutLabel,
       guests: guestsNum,
+      adults: roomAdults,
+      children: roomChildren,
       createdAt: new Date().toISOString(),
     });
-    window.location.href = "reservation-form.html";
+    if (typeof window.cvrGoToReservationForm === "function") window.cvrGoToReservationForm();
+    else window.location.href = "reservation-form.html";
   };
   window.cvrBookRoom = bookRoom;
 
@@ -249,45 +265,60 @@ function initBookingPage() {
         const extendedRateLine = extendedNightsValid
           ? `<div class="d-flex justify-content-between"><span>Multi-Day (${extendedNights} night${extendedNights !== 1 ? "s" : ""})</span><strong class="text-brand">${cat.formatMoney(rateExtended, pkg.currency)}</strong></div>`
           : `<div class="d-flex justify-content-between"><span>Multi-Day (${extMinNights}–${extMaxNights} nights)</span><span class="text-muted-brand fst-italic">Pick a check-out date above</span></div>`;
+        const rateBox = (label, time, price) => `<div class="bk-rate"><span class="l">${label}</span><span class="t">${time}</span><span class="p">${cat.formatMoney(price, pkg.currency)}</span></div>`;
+        const extBox = extendedNightsValid
+          ? `<div class="bk-rate ext"><span class="l">Multi-Day</span><span class="t">${extendedNights} night${extendedNights !== 1 ? "s" : ""}</span><span class="p">${cat.formatMoney(rateExtended, pkg.currency)}</span></div>`
+          : `<div class="bk-rate ext"><span class="l">Multi-Day</span><span class="t">${extMinNights}–${extMaxNights} nights</span><span class="p hint">Pick a check-out date above</span></div>`;
         return `
       <div class="col-12 col-md-6 col-lg-4" id="pkg-${pkg.id}">
         <div class="soft-card overflow-hidden h-100 booking-room-card d-flex flex-column">
           <div class="room-cover-wrap" data-package-id="${escapeHtml(pkg.id)}" role="button" tabindex="0" aria-label="View ${escapeHtml(pkg.title)} details and reviews">
-            <img class="room-cover" src="${window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image}" alt="${escapeHtml(pkg.title)}">
+            <img class="room-cover" loading="lazy" src="${window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image}" alt="${escapeHtml(pkg.title)}">
+            <span class="bk-price-badge">from <strong>${cat.formatMoney(rate3, pkg.currency)}</strong> / 3 hrs</span>
             <div class="room-cover-overlay">
               <span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View details &amp; reviews</span>
             </div>
           </div>
           <div class="p-4 d-flex flex-column flex-grow-1">
-            <h5 class="text-brand mb-1">${pkg.title}</h5>
-            <p class="small text-muted-brand mb-2">${pkg.tagline}</p>
-            <p class="small text-muted-brand mb-2">${pkg.description}</p>
-            <ul class="small text-muted-brand ps-3 mb-2">
-              <li>${pkg.areaSqm} m² · ${pkg.bed}</li>
-              <li>Guests: ${pkg.capacity.min}–${pkg.capacity.max}</li>
-            </ul>
-            <p class="small mb-2"><span class="fw-semibold text-brand">Includes:</span> ${inc}${more}</p>
-            <div class="cvr-duration-rates small mb-2 border-top pt-2">
-              <div class="d-flex justify-content-between"><span>3-Hour Quick Stay (${label3})</span><strong class="text-brand">${cat.formatMoney(rate3, pkg.currency)}</strong></div>
-              <div class="d-flex justify-content-between"><span>12-Hour Day Tour (${label12})</span><strong class="text-brand">${cat.formatMoney(rate12, pkg.currency)}</strong></div>
-              <div class="d-flex justify-content-between"><span>24-Hour Overnight (${label24})</span><strong class="text-brand">${cat.formatMoney(rate24, pkg.currency)}</strong></div>
-              ${extendedRateLine}
+            <div>
+              <h5 class="text-brand">${pkg.title}</h5>
+              <p class="small text-muted-brand mb-0">${pkg.tagline}</p>
             </div>
-            <p class="small text-muted-brand fst-italic mb-3">${pkg.availabilityNote} Arrival time is flexible and check-out follows exactly one full duration later, so you always get the complete 3, 12, or 24 hours; overtime is billed per hour past that check-out time.</p>
-            <div class="d-flex ${isStaffBrowsing ? "justify-content-end" : "justify-content-end"} align-items-center mt-auto pt-2 border-top">
-              ${isStaffBrowsing
-                ? `<button type="button" class="btn btn-outline-primary room-view-btn" data-package-id="${pkg.id}">
-                     <i class="bi bi-eye me-1"></i>View details
-                   </button>`
-                : `<button type="button" class="btn btn-brand booking-now-btn room-book-btn" data-package-id="${pkg.id}">
-                     Book Now
-                   </button>`}
+            <ul class="bk-chips">
+              <li><i class="bi bi-people"></i>${pkg.capacity.min}–${pkg.capacity.max} guests</li>
+              <li><i class="bi bi-rulers"></i>${pkg.areaSqm} m²</li>
+              <li><i class="bi bi-moon-stars"></i>${pkg.bed}</li>
+            </ul>
+            <p class="bk-desc">${pkg.description}</p>
+            <p class="bk-incl"><b>Includes:</b> ${inc}${more}</p>
+            <div class="bk-rates">
+              ${rateBox("3-Hour Quick Stay", label3, rate3)}
+              ${rateBox("12-Hour Day Tour", label12, rate12)}
+              ${rateBox("24-Hour Overnight", label24, rate24)}
+              ${extBox}
+            </div>
+            <details class="bk-note">
+              <summary>Timing &amp; overtime info</summary>
+              <p class="mt-1 mb-0">${pkg.availabilityNote} Arrival time is flexible and check-out follows exactly one full duration later, so you always get the complete 3, 12, or 24 hours; overtime is billed per hour past that check-out time.</p>
+            </details>
+            <div class="bk-actions">
+              <button type="button" class="btn btn-outline-primary room-view-btn" data-package-id="${pkg.id}"><i class="bi bi-eye me-1"></i>Details</button>
+              ${isStaffBrowsing ? "" : `<button type="button" class="btn btn-brand booking-now-btn room-book-btn" data-package-id="${pkg.id}">Book Now</button>`}
             </div>
           </div>
         </div>
       </div>`;
       })
       .join("");
+
+    const metaEl = document.getElementById("bkResultsMeta");
+    if (metaEl) {
+      const count = grid.querySelectorAll(".booking-room-card").length;
+      const durSel = document.getElementById("stayDuration");
+      const durText = durSel?.selectedOptions?.[0]?.textContent?.trim() || "";
+      const dateText = document.getElementById("checkInDateDisplay")?.value || "";
+      metaEl.innerHTML = `<strong>${count}</strong> room${count !== 1 ? "s" : ""} shown${dateText ? ` · ${escapeHtml(dateText)}` : ""}${durText ? ` · ${escapeHtml(durText)}` : ""}`;
+    }
 
     grid.querySelectorAll(".room-cover-wrap").forEach((wrap) => {
       const open = () => window.cvrShowRoomDetails?.(wrap.dataset.packageId);
@@ -305,7 +336,10 @@ function initBookingPage() {
     });
 
     grid.querySelectorAll(".room-book-btn").forEach((button) => {
-      button.addEventListener("click", () => bookRoom(button.dataset.packageId));
+      button.addEventListener("click", () => {
+        if (typeof window.cvrShowRoomDetails === "function") window.cvrShowRoomDetails(button.dataset.packageId);
+        else bookRoom(button.dataset.packageId);
+      });
     });
 
     const params = new URLSearchParams(window.location.search);
@@ -380,7 +414,10 @@ function initBookingPage() {
     ];
     const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
 
-    const getFixedSchedule = (key) => cat.getFixedEventSchedule?.(key) || null;
+    const sessionRadios = () => Array.from(document.querySelectorAll('input[name="eventBirthdaySession"]'));
+    const getBirthdaySession = () => sessionRadios().find((r) => r.checked)?.value || "morning";
+    const getFixedSchedule = (key) => cat.getFixedEventSchedule?.(key, getBirthdaySession()) || null;
+    const isBirthdayKey = (key) => Boolean(cat.isBirthdayPackage?.(key));
 
     const FIXED_DURATION_ONLY = {
       "Wedding Package": "24hr",
@@ -392,6 +429,7 @@ function initBookingPage() {
     const venueGroupEl = document.getElementById("eventTypeVenueGroup");
     const birthdayWrapEl = document.getElementById("eventBirthdayPackageWrap");
     const birthdayEl = document.getElementById("eventBirthdayPackage");
+    const birthdaySessionWrapEl = document.getElementById("eventBirthdaySessionWrap");
     const otherSpecifyWrapEl = document.getElementById("eventOtherSpecifyWrap");
     const otherSpecifyEl = document.getElementById("eventOtherSpecify");
     const detailsEl = document.getElementById("eventPackageDetails");
@@ -460,10 +498,11 @@ function initBookingPage() {
       const selectedKey = getSelectedPackageKey();
       const schedule = getFixedSchedule(selectedKey);
       const fixedDurationKey = getFixedDurationOnly(selectedKey);
+      birthdaySessionWrapEl?.classList.toggle("d-none", !isBirthdayKey(selectedKey));
       durationWrapEl?.classList.toggle("d-none", Boolean(schedule) || Boolean(fixedDurationKey));
       checkInTimeWrapEl?.classList.toggle("d-none", Boolean(schedule));
       fixedNoteEl?.classList.toggle("d-none", !schedule);
-      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = schedule.label;
+      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = isBirthdayKey(selectedKey) ? `${schedule.name}: ${schedule.label}.` : schedule.label;
       if (schedule) {
 
         const durationEl = document.getElementById("eventDuration");
@@ -507,7 +546,7 @@ function initBookingPage() {
       const durationRate = pkg.flatRate
         ? Math.max(0, Number(pkg.price) || 0)
         : pkg.doubleRateOn24hr && durationKey === "24hr"
-        ? Math.max(0, Number(pkg.price) || 0) * 2
+        ? (cat.cvrWholeDayRate ? cat.cvrWholeDayRate(pkg) : Math.max(0, Number(pkg.price) || 0) * 2)
         : window.CVRDuration
         ? window.CVRDuration.eventRate(pkg.price, durationKey, eventNights)
         : pkg.price;
@@ -520,20 +559,36 @@ function initBookingPage() {
         : pkg.extraPaxRate && pkg.maxPax
         ? `Good for ${pkg.pax} pax (up to ${pkg.maxPax} pax, +₱${Number(pkg.extraPaxRate).toLocaleString()}/person past ${pkg.pax})`
         : `Good for ${pkg.pax} pax`;
-      const priceLabel = pkg.flatRate
+      const birthdaySchedule = isBirthdayKey(key) ? getFixedSchedule(key) : null;
+      const priceLabel = birthdaySchedule
+        ? `package price · ${birthdaySchedule.name} (${birthdaySchedule.label})`
+        : pkg.flatRate
         ? "flat package price — same regardless of duration selected"
         : pkg.isCustom
         ? `starting price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`
         : `package price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`;
       const addOnCount = pkg.addOns?.length || 0;
       detailsEl.classList.remove("d-none");
-      const photo = pkg.image
-        ? `<img src="${escapeHtml(window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image)}" alt="${escapeHtml(key)}" class="w-100 rounded-3 mb-3" style="max-height:220px;object-fit:cover;">`
-        : "";
+      const mediaKind = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.kindOf(pkg.image) : "image";
+      const coverUrl = pkg.image ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image) : "";
+      const coverDarkUrl = pkg.imageDark && mediaKind === "image" ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.imageDark) : pkg.imageDark) : "";
+      // Same look as the room cards: photo + price badge + "View details" overlay.
+      // Photos open the details dialog; other file types (PDF, video, docs...) open the file viewer.
+      const photo = !pkg.image
+        ? ""
+        : mediaKind === "image"
+        ? `<div class="room-cover-wrap bk-event-cover${isBirthdayKey(key) ? " cvr-themed-photo" : ""}${coverDarkUrl ? " cvr-has-dark" : ""}" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
+            <img class="room-cover${coverDarkUrl ? " cvr-img-light" : ""}" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(key)}">${coverDarkUrl ? `<img class="room-cover cvr-img-dark" src="${escapeHtml(coverDarkUrl)}" alt="${escapeHtml(key)}">` : ""}
+            <span class="bk-price-badge"><strong>${escapeHtml(money)}</strong></span>
+            <div class="room-cover-overlay"><span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View package details</span></div>
+          </div>`
+        : window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark });
+      lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, eventNights, guestCountVal, paxSurcharge };
       detailsEl.innerHTML = `
-        <div class="soft-card p-3 border">
+        <div class="soft-card overflow-hidden border bk-event-pkg">
           ${photo}
-          <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="p-3">
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
             <div>
               <h6 class="text-brand mb-1">${escapeHtml(key)}</h6>
               <div class="small text-muted-brand">${escapeHtml(paxLabel)}</div>
@@ -553,9 +608,68 @@ function initBookingPage() {
               ? `<div class="small text-primary mt-3 mb-0"><i class="bi bi-stars me-1"></i>Mix and match — choose your own lighting, sound, motif, and decor add-ons on the next step (${addOnCount} options available).</div>`
               : ""
           }
+          ${pkg.image && mediaKind === "image" ? `<button type="button" class="btn btn-outline-primary btn-sm mt-3" data-event-details><i class="bi bi-info-circle me-1"></i>View package details</button>` : ""}
+          </div>
         </div>
       `;
     };
+
+    // ---- Event package details dialog (same style as the room details dialog) ----
+    let lastEventView = null;
+    const openEventDetails = () => {
+      const v = lastEventView;
+      const modalEl = document.getElementById("eventDetailsModal");
+      if (!v || !modalEl || typeof bootstrap === "undefined") return;
+      const { key, pkg } = v;
+      const q = (sel) => modalEl.querySelector(sel);
+      q("#eventDetailsTitle").textContent = key;
+      q("#eventDetailsTagline").textContent = v.paxLabel;
+      q("#eventDetailsPrice").textContent = v.money;
+      q("#eventDetailsPriceNote").textContent = v.priceLabel;
+      q("#eventDetailsSurcharge").textContent = v.paxSurcharge
+        ? `+ ${cat.formatMoney(v.paxSurcharge.price, "PHP")} for ${v.guestCountVal} guests`
+        : "";
+      // Photo: click it to open the full-size viewer (works for any file type).
+      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark }) : "";
+
+      const schedule = getFixedSchedule(key);
+      const facts = [
+        `Capacity: ${pkg.isCustom ? `flexible, up to ${pkg.pax} pax` : pkg.maxPax ? `${pkg.pax} pax included, up to ${pkg.maxPax} pax` : `${pkg.pax} pax`}`,
+        pkg.extraPaxRate && pkg.maxPax ? `Extra guests: +${cat.formatMoney(pkg.extraPaxRate, "PHP")} per person past ${pkg.pax}` : "",
+        schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Check-in is flexible; check-out follows your chosen duration",
+        pkg.flatRate ? "Flat package price, same regardless of duration" : "",
+      ].filter(Boolean);
+      q("#eventDetailsFacts").innerHTML = facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+      q("#eventDetailsInclusions").innerHTML = (pkg.inclusions || []).map((i) => `<li>${escapeHtml(i)}</li>`).join("");
+
+      const addOns = pkg.addOns || [];
+      q("#eventDetailsAddonsWrap").classList.toggle("d-none", !addOns.length);
+      q("#eventDetailsAddons").innerHTML = addOns
+        .map((a) => `<li>${escapeHtml(a.label)}${Number(a.price) ? ` <span class="text-brand fw-semibold">· ${escapeHtml(cat.formatMoney(Number(a.price), "PHP"))}</span>` : ""}</li>`)
+        .join("");
+
+      const motifs = (cat.getEventMotifs ? cat.getEventMotifs(key) : pkg.motifs) || [];
+      q("#eventDetailsMotifsWrap").classList.toggle("d-none", !motifs.length);
+      q("#eventDetailsMotifs").innerHTML = motifs.map((m) => `<span class="bk-motif-chip">${escapeHtml(m.label)}</span>`).join("");
+
+      const cont = q("#eventDetailsContinueBtn");
+      if (cont) {
+        cont.onclick = () => {
+          bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+          document.getElementById("eventAdults")?.closest(".bk-form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+      }
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    };
+    detailsEl?.addEventListener("click", (e) => {
+      if (e.target.closest("[data-event-details]")) openEventDetails();
+    });
+    detailsEl?.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && e.target.matches(".room-cover-wrap[data-event-details]")) {
+        e.preventDefault();
+        openEventDetails();
+      }
+    });
 
     eventTypeEl?.addEventListener("change", () => {
       syncBirthdayPackageVisibility();
@@ -570,15 +684,88 @@ function initBookingPage() {
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
+    sessionRadios().forEach((r) => r.addEventListener("change", () => {
+      syncFixedScheduleVisibility();
+      renderPackageDetails();
+    }));
     document.getElementById("eventDuration")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("change", renderPackageDetails);
     document.getElementById("eventNights")?.addEventListener("input", renderPackageDetails);
-    document.getElementById("eventGuests")?.addEventListener("input", renderPackageDetails);
+    // Total guests, adults and kids are linked:
+    //   - editing Adults or Kids updates the Total
+    //   - editing the Total keeps the Kids count and adjusts Adults (at least 1 adult),
+    //     and trims Kids only if the Total is too small to fit them
+    const guestAdultsEl = document.getElementById("eventAdults");
+    const guestKidsEl = document.getElementById("eventChildren");
+    const guestTotalEl = document.getElementById("eventGuests");
+    const readCount = (el, min) => Math.max(min, parseInt(el?.value, 10) || 0);
+
+    const paintGuestSummary = (a, c) => {
+      const text = document.getElementById("eventGuestTotalText");
+      if (!text) return;
+      const t = a + c;
+      text.textContent = t === 0
+        ? "No guests added yet"
+        : `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""}`;
+    };
+    // 0 shows as an empty box (placeholder "0") so nothing is pre-filled
+    const setCount = (el, n) => { if (el) el.value = n > 0 ? String(n) : ""; };
+
+    // source: "parts" (adults/kids edited) or "total" (total edited)
+    const syncEventGuestTotal = (source = "parts") => {
+      let a = readCount(guestAdultsEl, 0);
+      let c = readCount(guestKidsEl, 0);
+      if (source === "total") {
+        const total = readCount(guestTotalEl, 0);
+        if (total === 0) { a = 0; c = 0; }
+        else {
+          c = Math.min(c, Math.max(0, total - 1));
+          a = Math.max(1, total - c);
+        }
+        setCount(guestAdultsEl, a);
+        setCount(guestKidsEl, c);
+      } else {
+        setCount(guestTotalEl, a + c);
+      }
+      paintGuestSummary(a, c);
+      renderPackageDetails();
+    };
+    guestAdultsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
+    guestKidsEl?.addEventListener("input", () => syncEventGuestTotal("parts"));
+    guestTotalEl?.addEventListener("input", () => {
+      // let the field stay empty while typing; only sync once there is a number
+      if (guestTotalEl.value === "") return;
+      syncEventGuestTotal("total");
+    });
+    guestTotalEl?.addEventListener("blur", () => syncEventGuestTotal("total"));
+    // +/- steppers next to each count
+    document.querySelectorAll("[data-guest-step]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.guestTarget);
+        if (!target) return;
+        const next = Math.max(0, (parseInt(target.value, 10) || 0) + Number(btn.dataset.guestStep));
+        setCount(target, next);
+        syncEventGuestTotal(target === guestTotalEl ? "total" : "parts");
+      });
+    });
     syncBirthdayPackageVisibility();
     syncOtherSpecifyVisibility();
     syncDurationOptionsAvailability();
     syncFixedScheduleVisibility();
-    renderPackageDetails();
+    syncEventGuestTotal("parts");
+
+    // Deep link from the homepage, e.g. booking.html?type=event&event=Wedding%20Package
+    (() => {
+      const qs = new URLSearchParams(window.location.search);
+      if (qs.get("type") !== "event") return;
+      bookingTypeSelect.value = "event";
+      bookingTypeSelect.dispatchEvent(new Event("change"));
+      const wanted = qs.get("event");
+      if (wanted && eventTypeEl && Array.from(eventTypeEl.options).some((o) => o.value === wanted)) {
+        eventTypeEl.value = wanted;
+        eventTypeEl.dispatchEvent(new Event("change"));
+      }
+    })();
 
     eventForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -605,6 +792,12 @@ function initBookingPage() {
       }
       if (rawEventType === "Others" && !otherSpecifyVal) {
         showMessage("Please specify your event type.", true);
+        return;
+      }
+      const eventAdults = Math.max(0, parseInt(document.getElementById("eventAdults")?.value, 10) || 0);
+      const eventChildren = Math.max(0, parseInt(document.getElementById("eventChildren")?.value, 10) || 0);
+      if (eventAdults < 1) {
+        showMessage("Please enter at least one adult.", true);
         return;
       }
       if (!eventGuests || Number(eventGuests) < 1) {
@@ -650,11 +843,15 @@ function initBookingPage() {
         showMessage("Please select a valid event date and duration.", true);
         return;
       }
-      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "")) {
-        showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or duration.", true);
+      // Birthday sessions are checked against their real fixed hours (not a generic 12-hour window).
+      const overlapWin = fixedSchedule && isBirthdayKey(packageOption)
+        ? window.CVRDuration.buildFixedWindow(eventDateVal, fixedSchedule.checkInTime, fixedSchedule.checkOutTime) || win
+        : win;
+      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(overlapWin.scheduledCheckIn, overlapWin.scheduledCheckOut, "")) {
+        showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or session.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests)) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), isBirthdayKey(packageOption) ? getBirthdaySession() : null) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -664,6 +861,8 @@ function initBookingPage() {
         bookingType: "event",
         eventType,
         eventGuests: Number(eventGuests),
+        adults: eventAdults,
+        children: eventChildren,
         preferredDate: win.checkInDateOnly,
         durationKey,
         extendedNights: isExtended ? eventNights : null,
@@ -676,6 +875,7 @@ function initBookingPage() {
         customCheckOutTime: win.customCheckOutTime,
         eventTime: win.checkInLabel,
         packageOption,
+        eventSession: isBirthdayKey(packageOption) ? getBirthdaySession() : null,
         additionalNotes,
         motif,
         ...totals,
@@ -683,7 +883,8 @@ function initBookingPage() {
         createdAt: new Date().toISOString(),
       });
 
-      window.location.href = "reservation-form.html";
+      if (typeof window.cvrGoToReservationForm === "function") window.cvrGoToReservationForm();
+    else window.location.href = "reservation-form.html";
     });
   }
 }

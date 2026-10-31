@@ -286,6 +286,36 @@ function initAdminSiteTextPage() {
     });
 
     groupsHolder.classList.remove("d-none");
+    initSearch();
+  };
+
+  const initSearch = () => {
+    const input = document.getElementById("siteTextSearch");
+    const empty = document.getElementById("siteTextSearchEmpty");
+    if (!input) return;
+    const apply = () => {
+      const q = input.value.trim().toLowerCase();
+      let anyVisible = false;
+      groupsHolder.querySelectorAll("section").forEach((section) => {
+        let sectionVisible = false;
+        section.querySelectorAll(".site-text-card").forEach((card) => {
+          const col = card.parentElement && card.parentElement.classList.contains("row") ? card : card.closest(".col, [class*='col-']") || card;
+          const hay = [
+            card.querySelector('[data-role="label"]')?.textContent,
+            card.querySelector('[data-role="page"]')?.textContent,
+            card.dataset.textKey,
+            getInput(card)?.value,
+          ].join(" ").toLowerCase();
+          const show = !q || hay.includes(q);
+          col.classList.toggle("d-none", !show);
+          if (show) sectionVisible = true;
+        });
+        section.classList.toggle("d-none", !sectionVisible);
+        if (sectionVisible) anyVisible = true;
+      });
+      empty?.classList.toggle("d-none", anyVisible || !q);
+    };
+    input.addEventListener("input", apply);
   };
 
   load();

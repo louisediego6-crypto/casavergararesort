@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Voucher helpers (loaded here so no `composer dump-autoload` is needed after adding them).
+        require_once app_path('Support/vouchers.php');
     }
 
     /**

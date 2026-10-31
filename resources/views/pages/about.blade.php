@@ -2,9 +2,13 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Casa Vergara - About</title>
+  <script src="../js/theme.js?v=20261024f"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Casa Vergaras - About</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -12,10 +16,19 @@
   <link href="../css/polish.css?v=20260830i" rel="stylesheet">
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
+  <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
-  <section class="hero about-hero" style="background-image:url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1800&q=80');">
+  <section class="hero about-hero" style="background-image:url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1800&q=80');" data-site-bg-slot="about_hero_bg">
     <div class="container hero-content about-hero-content">
       <div class="about-hero-inner text-center text-white mx-auto">
         <p class="text-warning text-uppercase small fw-semibold mb-3 about-hero-kicker" data-site-text-key="about_hero_kicker">About Casa Vergara</p>
@@ -30,7 +43,7 @@
       <div class="row g-4 g-lg-5 align-items-center">
         <div class="col-lg-6">
           <div class="about-story-copy pe-lg-3">
-            <p class="text-uppercase small text-primary fw-semibold mb-2">Our Story</p>
+            <p class="text-uppercase small text-primary fw-semibold mb-2" data-site-text-key="about_story_kicker">Our Story</p>
             <h2 class="display-6 fw-bold text-brand mb-3" data-site-text-key="about_story_heading">Excellence Since 2021</h2>
             <p class="text-muted-brand mb-3" data-site-text-key="about_story_para1">Founded with a vision to create an oasis of luxury and tranquility, Casa Vergara Resort has become a premier destination for travelers seeking the extraordinary.</p>
             <p class="text-muted-brand mb-0" data-site-text-key="about_story_para2">Our resort combines timeless elegance with modern comfort, offering guests an unforgettable experience in a breathtaking tropical setting.</p>
@@ -42,29 +55,33 @@
             <div class="col-6">
               <figure class="about-gallery-item mb-0" role="button" tabindex="0"
                 data-full="https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1800&q=80" data-title="The Lobby" data-caption="Where every arrival begins with a cold calamansi welcome drink.">
+                <span class="d-none" data-site-text-key="about_grid_1_caption">Where every arrival begins with a cold calamansi welcome drink.</span>
                 <img class="img-fluid rounded-4 shadow-sm about-grid-img" src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80" alt="Resort lobby" loading="lazy" data-site-image-slot="about_grid_1">
-                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label">The Lobby</span></span>
+                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label"><span data-site-text-key="about_grid_1_title">The Lobby</span></span></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="about-gallery-item mb-0" role="button" tabindex="0"
                 data-full="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1800&q=80" data-title="Main Pool" data-caption="Two pools, open from 7:00 AM to 9:00 PM daily.">
+                <span class="d-none" data-site-text-key="about_grid_2_caption">Two pools, open from 7:00 AM to 9:00 PM daily.</span>
                 <img class="img-fluid rounded-4 shadow-sm about-grid-img" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80" alt="Resort pool" loading="lazy" data-site-image-slot="about_grid_2">
-                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label">Main Pool</span></span>
+                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label"><span data-site-text-key="about_grid_2_title">Main Pool</span></span></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="about-gallery-item mb-0" role="button" tabindex="0"
                 data-full="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1800&q=80" data-title="The Grounds" data-caption="Landscaped gardens and shaded cabanas for events and family days.">
+                <span class="d-none" data-site-text-key="about_grid_3_caption">Landscaped gardens and shaded cabanas for events and family days.</span>
                 <img class="img-fluid rounded-4 shadow-sm about-grid-img" src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80" alt="Garden and grounds" loading="lazy" data-site-image-slot="about_grid_3">
-                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label">The Grounds</span></span>
+                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label"><span data-site-text-key="about_grid_3_title">The Grounds</span></span></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="about-gallery-item mb-0" role="button" tabindex="0"
                 data-full="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1800&q=80" data-title="Dining Pavilion" data-caption="Filipino comfort food and grilled specialties, served all day.">
+                <span class="d-none" data-site-text-key="about_grid_4_caption">Filipino comfort food and grilled specialties, served all day.</span>
                 <img class="img-fluid rounded-4 shadow-sm about-grid-img" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80" alt="Dining pavilion" loading="lazy" data-site-image-slot="about_grid_4">
-                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label">Dining Pavilion</span></span>
+                <span class="about-gallery-overlay"><i class="bi bi-arrows-fullscreen"></i><span class="about-gallery-label"><span data-site-text-key="about_grid_4_title">Dining Pavilion</span></span></span>
               </figure>
             </div>
           </div>
@@ -76,10 +93,10 @@
   <section class="section-pad bg-brand text-white text-center about-stats-section">
     <div class="container">
       <div class="row g-4">
-        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1">2021</h2><small>Welcoming guests since</small></div></div>
-        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1">1000+</h2><small>Guests hosted to date</small></div></div>
+        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1" data-site-text-key="about_stat1_value">2021</h2><small data-site-text-key="about_stat1_label">Welcoming guests since</small></div></div>
+        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1" data-site-text-key="about_stat2_value">1000+</h2><small data-site-text-key="about_stat2_label">Guests hosted to date</small></div></div>
         <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1" id="aboutAvgRating">&mdash;</h2><small id="aboutAvgRatingLabel">Average guest rating</small></div></div>
-        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1">30</h2><small>Staffs on site</small></div></div>
+        <div class="col-6 col-lg-3"><div class="about-stat-card"><h2 class="fw-bold text-warning mb-1" data-site-text-key="about_stat4_value">30</h2><small data-site-text-key="about_stat4_label">Staffs on site</small></div></div>
       </div>
     </div>
   </section>
@@ -87,14 +104,14 @@
   <section class="section-pad bg-light about-values-section">
     <div class="container">
       <div class="text-center mb-5">
-        <p class="text-uppercase small text-primary fw-semibold mb-2">Our Values</p>
-        <h2 class="display-6 fw-bold text-brand mb-0">What We Stand For</h2>
+        <p class="text-uppercase small text-primary fw-semibold mb-2" data-site-text-key="about_values_kicker">Our Values</p>
+        <h2 class="display-6 fw-bold text-brand mb-0" data-site-text-key="about_values_title">What We Stand For</h2>
       </div>
       <div class="row g-4">
-        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-heart-fill"></i></div><h5 class="text-brand">Exceptional Service</h5><p class="small text-muted-brand mb-0">Personalized attention to every guest.</p></div></div>
-        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-shield-check"></i></div><h5 class="text-brand">Trust & Safety</h5><p class="small text-muted-brand mb-0">On-site security and professional staff.</p></div></div>
-        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-globe2"></i></div><h5 class="text-brand">Sustainability</h5><p class="small text-muted-brand mb-0">Eco-friendly operations and practices.</p></div></div>
-        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-stars"></i></div><h5 class="text-brand">Luxury & Comfort</h5><p class="small text-muted-brand mb-0">Premium amenities for total relaxation.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-heart-fill"></i></div><h5 class="text-brand" data-site-text-key="about_value1_title">Exceptional Service</h5><p class="small text-muted-brand mb-0" data-site-text-key="about_value1_text">Personalized attention to every guest.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-shield-check"></i></div><h5 class="text-brand" data-site-text-key="about_value2_title">Trust & Safety</h5><p class="small text-muted-brand mb-0" data-site-text-key="about_value2_text">On-site security and professional staff.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-globe2"></i></div><h5 class="text-brand" data-site-text-key="about_value3_title">Sustainability</h5><p class="small text-muted-brand mb-0" data-site-text-key="about_value3_text">Eco-friendly operations and practices.</p></div></div>
+        <div class="col-md-6 col-lg-3"><div class="soft-card value-card p-4 h-100 text-center"><div class="feature-icon mx-auto mb-3"><i class="bi bi-stars"></i></div><h5 class="text-brand" data-site-text-key="about_value4_title">Luxury & Comfort</h5><p class="small text-muted-brand mb-0" data-site-text-key="about_value4_text">Premium amenities for total relaxation.</p></div></div>
       </div>
     </div>
   </section>
@@ -102,9 +119,9 @@
   <section class="section-pad bg-white about-leadership-section">
     <div class="container">
       <div class="text-center mb-5">
-        <p class="text-uppercase small text-primary fw-semibold mb-2">Our Team</p>
-        <h2 class="display-6 fw-bold text-brand mb-2">Meet Our Leadership</h2>
-        <p class="text-muted-brand mb-0 mx-auto leadership-intro">Tap any profile to learn more about the people behind the Development of Casa Vergara Website.</p>
+        <p class="text-uppercase small text-primary fw-semibold mb-2" data-site-text-key="about_team_kicker">Our Team</p>
+        <h2 class="display-6 fw-bold text-brand mb-2" data-site-text-key="about_team_title">Meet Our Leadership</h2>
+        <p class="text-muted-brand mb-0 mx-auto leadership-intro" data-site-text-key="about_team_intro">Tap any profile to learn more about the people behind the Development of Casa Vergara Website.</p>
       </div>
       <div class="row row-cols-2 row-cols-lg-4 g-3 g-md-4 leadership-grid" id="leadershipGrid"></div>
     </div>
@@ -136,12 +153,12 @@
     <div class="container">
       <div class="landing-cta-panel row g-0 align-items-stretch">
         <div class="col-lg-7 landing-cta-panel-text p-4 p-md-5 d-flex flex-column justify-content-center">
-          <span class="landing-cta-kicker text-uppercase small fw-bold mb-2"><i class="bi bi-people-fill me-1"></i>Start your story</span>
-          <h2 class="display-6 fw-bold mb-3 text-white">Join Our Story</h2>
-          <p class="lead landing-cta-text-v2 mb-4">Experience the Casa Vergara difference for yourself &mdash; where every visit becomes a memory worth returning for.</p>
+          <span class="landing-cta-kicker text-uppercase small fw-bold mb-2"><i class="bi bi-people-fill me-1"></i><span data-site-text-key="about_cta_kicker">Start your story</span></span>
+          <h2 class="display-6 fw-bold mb-3 text-white" data-site-text-key="about_cta_title">Join Our Story</h2>
+          <p class="lead landing-cta-text-v2 mb-4" data-site-text-key="about_cta_text">Experience the Casa Vergara difference for yourself &mdash; where every visit becomes a memory worth returning for.</p>
           <div class="d-flex flex-wrap gap-3">
-            <a href="booking.html" class="btn btn-accent btn-lg px-4">Book Your Stay</a>
-            <a href="contact.html" class="btn btn-cta-ghost btn-lg px-4">Contact Us</a>
+            <a href="booking.html" class="btn btn-accent btn-lg px-4" data-site-text-key="about_cta_btn_primary">Book Your Stay</a>
+            <a href="contact.html" class="btn btn-cta-ghost btn-lg px-4" data-site-text-key="about_cta_btn_secondary">Contact Us</a>
           </div>
         </div>
         <div class="col-lg-5 landing-cta-panel-media position-relative">
@@ -149,8 +166,8 @@
           <div class="landing-cta-floating-badge">
             <i class="bi bi-calendar-heart-fill"></i>
             <div>
-              <strong>2021</strong>
-              <span>Welcoming guests since</span>
+              <strong data-site-text-key="about_badge_value">2021</strong>
+              <span data-site-text-key="about_badge_label">Welcoming guests since</span>
             </div>
           </div>
         </div>
@@ -180,7 +197,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20260925a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script>
     renderNavbar("about"); renderFooter();
 
@@ -198,10 +215,10 @@
       const show = (i) => {
         index = (i + items.length) % items.length;
         const el = items[index];
-        img.src = el.dataset.full;
+        img.src = el.querySelector("img")?.src || el.dataset.full;
         img.alt = el.querySelector("img")?.alt || "";
-        title.textContent = el.dataset.title || "";
-        caption.textContent = el.dataset.caption || "";
+        title.textContent = el.querySelector(".about-gallery-label")?.textContent.trim() || el.dataset.title || "";
+        caption.textContent = el.querySelector(".d-none[data-site-text-key]")?.textContent.trim() || el.dataset.caption || "";
         count.textContent = `${index + 1} / ${items.length}`;
       };
 

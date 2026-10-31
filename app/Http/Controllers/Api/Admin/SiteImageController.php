@@ -72,20 +72,36 @@ class SiteImageController extends Controller
             json_response(false, 'File must be smaller than 5 MB.', [], 422);
         }
 
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-
+        // Accept any real image format (JPG, PNG, WEBP, GIF, AVIF, HEIC, BMP, TIFF, JFIF, ICO, SVG...).
+        // The file is judged by its actual content, not by its extension.
         $originalName = (string) ($file['name'] ?? '');
-        $nameParts = explode('.', $originalName);
-        $ext = strtolower((string) array_pop($nameParts));
-
-        if (!in_array($ext, $allowedExtensions, true)) {
-            json_response(false, 'Please upload a JPG, PNG, WEBP, or GIF image.', [], 422);
-        }
+        $ext = strtolower(preg_replace('/[^a-z0-9]/i', '', pathinfo($originalName, PATHINFO_EXTENSION)));
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $detectedMime = $finfo->file($file['tmp_name']) ?: '';
         if (!str_starts_with($detectedMime, 'image/')) {
-            json_response(false, 'That file doesn\'t look like a valid image. Please upload a JPG, PNG, WEBP, or GIF.', [], 422);
+            json_response(false, 'That file doesn\'t look like a valid image. Please upload a photo (JPG, PNG, WEBP, GIF, HEIC, AVIF, SVG, etc.).', [], 422);
+        }
+
+        // SVG can carry scripts, so refuse any that do.
+        if ($detectedMime === 'image/svg+xml') {
+            $svg = (string) file_get_contents($file['tmp_name']);
+            if (preg_match('/<\s*script|\son[a-z]+\s*=|javascript:|<\s*foreignObject/i', $svg)) {
+                json_response(false, 'That SVG contains scripts and can\'t be used. Please upload a different image.', [], 422);
+            }
+        }
+
+        // Pick a safe extension: trust the name only if it is a plain image extension,
+        // otherwise derive it from the detected type.
+        $mimeToExt = [
+            'image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp',
+            'image/gif' => 'gif', 'image/avif' => 'avif', 'image/heic' => 'heic', 'image/heif' => 'heif',
+            'image/bmp' => 'bmp', 'image/x-ms-bmp' => 'bmp', 'image/tiff' => 'tiff',
+            'image/svg+xml' => 'svg', 'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico',
+        ];
+        $knownImageExts = array_merge(array_values($mimeToExt), ['jfif', 'jpeg', 'tif', 'apng']);
+        if (!in_array($ext, $knownImageExts, true)) {
+            $ext = $mimeToExt[$detectedMime] ?? 'img';
         }
 
         $fileName = 'site_' . preg_replace('/[^a-z0-9]+/', '-', $slotKey) . '_' . bin2hex(random_bytes(6)) . '.' . $ext;

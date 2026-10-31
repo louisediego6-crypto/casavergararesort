@@ -36,6 +36,14 @@ function initAdminUsersPage() {
   const userDeleteConfirmBtn = document.getElementById("userDeleteConfirmBtn");
   let pendingDeleteId = null;
 
+  const archiveBtn = document.getElementById("usersArchiveBtn");
+  const archiveCountBadge = document.getElementById("usersArchiveCount");
+  const archiveModalEl = document.getElementById("userArchiveModal");
+  const archiveModal = archiveModalEl && window.bootstrap ? new bootstrap.Modal(archiveModalEl) : null;
+  const archiveTableBody = document.getElementById("userArchiveTableBody");
+  const archiveEmpty = document.getElementById("userArchiveEmpty");
+  const archiveAlert = document.getElementById("userArchiveAlert");
+
   const kpi = {
     total: document.getElementById("usersKpiTotal"),
     customers: document.getElementById("usersKpiCustomers"),
@@ -121,7 +129,7 @@ function initAdminUsersPage() {
         const suspendBtn = u.status === "suspended"
           ? `<button type="button" class="btn btn-sm btn-outline-success user-action-btn" data-action="activate" data-id="${u.id}" title="Activate" aria-label="Activate ${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}"><i class="bi bi-check-circle"></i></button>`
           : `<button type="button" class="btn btn-sm btn-outline-warning user-action-btn" data-action="suspend" data-id="${u.id}" title="${isSelf ? "You can't suspend your own account" : "Suspend"}" aria-label="Suspend ${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}" ${isSelf ? "disabled" : ""}><i class="bi bi-slash-circle"></i></button>`;
-        const deleteBtn = `<button type="button" class="btn btn-sm btn-outline-danger user-action-btn" data-action="delete" data-id="${u.id}" title="Delete" aria-label="Delete ${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}" ${isSelf ? "disabled" : ""}><i class="bi bi-trash"></i></button>`;
+        const deleteBtn = `<button type="button" class="btn btn-sm btn-outline-danger user-action-btn" data-action="delete" data-id="${u.id}" title="Archive" aria-label="Archive ${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}" ${isSelf ? "disabled" : ""}><i class="bi bi-archive"></i></button>`;
         return `
         <tr data-id="${u.id}">
           <td>
@@ -336,14 +344,15 @@ function initAdminUsersPage() {
     setDeleting(false);
     if (!body.success) {
       userDeleteModal?.hide();
-      showAlert(body.message || "Could not delete this account.");
+      showAlert(body.message || "Could not archive this account.");
       pendingDeleteId = null;
       return;
     }
     userDeleteModal?.hide();
     pendingDeleteId = null;
-    showAlert("Account deleted.", "success");
+    showAlert(body.message || "Account archived.", "success");
     loadUsers();
+    loadArchived();
   });
 
   userSaveBtn?.addEventListener("click", async () => {
@@ -401,7 +410,72 @@ function initAdminUsersPage() {
     loadUsers();
   });
 
+  /* ---------- Archived accounts ---------- */
+  const showArchiveAlert = (message, kind) => {
+    if (!archiveAlert) return;
+    archiveAlert.textContent = message;
+    archiveAlert.classList.remove("d-none", "alert-success", "alert-danger");
+    archiveAlert.classList.add(kind === "success" ? "alert-success" : "alert-danger");
+  };
+
+  const formatArchivedDate = (value) => (value ? new Date(String(value).replace(" ", "T")).toLocaleString() : "—");
+
+  const renderArchived = (accounts) => {
+    if (!archiveTableBody) return;
+    archiveEmpty?.classList.toggle("d-none", accounts.length > 0);
+    archiveTableBody.innerHTML = accounts
+      .map((a) => {
+        const name = `${a.firstName} ${a.lastName}`.trim() || `User #${a.userId}`;
+        return `
+        <tr>
+          <td class="fw-semibold">${escapeHtml(name)}</td>
+          <td class="small">${escapeHtml(a.email)}</td>
+          <td class="small text-capitalize">${escapeHtml(String(a.role || "").replace("_", " "))}</td>
+          <td class="small">${escapeHtml(formatArchivedDate(a.archivedAt))}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-success archive-restore-btn" data-archive-id="${a.archiveId}">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+            </button>
+          </td>
+        </tr>`;
+      })
+      .join("");
+  };
+
+  const loadArchived = async () => {
+    const { body } = await cvrApiGet("admin/users-archived");
+    if (!body.success) {
+      showArchiveAlert(body.message || "Could not load archived accounts.");
+      return;
+    }
+    const accounts = body.data?.accounts || [];
+    if (archiveCountBadge) archiveCountBadge.textContent = String(body.data?.count ?? accounts.length);
+    renderArchived(accounts);
+  };
+
+  archiveBtn?.addEventListener("click", () => {
+    archiveAlert?.classList.add("d-none");
+    loadArchived();
+    archiveModal?.show();
+  });
+
+  archiveTableBody?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".archive-restore-btn");
+    if (!btn) return;
+    btn.disabled = true;
+    const { body } = await cvrApiPost("admin/users-restore", { archiveId: Number(btn.dataset.archiveId) });
+    if (!body.success) {
+      btn.disabled = false;
+      showArchiveAlert(body.message || "Could not restore this account.");
+      return;
+    }
+    showArchiveAlert(body.message || "Account restored.", "success");
+    loadArchived();
+    loadUsers();
+  });
+
   loadUsers();
+  loadArchived();
   startPolling();
 }
 

@@ -2,8 +2,12 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../js/theme.js?v=20261024f"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara Resort - Home</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +19,16 @@
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/casa-refresh.css?v=20261018a" rel="stylesheet">
+  <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <script>document.documentElement.classList.add("cv-js");</script>
+  <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/modals.css?v=20261025a" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
+  <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
   <div id="site-navbar"></div>
@@ -34,22 +47,22 @@
             Relax and unwind at Casa Vergara Resort. Enjoy comfortable rooms, refreshing pools, and peaceful surroundings.
           </p>
           <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4 landing-hero-actions">
-            <a href="booking.html" class="btn btn-accent btn-lg px-4">Book Your Stay</a>
-            <a href="contact.html" class="btn btn-outline-primary btn-lg px-4">Contact Us</a>
+            <a href="booking.html" class="btn btn-accent btn-lg px-4" data-site-text-key="landing_hero_btn_primary">Book Your Stay</a>
+            <a href="contact.html" class="btn btn-outline-primary btn-lg px-4" data-site-text-key="landing_hero_btn_secondary">Contact Us</a>
           </div>
 
           <div class="hero-stats d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             <div class="hero-stat-item">
-              <h4 class="mb-1 text-brand">50+</h4>
-              <p class="mb-0 text-muted-brand">Guests Monthly</p>
+              <h4 class="mb-1 text-brand" data-site-text-key="landing_stat1_value">50+</h4>
+              <p class="mb-0 text-muted-brand" data-site-text-key="landing_stat1_label">Guests Monthly</p>
             </div>
             <div class="hero-stat-item">
-              <h4 class="mb-1 text-brand">2</h4>
-              <p class="mb-0 text-muted-brand"><i class="bi bi-water me-1"></i>Pools</p>
+              <h4 class="mb-1 text-brand" data-site-text-key="landing_stat2_value">2</h4>
+              <p class="mb-0 text-muted-brand"><i class="bi bi-water me-1"></i><span data-site-text-key="landing_stat2_label">Pools</span></p>
             </div>
             <div class="hero-stat-item">
-              <h4 class="mb-1 text-brand">30+</h4>
-              <p class="mb-0 text-muted-brand">Events Hosted</p>
+              <h4 class="mb-1 text-brand" data-site-text-key="landing_stat3_value">30+</h4>
+              <p class="mb-0 text-muted-brand" data-site-text-key="landing_stat3_label">Events Hosted</p>
             </div>
           </div>
         </div>
@@ -71,25 +84,25 @@
   <section class="section-pad landing-highlights-strip hl-reveal" aria-labelledby="highlightsTitle">
     <div class="container">
       <div class="text-center section-heading landing-highlights-head">
-        <h2 id="highlightsTitle" class="text-brand fw-bold">Relax and Enjoy Your Stay</h2>
+        <h2 id="highlightsTitle" class="text-brand fw-bold" data-site-text-key="landing_highlights_title">Relax and Enjoy Your Stay</h2>
         <div class="highlights-divider mx-auto" aria-hidden="true"></div>
-        <p class="hl-lead">Swim, celebrate, and unwind, all in one peaceful place.</p>
+        <p class="hl-lead" data-site-text-key="landing_highlights_lead">Swim, celebrate, and unwind, all in one peaceful place.</p>
       </div>
       <div class="hl-grid">
         <article class="hl-card" style="--i:0">
           <div class="hl-icon" aria-hidden="true"><i class="bi bi-water"></i></div>
-          <h3>Swimming Pools</h3>
-          <p>Enjoy refreshing pool access for both adults and kids.</p>
+          <h3 data-site-text-key="landing_hl1_title">Swimming Pools</h3>
+          <p data-site-text-key="landing_hl1_text">Enjoy refreshing pool access for both adults and kids.</p>
         </article>
         <article class="hl-card" style="--i:1">
           <div class="hl-icon" aria-hidden="true"><i class="bi bi-calendar2-week"></i></div>
-          <h3>Event Spaces</h3>
-          <p>Perfect for birthdays, reunions, and small gatherings.</p>
+          <h3 data-site-text-key="landing_hl2_title">Event Spaces</h3>
+          <p data-site-text-key="landing_hl2_text">Perfect for birthdays, reunions, and small gatherings.</p>
         </article>
         <article class="hl-card" style="--i:2">
           <div class="hl-icon" aria-hidden="true"><i class="bi bi-house-door"></i></div>
-          <h3>Cozy Rooms</h3>
-          <p>Comfortable rooms for relaxation and overnight stays.</p>
+          <h3 data-site-text-key="landing_hl3_title">Cozy Rooms</h3>
+          <p data-site-text-key="landing_hl3_text">Comfortable rooms for relaxation and overnight stays.</p>
         </article>
       </div>
     </div>
@@ -99,19 +112,19 @@
     <div class="container">
       <div class="row g-5 align-items-center about-preview">
         <div class="col-lg-6">
-          <p class="text-uppercase text-primary fw-semibold small mb-2">About Casa Vergara</p>
-          <h2 class="display-5 text-brand fw-bold">Your Sanctuary of Luxury</h2>
-          <p class="text-muted-brand">Since 2021, Casa Vergara Resort has been the premier destination for discerning travelers seeking the perfect blend of luxury, comfort, and natural beauty.</p>
+          <p class="text-uppercase text-primary fw-semibold small mb-2" data-site-text-key="landing_about_kicker">About Casa Vergara</p>
+          <h2 class="display-5 text-brand fw-bold" data-site-text-key="landing_about_title">Your Sanctuary of Luxury</h2>
+          <p class="text-muted-brand" data-site-text-key="landing_about_text">Since 2021, Casa Vergara Resort has been the premier destination for discerning travelers seeking the perfect blend of luxury, comfort, and natural beauty.</p>
           <div class="row text-center mt-4 about-metrics">
-            <div class="col-4"><h3 class="fw-bold text-brand">6+</h3><small class="text-muted-brand">Years</small></div>
-            <div class="col-4"><h3 class="fw-bold text-brand">1000+</h3><small class="text-muted-brand">Guests</small></div>
-            <div class="col-4"><h3 class="fw-bold text-brand">98%</h3><small class="text-muted-brand">Satisfaction</small></div>
+            <div class="col-4"><h3 class="fw-bold text-brand" data-site-text-key="landing_metric1_value">6+</h3><small class="text-muted-brand" data-site-text-key="landing_metric1_label">Years</small></div>
+            <div class="col-4"><h3 class="fw-bold text-brand" data-site-text-key="landing_metric2_value">1000+</h3><small class="text-muted-brand" data-site-text-key="landing_metric2_label">Guests</small></div>
+            <div class="col-4"><h3 class="fw-bold text-brand" data-site-text-key="landing_metric3_value">98%</h3><small class="text-muted-brand" data-site-text-key="landing_metric3_label">Satisfaction</small></div>
           </div>
           <div class="about-preview-cta">
             <a href="about.html" class="btn btn-brand btn-lg about-preview-btn">
-              <span>Learn More</span><i class="bi bi-arrow-right"></i>
+              <span data-site-text-key="landing_about_btn">Learn More</span><i class="bi bi-arrow-right"></i>
             </a>
-            <a href="contact.html" class="btn btn-link about-preview-link">Talk to our team</a>
+            <a href="contact.html" class="btn btn-link about-preview-link" data-site-text-key="landing_about_link">Talk to our team</a>
           </div>
         </div>
         <div class="col-lg-6">
@@ -119,24 +132,28 @@
           <div class="row g-3 image-mosaic" id="landingGallery">
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Resort Entrance &amp; Pool">
+                <span class="d-none" data-site-text-key="landing_mosaic_1_title">Resort Entrance &amp; Pool</span>
                 <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-1.png" alt="Resort entrance and pool" data-site-image-slot="landing_mosaic_1">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Poolside Setting">
+                <span class="d-none" data-site-text-key="landing_mosaic_2_title">Poolside Setting</span>
                 <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-2.png" alt="Resort poolside setting" data-site-image-slot="landing_mosaic_2">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Elegant Interior Lounge">
+                <span class="d-none" data-site-text-key="landing_mosaic_3_title">Elegant Interior Lounge</span>
                 <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-3.png" alt="Elegant interior lounge" data-site-image-slot="landing_mosaic_3">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Premium Guest Suite">
+                <span class="d-none" data-site-text-key="landing_mosaic_4_title">Premium Guest Suite</span>
                 <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-4.png" alt="Premium guest suite interior" data-site-image-slot="landing_mosaic_4">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
@@ -150,46 +167,61 @@
   <section class="section-pad">
     <div class="container">
       <div class="text-center mb-5 section-heading">
-        <p class="text-uppercase text-primary fw-semibold small mb-2">Accommodations</p>
-        <h2 class="display-5 text-brand fw-bold">Luxury Rooms & Events</h2>
+        <p class="text-uppercase text-primary fw-semibold small mb-2" data-site-text-key="landing_rooms_kicker">Accommodations</p>
+        <h2 class="display-5 text-brand fw-bold" data-site-text-key="landing_rooms_title">Rooms & Event Venue</h2>
       </div>
       <div class="row g-4">
 
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-1.png" alt="Deluxe villa room interior" data-site-image-slot="landing_room_deluxe">
+            <img class="room-cover" src="../images/booking-photo-1.png" alt="Standard room interior" data-site-image-slot="landing_room_deluxe">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Deluxe Room</h5>
-              <p class="text-muted-brand small mb-2">Up to 4 guests</p>
+              <h5 class="text-brand" data-site-text-key="landing_card1_title">Standard Room</h5>
+              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card1_sub">Good for 2 pax</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li><span data-site-text-key="landing_card1_row1">3 hours</span> — <strong data-rate-room="3hr">₱250</strong></li>
+                <li><span data-site-text-key="landing_card1_row2">12 hours</span> — <strong data-rate-room="12hr">₱800</strong></li>
+                <li><span data-site-text-key="landing_card1_row3">24 hours</span> — <strong data-rate-room="24hr">₱1,400</strong></li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=deluxe-villa" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?package=standard-room" class="btn btn-brand btn-sm" data-site-text-key="landing_card1_btn">View Details</a>
               </div>
             </div>
           </article>
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-2.png" alt="Ocean view suite bedroom" data-site-image-slot="landing_room_single">
+            <img class="room-cover" src="../images/booking-photo-2.png" alt="Private venue with pool and function hall" data-site-image-slot="landing_room_single">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Single Room</h5>
-              <p class="text-muted-brand small mb-2">Good for 1 guest</p>
+              <h5 class="text-brand" data-site-text-key="landing_card2_title">Private Venue</h5>
+              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card2_sub">Good for 50 pax · add ₱1,000/head up to 100 pax</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li><span data-site-text-key="landing_card2_row1">Morning (8 AM–5 PM)</span> — <strong data-rate-event="Private Venue – Morning (8:00 AM–5:00 PM)">₱10,000</strong></li>
+                <li><span data-site-text-key="landing_card2_row2">Night (7 PM–5 AM)</span> — <strong data-rate-event="Private Venue – Night (7:00 PM–5:00 AM)">₱12,000</strong></li>
+                <li><span data-site-text-key="landing_card2_row3">2 sessions</span> — <strong data-rate-event="Private Venue – Whole Day (2 Sessions)">₱17,000</strong></li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=single-room" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?type=event&amp;event=Private%20Venue%20%E2%80%93%20Morning%20(8%3A00%20AM%E2%80%935%3A00%20PM)" class="btn btn-brand btn-sm" data-site-text-key="landing_card2_btn">Reserve Venue</a>
               </div>
             </div>
           </article>
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-3.png" alt="Beach bungalow room setup" data-site-image-slot="landing_room_family">
+            <img class="room-cover" src="../images/booking-photo-3.png" alt="Wedding and debut venue setup" data-site-image-slot="landing_room_family">
             <div class="p-4 room-card-body">
-              <h5 class="text-brand">Family Room</h5>
-              <p class="text-muted-brand small mb-2">Good for 2 to 6 guests</p>
+              <h5 class="text-brand" data-site-text-key="landing_card3_title">Weddings &amp; Debuts</h5>
+              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card3_sub">Good for 100 pax · 10 hours + 3 hours preparation</p>
+              <ul class="list-unstyled small text-muted-brand mb-3">
+                <li><span data-site-text-key="landing_card3_row1">Wedding</span> — <strong data-rate-event="Wedding Package">₱20,000</strong></li>
+                <li><span data-site-text-key="landing_card3_row2">Debut</span> — <strong data-rate-event="Debut Package">₱17,000</strong></li>
+                <li data-site-text-key="landing_card3_extended">Extended — ₱1,500 per hour</li>
+              </ul>
               <div class="d-flex justify-content-between align-items-center room-card-footer">
                 <span class></span>
-                <a href="booking.html?package=family-suite" class="btn btn-brand btn-sm">View Details</a>
+                <a href="booking.html?type=event&amp;event=Wedding%20Package" class="btn btn-brand btn-sm" data-site-text-key="landing_card3_btn">Reserve Event</a>
               </div>
             </div>
           </article>
@@ -201,8 +233,8 @@
   <section class="section-pad bg-brand text-white landing-testimonials-section">
     <div class="container">
       <div class="text-center mb-5">
-        <p class="text-uppercase small fw-semibold text-warning mb-2">Reviews</p>
-        <h2 class="display-5 fw-bold mb-0">What Our Guests Say</h2>
+        <p class="text-uppercase small fw-semibold text-warning mb-2" data-site-text-key="landing_reviews_kicker">Reviews</p>
+        <h2 class="display-5 fw-bold mb-0" data-site-text-key="landing_reviews_title">What Our Guests Say</h2>
         <div class="reviews-summary-bar" id="reviewsSummaryBar"></div>
       </div>
 
@@ -220,7 +252,7 @@
       <div class="reviews-dots d-none" id="reviewsDots"></div>
       <div class="reviews-empty-state d-none" id="reviewsEmptyState">
         <i class="bi bi-chat-square-heart fs-1 text-warning d-block mb-2"></i>
-        Be the first to share how your stay went at Casa Vergara.
+        <span data-site-text-key="landing_reviews_empty">Be the first to share how your stay went at Casa Vergara.</span>
       </div>
     </div>
   </section>
@@ -323,12 +355,12 @@
     <div class="container">
       <div class="landing-cta-panel row g-0 align-items-stretch">
         <div class="col-lg-7 landing-cta-panel-text p-4 p-md-5 d-flex flex-column justify-content-center">
-          <span class="landing-cta-kicker text-uppercase small fw-bold mb-2"><i class="bi bi-stars me-1"></i>Book direct &amp; save</span>
+          <span class="landing-cta-kicker text-uppercase small fw-bold mb-2"><i class="bi bi-stars me-1"></i><span data-site-text-key="landing_cta_kicker">Book direct &amp; save</span></span>
           <h2 class="display-6 fw-bold mb-3 text-white" data-site-text-key="landing_cta_heading">Ready for Your Dream Vacation?</h2>
           <p class="lead landing-cta-text-v2 mb-4" data-site-text-key="landing_cta_text">Book your stay today and experience luxury like never before &mdash; from sunrise pool days to unforgettable evening gatherings.</p>
           <div class="d-flex flex-wrap gap-3">
-            <a href="booking.html" class="btn btn-accent btn-lg px-4">Book Now</a>
-            <a href="contact.html" class="btn btn-cta-ghost btn-lg px-4">Contact Us</a>
+            <a href="booking.html" class="btn btn-accent btn-lg px-4" data-site-text-key="landing_cta_btn_primary">Book Now</a>
+            <a href="contact.html" class="btn btn-cta-ghost btn-lg px-4" data-site-text-key="landing_cta_btn_secondary">Contact Us</a>
           </div>
         </div>
         <div class="col-lg-5 landing-cta-panel-media position-relative">
@@ -336,8 +368,8 @@
           <div class="landing-cta-floating-badge">
             <i class="bi bi-award-fill"></i>
             <div>
-              <strong>98%</strong>
-              <span>Guest satisfaction</span>
+              <strong data-site-text-key="landing_badge_value">98%</strong>
+              <span data-site-text-key="landing_badge_label">Guest satisfaction</span>
             </div>
           </div>
         </div>
@@ -371,9 +403,9 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/booking-data.js?v=20260924d"></script>
+  <script src="../js/booking-data.js?v=20261031a"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
-  <script src="../js/main.js?v=20260930a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
   <script src="../js/casa-refresh.js?v=20261018a"></script>
   <script>
@@ -385,16 +417,17 @@
       const cat = window.CVRBookingCatalog;
       if (!cat) return;
       await cat.catalogReady;
-      const ids = ["deluxe-villa", "single-room", "family-suite"];
-      ids.forEach((id) => {
-        const el = document.getElementById(`price-${id}`);
-        if (!el) return;
-        const pkg = cat.getRoomPackageById(id);
-        if (!pkg) {
-          el.textContent = "Unavailable";
-          return;
-        }
-        el.textContent = `${cat.formatMoney(pkg.pricePerNight, pkg.currency || "PHP")}/night`;
+      const fmt = (n) => cat.formatMoney(n, "PHP").replace(/\.00$/, "");
+      const room = cat.getRoomPackageById("standard-room");
+      if (room) {
+        document.querySelectorAll("[data-rate-room]").forEach((el) => {
+          const rate = window.CVRDuration?.roomRate(room.pricePerNight, el.dataset.rateRoom, null);
+          if (rate) el.textContent = fmt(rate);
+        });
+      }
+      document.querySelectorAll("[data-rate-event]").forEach((el) => {
+        const pkg = cat.getEventPackageCatalog(el.dataset.rateEvent);
+        if (pkg && pkg.price) el.textContent = fmt(pkg.price);
       });
     })();
 
@@ -414,7 +447,7 @@
         const src = el.querySelector("img")?.src || "";
         img.src = src;
         img.alt = el.querySelector("img")?.alt || "";
-        title.textContent = el.dataset.title || "";
+        title.textContent = el.querySelector("[data-site-text-key]")?.textContent.trim() || el.dataset.title || "";
         count.textContent = `${index + 1} / ${items.length}`;
       };
 

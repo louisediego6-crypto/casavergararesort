@@ -97,6 +97,9 @@ class ReservationController extends Controller
             json_response(false, 'Invalid request method.', [], 405);
         }
 
+        // A booking can only be created or updated by a signed-in account.
+        require_login();
+
         $body = get_json_body();
         $reservation = $body['reservation'] ?? null;
         if (!is_array($reservation) || empty($reservation['id'])) {
@@ -239,6 +242,8 @@ class ReservationController extends Controller
                 $checkinChanged ? 1 : 0,
                 $checkoutChanged ? 1 : 0,
             ]);
+
+            cvr_voucher_sync_redemption($pdo, $id, $userId, $reservation, stripos($reservationStatus, 'cancel') !== false);
 
             if ($isStaff && !$isNew) {
                 $statusChanged = $reservationStatus !== (string) $previousStatus
