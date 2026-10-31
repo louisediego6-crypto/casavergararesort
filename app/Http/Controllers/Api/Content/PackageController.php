@@ -28,8 +28,9 @@ class PackageController extends Controller
                         standard_check_in, standard_check_out, availability_note
                  FROM room_packages WHERE is_active = 1 ORDER BY sort_order ASC, id ASC'
             )->fetchAll();
+            $darkCol = \Illuminate\Support\Facades\Schema::hasColumn('event_packages', 'image_dark_path') ? 'image_dark_path' : 'NULL';
             $eventRows = $pdo->query(
-                'SELECT slug, name, price, included_pax, max_pax, extra_pax_rate, is_custom, is_flat_rate, double_rate_on_24hr, image_path, inclusions_json, motifs_json, addons_json
+                'SELECT slug, name, price, included_pax, max_pax, extra_pax_rate, is_custom, is_flat_rate, double_rate_on_24hr, image_path, ' . $darkCol . ' AS image_dark_path, inclusions_json, motifs_json, addons_json
                  FROM event_packages WHERE is_active = 1 ORDER BY sort_order ASC, id ASC'
             )->fetchAll();
         } catch (\Throwable $e) {
@@ -70,6 +71,7 @@ class PackageController extends Controller
                 'isFlatRate' => (bool) $e['is_flat_rate'],
                 'doubleRateOn24hr' => (bool) $e['double_rate_on_24hr'],
                 'image' => $e['image_path'],
+                'imageDark' => $e['image_dark_path'] ?? null,
                 'inclusions' => json_decode((string) $e['inclusions_json'], true) ?: [],
                 'motifs' => json_decode((string) $e['motifs_json'], true) ?: [],
                 'addOns' => json_decode((string) $e['addons_json'], true) ?: [],

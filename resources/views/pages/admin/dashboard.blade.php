@@ -145,7 +145,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../../js/main.js?v=20261030a"></script>
+  <script src="../../js/main.js?v=20261031a"></script>
   <script src="../../js/admin-export.js?v=20261024h"></script>
   <script src="../../js/admin.js?v=20261024h"></script>
   <script src="../../js/admin-live-charts.js?v=20261027a"></script>

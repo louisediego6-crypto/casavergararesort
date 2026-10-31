@@ -34,6 +34,7 @@ function initAdminPackagesPage() {
     isActive: row.isActive,
     isCustom: row.isCustom,
     image: row.image || "",
+    imageDark: row.imageDark || "",
     inclusions: row.inclusions || [],
     motifs: row.motifs || [],
     addOns: row.addOns || [],
@@ -341,6 +342,7 @@ function initAdminPackagesPage() {
       includedPax: merged.includedPax,
       isCustom: merged.isCustom,
       image: merged.image,
+      imageDark: merged.imageDark || "",
       inclusions: merged.inclusions,
       motifs: merged.motifs,
       addOns: merged.addOns,
@@ -507,6 +509,10 @@ function initAdminPackagesPage() {
   const epImage = document.getElementById("epFormImage");
   const epPhotoPreview = document.getElementById("epFormPhotoPreview");
   const epPhotoRemove = document.getElementById("epFormPhotoRemove");
+  const epPhotoDarkInput = document.getElementById("epFormPhotoDark");
+  const epImageDark = document.getElementById("epFormImageDark");
+  const epPhotoDarkPreview = document.getElementById("epFormPhotoDarkPreview");
+  const epPhotoDarkRemove = document.getElementById("epFormPhotoDarkRemove");
   const epAddRowBtn = document.getElementById("epAddAddOnRowBtn");
   const epSaveBtn = document.getElementById("epSaveBtn");
   const addEventPackageBtn = document.getElementById("addEventPackageBtn");
@@ -518,6 +524,15 @@ function initAdminPackagesPage() {
     hiddenInput: epImage,
     preview: epPhotoPreview,
     removeBtn: epPhotoRemove,
+    fallback: DEFAULT_EVENT_IMAGE,
+    alertEl: epFormAlert,
+  });
+
+  bindPhotoPicker({
+    fileInput: epPhotoDarkInput,
+    hiddenInput: epImageDark,
+    preview: epPhotoDarkPreview,
+    removeBtn: epPhotoDarkRemove,
     fallback: DEFAULT_EVENT_IMAGE,
     alertEl: epFormAlert,
   });
@@ -539,6 +554,7 @@ function initAdminPackagesPage() {
       epCustom.checked = Boolean(pkg.isCustom);
       epInclusions.value = (pkg.inclusions || []).join("\n");
       setPhotoValue(epImage, pkg.image || "");
+      setPhotoValue(epImageDark, pkg.imageDark || "");
       epMotifs.value = (pkg.motifs || [])
         .filter((m) => m.id !== "custom")
         .map((m) => `${m.label} | ${m.colors || ""}`)
@@ -557,6 +573,7 @@ function initAdminPackagesPage() {
       epInclusions.value = "";
       epMotifs.value = "";
       setPhotoValue(epImage, "");
+      setPhotoValue(epImageDark, "");
     }
     epModal?.show();
   };
@@ -601,6 +618,7 @@ function initAdminPackagesPage() {
       isActive: epActive.checked,
       isCustom: epCustom.checked,
       image: epImage?.value || "",
+      imageDark: epImageDark?.value || "",
       inclusions: linesToArray(epInclusions.value),
       motifs,
       addOns,
@@ -619,6 +637,7 @@ function initAdminPackagesPage() {
         isActive: data.isActive,
         isCustom: data.isCustom,
         image: data.image,
+        imageDark: data.imageDark,
         inclusions: data.inclusions,
         motifs: data.motifs,
         addOns: data.addOns,
@@ -779,6 +798,7 @@ function initAdminPackagesPage() {
         bed: data.bed,
         isActive: data.isActive,
         image: data.image,
+        imageDark: data.imageDark,
         inclusions: data.inclusions,
         addOns: data.addOns,
       });

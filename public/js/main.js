@@ -1763,7 +1763,7 @@ function cvrEnsureAccountUiCss() {
     if (document.querySelector('link[href*="account-ui.css"]')) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = assetUrl("css/account-ui.css?v=20261030a");
+    link.href = assetUrl("css/account-ui.css?v=20261031b");
     document.head.appendChild(link);
   } catch { /* styling only */ }
 }
@@ -1848,6 +1848,7 @@ function renderNavbar(active = "") {
               <li><a class="dropdown-item acct-item" href="${pageUrl("admin/dashboard.html")}"><span class="acct-ico acct-ico--blue"><i class="bi bi-speedometer2"></i></span><span class="acct-item-text">${isAdminRole ? "Admin dashboard" : "Staff dashboard"}<small>Overview &amp; reports</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${pageUrl("admin/reservations.html")}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservations<small>Manage guest bookings</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${pageUrl("booking.html")}"><span class="acct-ico acct-ico--teal"><i class="bi bi-door-open"></i></span><span class="acct-item-text">Browse rooms &amp; events<small>See what guests see</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
               <li class="acct-menu-foot">
                 <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
                 <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
@@ -1883,6 +1884,7 @@ function renderNavbar(active = "") {
               <li><a class="dropdown-item acct-item" href="${smart.reservation}"><span class="acct-ico acct-ico--gold"><i class="bi bi-journal-check"></i></span><span class="acct-item-text">Reservation<small>Complete your details</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${smart.payment}"><span class="acct-ico acct-ico--green"><i class="bi bi-credit-card-2-front"></i></span><span class="acct-item-text">Payment<small>Upload proof of payment</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
               <li><a class="dropdown-item acct-item" href="${smart.status}"><span class="acct-ico acct-ico--violet"><i class="bi bi-activity"></i></span><span class="acct-item-text">Status<small>Track your booking</small></span><i class="bi bi-chevron-right acct-go" aria-hidden="true"></i></a></li>
+              <li class="acct-menu-theme"><span class="acct-menu-theme-label"><i class="bi bi-circle-half" aria-hidden="true"></i>Theme</span><span class="acct-theme-seg" role="group" aria-label="Color mode"><button type="button" data-cvr-menu-theme="light"><i class="bi bi-sun-fill" aria-hidden="true"></i>Light</button><button type="button" data-cvr-menu-theme="dark"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>Dark</button></span></li>
               <li class="acct-menu-foot">
                 <button type="button" class="acct-foot-btn" id="cvrNavSwitchAccountBtn"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Switch account</button>
                 <button type="button" class="acct-foot-btn acct-foot-btn--danger" id="cvrNavLogoutBtn"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Log out</button>
@@ -5648,6 +5650,22 @@ async function initReservationStatusView() {
           : "Same day (event)"
   );
   setIf("statusEventTime", target.eventTime || "—");
+  {
+    // Birthday packages run on a fixed Morning / Night session — show it as a badge.
+    const bcat = window.CVRBookingCatalog;
+    const sessionRow = document.getElementById("statusSessionRow");
+    const sessionEl = document.getElementById("statusSession");
+    const sched = target.bookingType === "event" && target.eventSession && bcat?.isBirthdayPackage?.(target.packageOption)
+      ? bcat.BIRTHDAY_SESSION_SCHEDULES?.[target.eventSession]
+      : null;
+    if (sessionRow && sessionEl) {
+      sessionRow.classList.toggle("d-none", !sched);
+      if (sched) {
+        sessionEl.className = `acct-session-chip is-${sched.key}`;
+        sessionEl.innerHTML = `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ${escapeHtml(sched.name)} · ${escapeHtml(sched.label)}`;
+      }
+    }
+  }
   setIf("statusDurationType", target.durationLabel || "—");
   setIf("statusGuests", String(target.guestsLabel || target.guests || "—"));
   setIf("statusNights", target.durationLabel || (target.nights != null ? formatStayLength(target.nights) : "—"));
@@ -7007,6 +7025,34 @@ function initCustomerRegisterForm() {
   });
 }
 
+function cvrRenderDashNextStay(list) {
+  const el = document.getElementById("dashNextStay");
+  if (!el) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const upcoming = (list || [])
+    .filter((r) => !r.checkedOutAt && !String(r.reservationStatus || "").toLowerCase().includes("cancel"))
+    .map((r) => ({ r, d: new Date(`${String(r.checkIn || r.preferredDate || "").slice(0, 10)}T00:00:00`) }))
+    .filter((x) => !Number.isNaN(x.d.getTime()) && x.d >= today)
+    .sort((a, b) => a.d - b.d)[0];
+  if (!upcoming) { el.classList.add("d-none"); el.innerHTML = ""; return; }
+  const { r, d } = upcoming;
+  const days = Math.round((d - today) / 86400000);
+  const when = days === 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days} days`;
+  const cat = window.CVRBookingCatalog;
+  const sched = r.bookingType === "event" && r.eventSession && cat?.isBirthdayPackage?.(r.packageOption)
+    ? cat.BIRTHDAY_SESSION_SCHEDULES?.[r.eventSession] : null;
+  const timeText = sched ? `${sched.name} · ${sched.label}` : (r.checkInLabel ? `Check-in ${r.checkInLabel}` : (r.eventTime || ""));
+  el.innerHTML = `
+    <div class="acct-next-count"><strong>${escapeHtml(when)}</strong><span>${escapeHtml(formatDateReserved(r.checkIn || r.preferredDate))}</span></div>
+    <div class="acct-next-body">
+      <p class="acct-eyebrow mb-1">Your next stay</p>
+      <h3 class="acct-next-title">${escapeHtml(r.roomName || r.eventType || "Reservation")}</h3>
+      <p class="acct-next-meta">${sched ? `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ` : ""}${escapeHtml(timeText)}${timeText && r.id ? " · " : ""}${escapeHtml(r.id || "")}</p>
+    </div>
+    <a class="btn btn-sm acct-next-btn" href="reservation-status.html?id=${encodeURIComponent(r.id)}">View status <i class="bi bi-arrow-right" aria-hidden="true"></i></a>`;
+  el.classList.remove("d-none");
+}
+
 function renderDashboardNotificationsList(items) {
   const listEl = document.getElementById("dashNotificationsList");
   if (!listEl) return;
@@ -7187,6 +7233,8 @@ async function initCustomerDashboardPage() {
   const mine = getStoredReservations().filter((r) => (r.email || "").toLowerCase() === email);
   setText("dashStatTotal", String(mine.length));
   setText("dashStatActive", String(mine.filter((r) => !r.checkedOutAt && !String(r.reservationStatus || "").toLowerCase().includes("cancel")).length));
+
+  cvrRenderDashNextStay(mine);
 
   if (!mine.length) {
     listEl.innerHTML = `<div class="acct-empty"><span class="acct-empty-ico"><i class="bi bi-calendar2-x"></i></span><strong>No reservations yet</strong><p>No reservations linked to your account yet. Book a room or event to see them here.</p><a href="${pageUrl("booking.html")}" class="btn btn-accent btn-sm">Start a booking</a></div>`;
@@ -8487,3 +8535,14 @@ function cvrMountVoucherBox(host, record, onChange) {
   render();
 }
 window.cvrMountVoucherBox = cvrMountVoucherBox;
+
+
+// Light / Dark switch inside the profile dropdown (capture phase so the menu stays open).
+document.addEventListener("click", (ev) => {
+  const btn = ev.target.closest && ev.target.closest("[data-cvr-menu-theme]");
+  if (!btn) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  const next = btn.getAttribute("data-cvr-menu-theme") === "dark" ? "dark" : "light";
+  if (window.cvrTheme && window.cvrTheme.get() !== next) window.cvrTheme.set(next, true);
+}, true);

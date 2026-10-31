@@ -571,17 +571,18 @@ function initBookingPage() {
       detailsEl.classList.remove("d-none");
       const mediaKind = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.kindOf(pkg.image) : "image";
       const coverUrl = pkg.image ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image) : "";
+      const coverDarkUrl = pkg.imageDark && mediaKind === "image" ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.imageDark) : pkg.imageDark) : "";
       // Same look as the room cards: photo + price badge + "View details" overlay.
       // Photos open the details dialog; other file types (PDF, video, docs...) open the file viewer.
       const photo = !pkg.image
         ? ""
         : mediaKind === "image"
-        ? `<div class="room-cover-wrap bk-event-cover${isBirthdayKey(key) ? " cvr-themed-photo" : ""}" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
-            <img class="room-cover" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(key)}">
+        ? `<div class="room-cover-wrap bk-event-cover${isBirthdayKey(key) ? " cvr-themed-photo" : ""}${coverDarkUrl ? " cvr-has-dark" : ""}" data-event-details role="button" tabindex="0" aria-label="View ${escapeHtml(key)} package details">
+            <img class="room-cover${coverDarkUrl ? " cvr-img-light" : ""}" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(key)}">${coverDarkUrl ? `<img class="room-cover cvr-img-dark" src="${escapeHtml(coverDarkUrl)}" alt="${escapeHtml(key)}">` : ""}
             <span class="bk-price-badge"><strong>${escapeHtml(money)}</strong></span>
             <div class="room-cover-overlay"><span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View package details</span></div>
           </div>`
-        : window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key) });
+        : window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark });
       lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, eventNights, guestCountVal, paxSurcharge };
       detailsEl.innerHTML = `
         <div class="soft-card overflow-hidden border bk-event-pkg">
@@ -629,7 +630,7 @@ function initBookingPage() {
         ? `+ ${cat.formatMoney(v.paxSurcharge.price, "PHP")} for ${v.guestCountVal} guests`
         : "";
       // Photo: click it to open the full-size viewer (works for any file type).
-      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key) }) : "";
+      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark }) : "";
 
       const schedule = getFixedSchedule(key);
       const facts = [

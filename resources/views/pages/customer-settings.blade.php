@@ -34,11 +34,8 @@
   <link href="../css/mobile-polish.css?v=20261026a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-<<<<<<< HEAD
-  <link href="../css/account-ui.css?v=20261030a" rel="stylesheet">
-=======
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
->>>>>>> c0e89b761c22c3ccc94ad70b9c35ee89ba76b63b
+  <link href="../css/account-ui.css?v=20261031b" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body id="customerSettingsRoot">
@@ -53,13 +50,13 @@
         </ol>
       </nav>
 
-      <header class="acct-settings-head">
+      <header class="acct-settings-head acct-settings-head--banner">
         <div>
           <p class="acct-eyebrow">Profile</p>
           <h1 class="acct-hero-title"><i class="bi bi-person-gear me-2"></i>Account settings</h1>
           <p class="acct-hero-sub">Update your profile photo, display name, and password.</p>
         </div>
-        <a href="customer-dashboard.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to dashboard</a>
+        <a href="customer-dashboard.html" class="btn acct-back-btn"><i class="bi bi-arrow-left me-2"></i>Back to dashboard</a>
       </header>
 
       <div class="row g-4">
@@ -75,12 +72,14 @@
                 <i class="bi bi-person fs-1 opacity-75" aria-hidden="true"></i>
               </div>
             </div>
+            <h3 class="acct-set-name" id="settingsHeadName">—</h3>
+            <p class="acct-set-email" id="settingsHeadEmail">—</p>
             <input type="file" id="settingsPhotoFile" class="d-none" accept="*/*">
             <div class="acct-photo-actions">
               <button type="button" class="btn btn-brand btn-sm" id="settingsPhotoPickBtn"><i class="bi bi-upload me-1"></i>Upload photo</button>
               <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="removeCustomerPhotoBtn">Remove</button>
             </div>
-            <p class="acct-panel-note mb-0">All file types are supported &mdash; JPG, PNG, GIF, WebP, HEIC, SVG, PDF and more, up to 5MB. Non-image files are saved to your profile but shown as a placeholder.</p>
+            <p class="acct-photo-hint"><i class="bi bi-info-circle me-1"></i>JPG, PNG, GIF, WebP, HEIC, SVG, PDF and more &middot; up to 5&nbsp;MB. Non-image files are saved but shown as a placeholder.</p>
           </section>
         </div>
 
@@ -93,15 +92,15 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label small text-brand mb-1" for="settingsFirstName">First name</label>
-                <input type="text" class="form-control" id="settingsFirstName" autocomplete="given-name">
+                <span class="acct-field"><i class="bi bi-person" aria-hidden="true"></i><input type="text" class="form-control" id="settingsFirstName" autocomplete="given-name"></span>
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-brand mb-1" for="settingsLastName">Last name</label>
-                <input type="text" class="form-control" id="settingsLastName" autocomplete="family-name">
+                <span class="acct-field"><i class="bi bi-person-badge" aria-hidden="true"></i><input type="text" class="form-control" id="settingsLastName" autocomplete="family-name"></span>
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-brand mb-1" for="settingsPhone">Phone number</label>
-                <input type="tel" class="form-control" id="settingsPhone" autocomplete="tel" placeholder="09XXXXXXXXX">
+                <span class="acct-field"><i class="bi bi-telephone" aria-hidden="true"></i><input type="tel" class="form-control" id="settingsPhone" autocomplete="tel" placeholder="09XXXXXXXXX"></span>
               </div>
             </div>
             <div class="acct-form-foot">
@@ -117,17 +116,18 @@
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label small text-brand mb-1" for="settingsCurrentPassword">Current password</label>
-                <input type="password" class="form-control" id="settingsCurrentPassword" autocomplete="current-password">
+                <span class="acct-field"><i class="bi bi-lock" aria-hidden="true"></i><input type="password" class="form-control" id="settingsCurrentPassword" autocomplete="current-password"><button type="button" class="acct-eye" data-eye="settingsCurrentPassword" aria-label="Show password"><i class="bi bi-eye"></i></button></span>
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-brand mb-1" for="settingsNewPassword">New password</label>
-                <input type="password" class="form-control" id="settingsNewPassword" autocomplete="new-password" minlength="6">
+                <span class="acct-field"><i class="bi bi-lock" aria-hidden="true"></i><input type="password" class="form-control" id="settingsNewPassword" autocomplete="new-password" minlength="6"><button type="button" class="acct-eye" data-eye="settingsNewPassword" aria-label="Show password"><i class="bi bi-eye"></i></button></span>
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-brand mb-1" for="settingsConfirmPassword">Confirm new password</label>
-                <input type="password" class="form-control" id="settingsConfirmPassword" autocomplete="new-password" minlength="6">
+                <span class="acct-field"><i class="bi bi-lock" aria-hidden="true"></i><input type="password" class="form-control" id="settingsConfirmPassword" autocomplete="new-password" minlength="6"><button type="button" class="acct-eye" data-eye="settingsConfirmPassword" aria-label="Show password"><i class="bi bi-eye"></i></button></span>
               </div>
             </div>
+            <p class="acct-field-hint"><i class="bi bi-shield-check me-1"></i>Use at least 6 characters. You&rsquo;ll stay signed in after changing it.</p>
             <div class="acct-form-foot">
               <button type="button" class="btn btn-outline-primary" id="saveCustomerPasswordBtn"><i class="bi bi-key me-2"></i>Update password</button>
             </div>
@@ -139,10 +139,31 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261030a"></script>
+  <script src="../js/main.js?v=20261031a"></script>
   <script>
     renderNavbar("");
     renderFooter();
+    (function () {
+      try {
+        var s = getCustomerSession();
+        if (s) {
+          var n = document.getElementById("settingsHeadName");
+          var e = document.getElementById("settingsHeadEmail");
+          if (n) n.textContent = customerProfileDisplayName(s) || "Guest";
+          if (e) e.textContent = s.email || "";
+        }
+      } catch (err) {}
+      document.addEventListener("click", function (ev) {
+        var b = ev.target.closest && ev.target.closest("[data-eye]");
+        if (!b) return;
+        var inp = document.getElementById(b.getAttribute("data-eye"));
+        if (!inp) return;
+        var show = inp.type === "password";
+        inp.type = show ? "text" : "password";
+        b.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        b.firstElementChild.className = "bi " + (show ? "bi-eye-slash" : "bi-eye");
+      });
+    })();
   </script>
 </body>
 </html>
