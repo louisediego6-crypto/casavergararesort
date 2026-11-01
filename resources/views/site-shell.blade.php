@@ -3,6 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="160x160" href="/images/logo-email.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+    <link rel="apple-touch-icon" href="/images/logo-email.png">
     <title>Casa Vergara Resort | Resort in Biñan, Laguna</title>
     <meta name="description" content="Discover Casa Vergara Resort in Biñan, Laguna. Explore comfortable rooms, swimming pools, event venues, and plan your visit." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
