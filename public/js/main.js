@@ -4201,10 +4201,8 @@ function renderResCheckInTimeFeedback(selection, durationKey) {
   const defaultLabel = window.CVRDuration?.get(durationKey)?.checkInLabel || "";
   if (hintEl) {
     hintEl.textContent = selection.time
-      ? `Your requested arrival time is applied to the schedule, summary, and quotation below.`
-      : durationKey === "extended"
-        ? `Pick your own arrival time, or leave blank to use the default${defaultLabel ? ` (${defaultLabel})` : ""}. Your check-out day and time are shown in the schedule below.`
-        : `Pick your own arrival time, or leave blank to use the default${defaultLabel ? ` (${defaultLabel})` : ""}. Check-out shifts with it to fulfill the full duration.`;
+      ? "Your requested arrival time is applied to the schedule, summary, and quotation below."
+      : `Multi-Day only: choose an arrival time or leave blank to use the standard${defaultLabel ? ` ${defaultLabel}` : ""}.`;
   }
   if (!errEl) return;
   let message = "";
@@ -4215,7 +4213,9 @@ function renderResCheckInTimeFeedback(selection, durationKey) {
 }
 
 function syncPendingCheckInTime(pending, durationKey) {
-  const selection = readResCheckInTimeSelection();
+  const selection = durationKey === "extended"
+    ? readResCheckInTimeSelection()
+    : { time: null, incomplete: false, outOfRange: false };
   renderResCheckInTimeFeedback(selection, durationKey);
   if (pending) pending.customCheckInTime = selection.time;
   return selection.time;
@@ -4515,14 +4515,18 @@ function buildReservationFromForm(cat, pending, flow) {
     const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "24hr";
     const extendedNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
 
-    const timeSelection = readResCheckInTimeSelection();
-    const customCheckInTime = timeSelection.time || null;
+    const timeSelection = durationKey === "extended"
+      ? readResCheckInTimeSelection()
+      : { time: null, incomplete: false, outOfRange: false };
+    const customCheckInTime = durationKey === "extended" ? timeSelection.time || null : null;
     if (!checkIn) return { error: "Please select your arrival date." };
-    if (timeSelection.incomplete) {
-      return { error: "Choose hour, minutes, and AM/PM for your arrival time, or clear all three to use the default." };
-    }
-    if (timeSelection.outOfRange) {
-      return { error: "Please choose a valid check-in time." };
+    if (durationKey === "extended") {
+      if (timeSelection.incomplete) {
+        return { error: "Choose hour, minutes, and AM/PM for your arrival time, or clear all three to use the standard time." };
+      }
+      if (timeSelection.outOfRange) {
+        return { error: "Please choose a valid check-in time." };
+      }
     }
 
     const customCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
@@ -4573,6 +4577,9 @@ function buildReservationFromForm(cat, pending, flow) {
   } else {
     const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
     const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
+    const extendedNights = durationKey === "extended"
+      ? window.CVRDuration?.clampExtendedNights(pending.extendedNights)
+      : null;
     if (pending.packageOption && cat.isEventPackageActive && !cat.isEventPackageActive(pending.packageOption)) {
       return { error: "This package is no longer available for booking. Please choose another." };
     }
@@ -4580,10 +4587,25 @@ function buildReservationFromForm(cat, pending, flow) {
 
     if (!eventDate) return { error: "Please select an event date." };
 
-    const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "morning");
-    const eventSession = fixedSchedule?.key || pending.eventSession || "morning";
+    const fixedSchedule = durationKey === "extended"
+      ? null
+      : cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "");
+    const eventSession = fixedSchedule?.key || (durationKey === "extended" ? null : pending.eventSession || null);
     const eventDuration = fixedSchedule?.durationKey || durationKey;
-    const totals = cat.calculateDurationEventTotal(eventDate, eventDuration, pending.packageOption || "", selectedAddOns, null, null, null, guestsNum, eventSession, pending.eventType || "");
+    const customCheckInTime = durationKey === "extended" ? pending.customCheckInTime || null : null;
+    const customCheckOutTime = durationKey === "extended" ? pending.customCheckOutTime || null : null;
+    const totals = cat.calculateDurationEventTotal(
+      eventDate,
+      eventDuration,
+      pending.packageOption || "",
+      selectedAddOns,
+      customCheckInTime,
+      extendedNights,
+      customCheckOutTime,
+      guestsNum,
+      eventSession,
+      pending.eventType || ""
+    );
     if (!totals) return { error: "Invalid event duration." };
     if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(totals.scheduledCheckIn, totals.scheduledCheckOut, excludeId)) {
       return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or session." };
@@ -4600,7 +4622,7 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.eventTime = totals.checkInLabel;
     reservation.durationKey = eventDuration;
     reservation.durationLabel = totals.durationLabel;
-    reservation.extendedNights = null;
+    reservation.extendedNights = extendedNights;
     reservation.scheduledCheckIn = totals.scheduledCheckIn;
     reservation.scheduledCheckOut = totals.scheduledCheckOut;
     reservation.checkInLabel = totals.checkInLabel;
@@ -4922,8 +4944,9 @@ function initReservationFormPage() {
 
   const excludeId = editRecord?.id || "";
 
-  document.getElementById("cvrResCheckInTimeWrap")?.classList.remove("d-none");
-  setResCheckInTimeSelection(pending.customCheckInTime || "");
+  const checkInTimeWrap = document.getElementById("cvrResCheckInTimeWrap");
+  checkInTimeWrap?.classList.toggle("d-none", pending.bookingType !== "room" || pending.durationKey !== "extended");
+  setResCheckInTimeSelection(pending.bookingType === "room" && pending.durationKey === "extended" ? pending.customCheckInTime || "" : "");
   ["cvrResCheckInHour", "cvrResCheckInMinute", "cvrResCheckInMeridiem"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", () => {
       if (typeof window.__cvrRecalcReservationSummary === "function") window.__cvrRecalcReservationSummary();
@@ -4950,6 +4973,8 @@ function initReservationFormPage() {
     document.getElementById("summaryPackageDescription").textContent = pkg.description;
     document.getElementById("summaryPackageMeta").innerHTML = `${pkg.areaSqm} m² · ${pkg.bed} · ${pkg.capacity.min}–${pkg.capacity.max} guests · Standard check-in ${pkg.standardCheckIn}`;
     document.getElementById("summaryPackageInclusions").innerHTML = `<span class="fw-semibold text-brand">Includes:</span> ${pkg.inclusions.join(", ")}`;
+
+    checkInTimeWrap?.classList.toggle("d-none", pending.durationKey !== "extended");
 
     // Room guests: adults and kids are typed separately; the room's total limit is shown next to them.
     const roomCapHint = document.getElementById("resGuestCapacityNote");
@@ -5016,7 +5041,7 @@ function initReservationFormPage() {
     const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
     pending.durationKey = initialDuration;
 
-    document.getElementById("cvrResCheckInTimeWrap")?.classList.add("d-none");
+    checkInTimeWrap?.classList.add("d-none");
     setResCheckInTimeSelection("");
 
     populateResGuestSplit(editRecord || pending);

@@ -325,6 +325,25 @@
     const pending = window.__cvrReservationFlow?.type === "event"
       ? window.__cvrReservationFlow.pending
       : null;
+    const durationKey = pending?.durationKey || document.getElementById("eventDuration")?.value || "";
+    if (durationKey === "extended") {
+      const readTime = (hourId, minuteId, meridiemId) => {
+        const hour = document.getElementById(hourId)?.value || "";
+        const minute = document.getElementById(minuteId)?.value || "";
+        const meridiem = document.getElementById(meridiemId)?.value || "";
+        return hour && minute !== "" && meridiem
+          ? duration.parse12HourTime?.(hour, minute, meridiem) || null
+          : null;
+      };
+      return duration.buildWindow(
+        ymd,
+        "extended",
+        pending?.extendedNights || document.getElementById("eventNights")?.value || 2,
+        pending?.customCheckInTime || readTime("eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem"),
+        pending?.customCheckOutTime || readTime("eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem")
+      );
+    }
+
     const eventType = document.getElementById("eventType")?.value || "";
     const packageOption = pending?.packageOption
       || (catalog.getEventPackageCatalog(eventType)
@@ -332,9 +351,8 @@
         : eventType === "Birthday"
           ? document.getElementById("eventBirthdayPackage")?.value || ""
           : "");
-    const sessionKey = pending?.eventSession
-      || document.querySelector('input[name="eventSession"]:checked')?.value
-      || "morning";
+    const sessionKey = pending?.eventSession || document.querySelector('input[name="eventSession"]:checked')?.value;
+    if (!pending && !sessionKey && !String(packageOption).startsWith("Private Venue –")) return null;
     const schedule = catalog.getFixedEventSchedule(packageOption, sessionKey);
     if (!schedule) return null;
 
@@ -432,6 +450,9 @@
     });
     const refreshEventAvailability = () => eventDatePicker.redraw();
     ["eventType", "eventBirthdayPackage"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
+    });
+    ["eventDuration", "eventNights", "eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem", "eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem"].forEach((id) => {
       document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
     });
     document.querySelectorAll('input[name="eventSession"]').forEach((radio) => {

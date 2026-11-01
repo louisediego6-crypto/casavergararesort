@@ -17,7 +17,7 @@ const CVR_CHAT_GROUP_GAP_MS = 15 * 60 * 1000;
     if (!src || document.querySelector("link[data-cvr-chat-styles]")) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = new URL("../css/live-chat.css?v=20261024b", src).href;
+    link.href = new URL("../css/live-chat.css?v=20261105a", src).href;
     link.dataset.cvrChatStyles = "1";
     document.head.appendChild(link);
   } catch (_) {

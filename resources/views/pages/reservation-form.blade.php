@@ -22,7 +22,7 @@
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
-  <link href="../css/mobile-polish.css?v=20261026b" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
@@ -98,7 +98,7 @@
 
           <div class="soft-card p-4 reservation-panel" id="stayDetailsPanel">
             <h4 class="text-brand mb-3">Stay details</h4>
-            <p class="small text-muted-brand mb-3" id="stayDatesHint">Choose your arrival date and time. Your check-out time follows automatically — exactly 3, 12, or 24 hours after check-in — so the full duration is always fulfilled. See the schedule below.</p>
+            <p class="small text-muted-brand mb-3" id="stayDatesHint">Choose your arrival date. Check-in and check-out follow the fixed schedule for your selected duration. Only Multi-Day stays allow flexible times.</p>
             <p class="small text-muted-brand mb-3 d-none" id="eventStayDateHint"></p>
             <div class="row g-4 align-items-start" id="stayDetailsFieldsRow">
               <div class="col-md-6" id="resGuestCountWrap">
@@ -144,8 +144,8 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-6" id="cvrResCheckInTimeWrap">
-                <label class="form-label cvr-time-label-row mb-2" for="cvrResCheckInHour">Arrival time <span class="cvr-time-flex-badge">Flexible</span></label>
+              <div class="col-md-6 d-none" id="cvrResCheckInTimeWrap">
+                <label class="form-label cvr-time-label-row mb-2" for="cvrResCheckInHour">Multi-Day arrival time <span class="cvr-time-flex-badge">Flexible</span></label>
                 <div class="cvr-time-picker-group" role="group" aria-label="Preferred arrival time">
                   <select id="cvrResCheckInHour" class="form-select" aria-label="Arrival hour">
                     <option value="" selected>Hr</option>
@@ -168,7 +168,7 @@
                     <option value="PM">PM</option>
                   </select>
                 </div>
-                <small class="text-muted-brand d-block mt-1" id="cvrResCheckInTimeHint">Pick your own arrival time, or leave blank to use the default. Check-out shifts with it to fulfill the full duration.</small>
+                <small class="text-muted-brand d-block mt-1" id="cvrResCheckInTimeHint">For Multi-Day stays only. Leave blank to use the standard check-in time.</small>
                 <div class="small text-danger mt-1 d-none" id="cvrResCheckInTimeError"></div>
               </div>
               <div class="col-md-6" id="resCheckOutTimeWrap">
@@ -232,12 +232,12 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261102a"></script>
+  <script src="../js/duration-pricing.js?v=20261105a"></script>
+  <script src="../js/booking-data.js?v=20261105a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20261101a"></script>
-  <script src="../js/main.js?v=20261102a"></script>
+  <script src="../js/reservation-calendar.js?v=20261105a"></script>
+  <script src="../js/main.js?v=20261105a"></script>
   <script>
     (async () => {
 

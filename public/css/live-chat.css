@@ -608,21 +608,63 @@
 /* ---------- Phones ---------- */
 @media (max-width: 576px) {
   .cvr-live-chat-dock {
-    right: 0.75rem;
-    bottom: 0.75rem;
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
   .cvr-live-chat-dock .cvr-chat-panel {
-    width: calc(100vw - 1.5rem);
-    max-height: 78vh;
+    width: min(calc(100vw - 1rem), 380px);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1rem);
+    overscroll-behavior: contain;
   }
   .cvr-live-chat-dock .cvr-chat-messages {
-    max-height: 48vh;
+    min-height: 0;
+    max-height: none;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .cvr-msg-col {
-    max-width: 88%;
+    max-width: min(88%, calc(100vw - 5.5rem));
+  }
+  .cvr-live-chat-dock .cvr-bubble--file {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .cvr-live-chat-dock .cvr-cmp {
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom, 0px));
+  }
+  .cvr-live-chat-dock .cvr-cmp-row {
+    gap: 0.25rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp-ico {
+    width: 2rem;
+    height: 2rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp-send {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp-pill textarea {
+    font-size: 16px;
   }
   .cvr-msg-actions {
     opacity: 1;
+  }
+}
+
+@media (max-width: 360px) {
+  .cvr-live-chat-dock .cvr-chat-panel-head {
+    padding: 0.7rem 0.75rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp {
+    padding-inline: 0.4rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp-ico {
+    width: 1.8rem;
+  }
+  .cvr-live-chat-dock .cvr-cmp-send {
+    width: 2.2rem;
+    height: 2.2rem;
   }
 }
 

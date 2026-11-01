@@ -23,8 +23,8 @@
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
-  <link href="../css/booking-ui.css?v=20261102a" rel="stylesheet">
-  <link href="../css/mobile-polish.css?v=20261026b" rel="stylesheet">
+  <link href="../css/booking-ui.css?v=20261105a" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/booking-extras.css?v=20261026c" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
@@ -84,9 +84,10 @@
           <div class="col-12 col-sm-6 col-lg-4" id="cvrStayDurationWrap">
             <label for="stayDuration" class="form-label text-brand">Stay Duration</label>
             <select id="stayDuration" class="form-select">
+              <option value="" selected disabled>Select stay duration</option>
               <option value="3hr">3-Hours Stay</option>
               <option value="12hr">12-Hours Stay</option>
-              <option value="24hr" selected>24-Hours Stay</option>
+              <option value="24hr">24-Hours Stay</option>
               <option value="extended">Multi-Day / Extended Stay (2+ nights)</option>
             </select>
           </div>
@@ -94,8 +95,8 @@
             <label class="form-label invisible d-none d-lg-block" aria-hidden="true">Search</label>
             <button class="btn btn-brand" type="button" id="bookingSearchBtn"><i class="bi bi-search me-2"></i>Search</button>
           </div>
-          <div class="col-12 col-sm-6 col-lg-6" id="cvrCheckInTimeWrap">
-            <label class="form-label text-brand cvr-time-label-row" for="cvrCheckInHour">Check-in Time <span class="cvr-time-flex-badge">Flexible</span></label>
+          <div class="col-12 col-sm-6 col-lg-6 d-none" id="cvrCheckInTimeWrap">
+            <label class="form-label text-brand cvr-time-label-row" for="cvrCheckInHour">Multi-Day check-in time <span class="cvr-time-flex-badge">Flexible</span></label>
             <div class="cvr-time-picker-group" role="group" aria-label="Preferred check-in time">
               <select id="cvrCheckInHour" class="form-select" aria-label="Check-in hour">
                 <option value="" selected disabled>Hr</option>
@@ -118,10 +119,10 @@
                 <option value="PM">PM</option>
               </select>
             </div>
-            <small class="text-muted-brand d-block mt-1" id="cvrCheckInTimeHint">Pick your own arrival time, or leave blank to use the default for this duration. Check-out moves with it so you always get the full duration.</small>
+            <small class="text-muted-brand d-block mt-1" id="cvrCheckInTimeHint">For Multi-Day stays only. Leave blank to use the standard 2:00 PM check-in.</small>
           </div>
           <div class="col-12 col-sm-6 col-lg-6 d-none" id="cvrRoomCheckOutTimeWrap">
-            <label class="form-label text-brand cvr-time-label-row" for="cvrCheckOutHour">Check-out Time <span class="cvr-time-flex-badge">Flexible</span></label>
+            <label class="form-label text-brand cvr-time-label-row" for="cvrCheckOutHour">Multi-Day check-out time <span class="cvr-time-flex-badge">Flexible</span></label>
             <div class="cvr-time-picker-group" role="group" aria-label="Preferred departure time">
               <select id="cvrCheckOutHour" class="form-select" aria-label="Check-out hour">
                 <option value="" selected disabled>Hr</option>
@@ -147,7 +148,7 @@
             <small class="text-muted-brand d-block mt-1">Only for Multi-Day stays: pick your departure time on the last day, or leave blank to use the default 12:00 NN.</small>
           </div>
           <div class="col-12" id="cvrRoomTimingNote">
-            <p class="small text-muted-brand mb-0"><i class="bi bi-alarm me-1"></i>Both your arrival and check-out times are flexible: check-out is exactly 3, 12, or 24 hours after your actual check-in, so the full duration is always fulfilled. Staying past that check-out time is billed as overtime — see each room's rates below.</p>
+            <p class="small text-muted-brand mb-0" id="cvrRoomTimingText"><i class="bi bi-alarm me-1"></i>Select a stay duration to see its fixed check-in and check-out schedule. Only Multi-Day stays allow flexible times.</p>
           </div>
           <div class="col-12">
             <div id="bookingFeedback" class="alert alert-success d-none mb-0" role="alert"></div>
@@ -198,7 +199,7 @@
               <span class="form-label text-brand d-block">Choose your session <span class="text-danger">*</span></span>
               <div class="bk-session-picker" role="radiogroup" aria-label="Event session">
                 <label class="bk-session-card">
-                  <input type="radio" name="eventSession" value="morning" checked>
+                  <input type="radio" name="eventSession" value="morning">
                   <span class="bk-session-body">
                     <span class="bk-session-ico"><i class="bi bi-sunrise-fill" aria-hidden="true"></i></span>
                     <span class="bk-session-text"><strong>Morning session</strong><small>8:00 AM – 5:00 PM</small></span>
@@ -294,25 +295,24 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6" id="eventDurationWrap">
-              <label for="eventDuration" class="form-label text-brand">Event Duration <span class="text-danger">*</span></label>
+            <div class="col-md-6 d-none" id="eventDurationWrap">
+              <label for="eventDuration" class="form-label text-brand">Event Schedule <span class="text-danger">*</span></label>
               <select id="eventDuration" class="form-select" required>
-                <option value="3hr">3-Hours Stay</option>
-                <option value="12hr">12-Hours Stay</option>
-                <option value="24hr">24-Hours Stay</option>
+                <option value="" selected disabled>Choose fixed session or Multi-Day</option>
+                <option value="fixed">Fixed session (choose one below)</option>
                 <option value="extended">Multi-Day / Extended Event (2+ nights)</option>
               </select>
-              <p class="small text-muted-brand mb-0 mt-1" id="eventDurationHint">Events follow a fixed session schedule. Overtime is billed per hour past the scheduled check-out time.</p>
+              <p class="small text-muted-brand mb-0 mt-1" id="eventDurationHint">Single-day events use one of the three fixed sessions. Only Multi-Day events allow custom times.</p>
             </div>
             <div class="col-12 d-none" id="eventFixedScheduleNote">
-              <p class="small text-muted-brand mb-0"><i class="bi bi-clock-history me-1"></i><span id="eventFixedScheduleText"></span> This event runs on a fixed schedule, so there's no duration or check-in time to choose.</p>
+              <p class="small text-muted-brand mb-0"><i class="bi bi-clock-history me-1"></i><span id="eventFixedScheduleText"></span> Single-day event times follow the fixed session schedule.</p>
             </div>
             <div class="col-md-6 d-none" id="eventNightsWrap">
               <label for="eventNights" class="form-label text-brand">Number of Nights <span class="text-danger">*</span></label>
               <input type="number" id="eventNights" class="form-control" min="2" max="14" value="2">
               <p class="small text-muted-brand mb-0 mt-1">2–14 nights. Check-out lands this many nights after your arrival date.</p>
             </div>
-            <div class="col-md-6" id="eventCheckInTimeWrap">
+            <div class="col-md-6 d-none" id="eventCheckInTimeWrap">
               <label class="form-label text-brand cvr-time-label-row" for="eventCheckInHour">Check-in Time <span class="cvr-time-flex-badge">Flexible</span></label>
               <div class="cvr-time-picker-group" role="group" aria-label="Preferred event check-in time">
                 <select id="eventCheckInHour" class="form-select" aria-label="Check-in hour">
@@ -477,14 +477,14 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261102a"></script>
-  <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261102a"></script>
+  <script src="../js/main.js?v=20261105a"></script>
+  <script src="../js/duration-pricing.js?v=20261105a"></script>
+  <script src="../js/booking-data.js?v=20261105a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20261101a"></script>
+  <script src="../js/reservation-calendar.js?v=20261105a"></script>
   <script src="../js/package-media.js?v=20261031a"></script>
-  <script src="../js/booking.js?v=20261102a"></script>
+  <script src="../js/booking.js?v=20261105a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20261102a"></script>
   <script>

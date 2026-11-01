@@ -232,7 +232,8 @@ html body .cvr-live-chat-dock .cvr-cmp { flex: 0 0 auto; }
   html body .cvr-live-chat-dock .cvr-chat-panel:not(.d-none) {
     position: fixed; left: 0; right: 0; bottom: 0; top: auto;
     width: 100%; max-width: 100%;
-    height: min(86dvh, 640px); max-height: 86dvh;
+    height: min(calc(var(--cvr-vh, 100dvh) - var(--mp-safe-t) - var(--mp-safe-b)), 640px);
+    max-height: calc(var(--cvr-vh, 100dvh) - var(--mp-safe-t) - var(--mp-safe-b));
     border-radius: 22px 22px 0 0;
     border-left: 0; border-right: 0; border-bottom: 0;
     padding-bottom: var(--mp-safe-b);
@@ -242,8 +243,8 @@ html body .cvr-live-chat-dock .cvr-cmp { flex: 0 0 auto; }
   html body .cvr-live-chat-dock:has(.cvr-chat-panel:not(.d-none)) .cvr-chat-fab { display: none; }
   html body .cvr-live-chat-dock .cvr-chat-panel-head { padding: .8rem 1rem; }
   html body .cvr-live-chat-dock .cvr-chat-panel-head .btn-close { padding: .85rem; margin: -.3rem -.4rem -.3rem 0; }
-  html body .cvr-live-chat-dock .cvr-chat-messages { max-height: none; padding: .85rem .8rem; }
-  html body .cvr-msg-col { max-width: 84%; }
+  html body .cvr-live-chat-dock .cvr-chat-messages { min-height: 0; max-height: none; padding: .85rem .8rem; overscroll-behavior: contain; }
+  html body .cvr-msg-col { max-width: min(84%, calc(100vw - 5.5rem)); }
   html body .cvr-live-chat-dock .cvr-cmp { padding: .5rem .6rem .6rem; }
   html body .cvr-live-chat-dock .cvr-cmp textarea,
   html body .cvr-live-chat-dock .cvr-cmp input[type="text"] { font-size: 16px; }

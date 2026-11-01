@@ -8,7 +8,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="refresh" content="0; url=site-content.html?tab=team" />
   <title>Our Team - Casa Vergara Admin</title>
-  <link href="../../css/mobile-polish.css?v=20261026b" rel="stylesheet">
+  <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
   <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>

@@ -891,7 +891,7 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
-  const fixedSchedule = getFixedEventSchedule(packageOption, sessionKey);
+  const fixedSchedule = durationKey === "extended" ? null : getFixedEventSchedule(packageOption, sessionKey);
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
     : dur.buildWindow(dateStr, durationKey, nights, customCheckInTime, customCheckOutTime);

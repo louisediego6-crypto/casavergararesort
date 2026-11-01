@@ -24,7 +24,7 @@
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
-  <link href="../css/mobile-polish.css?v=20261026b" rel="stylesheet">
+  <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
   <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
@@ -403,9 +403,9 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/booking-data.js?v=20261102a"></script>
+  <script src="../js/booking-data.js?v=20261105a"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
-  <script src="../js/main.js?v=20261102a"></script>
+  <script src="../js/main.js?v=20261105a"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
   <script src="../js/casa-refresh.js?v=20261018a"></script>
   <script>

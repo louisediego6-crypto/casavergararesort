@@ -13,7 +13,7 @@ const CVR_DURATION_OPTIONS = {
     spansMidnight: false,
     roomRateMultiplier: 0.18,
     eventRateMultiplier: 0.4,
-    description: "Short same-day use. Default check-in 8:00 AM (flexible arrival time available); check-out is exactly 3 hours after your actual check-in.",
+    description: "Fixed same-day schedule: check-in at 8:00 AM and check-out at 11:00 AM.",
   },
   "12hr": {
     key: "12hr",
@@ -27,7 +27,7 @@ const CVR_DURATION_OPTIONS = {
     spansMidnight: false,
     roomRateMultiplier: 0.57,
     eventRateMultiplier: 1.0,
-    description: "Same-day use. Default check-in 8:00 AM (flexible arrival time available); check-out is exactly 12 hours after your actual check-in.",
+    description: "Fixed same-day schedule: check-in at 8:00 AM and check-out at 8:00 PM.",
   },
   "24hr": {
     key: "24hr",
@@ -41,7 +41,7 @@ const CVR_DURATION_OPTIONS = {
     spansMidnight: true,
     roomRateMultiplier: 1.0,
     eventRateMultiplier: 1.35,
-    description: "Full-day/overnight use. Default check-in 2:00 PM (flexible arrival time available); check-out is exactly 24 hours after your actual check-in.",
+    description: "Fixed overnight schedule: check-in at 2:00 PM and check-out at 2:00 PM the next day.",
   },
   extended: {
     key: "extended",
@@ -57,7 +57,7 @@ const CVR_DURATION_OPTIONS = {
     maxNights: 14,
     roomRateMultiplier: null,
     eventRateMultiplier: null,
-    description: "For stays/events longer than one night. Both the check-in and check-out time are flexible; check-out lands on the chosen day (2-14 nights later) at your requested time, or 12:00 NN by default. Billed at the package's standard per-night rate.",
+    description: "For stays/events longer than one night. Check-in and check-out times can be selected; standard times are 2:00 PM and 12:00 NN. Billed at the package's standard per-night rate.",
   },
 };
 
