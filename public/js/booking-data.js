@@ -86,18 +86,24 @@ const CVR_CATALOG_READY = cvrSyncCatalogFromServer();
 
 const PRIVATE_VENUE_FIXED_SCHEDULES = {
   "Private Venue – Morning (8:00 AM–5:00 PM)": {
+    key: "morning",
+    name: "Morning session",
     checkInTime: "08:00",
     checkOutTime: "17:00",
     label: "8:00 AM – 5:00 PM",
     durationKey: "12hr",
   },
   "Private Venue – Night (7:00 PM–5:00 AM)": {
+    key: "night",
+    name: "Night session",
     checkInTime: "19:00",
     checkOutTime: "05:00",
     label: "7:00 PM – 5:00 AM (next day)",
     durationKey: "12hr",
   },
   "Private Venue – Whole Day (2 Sessions)": {
+    key: "whole-day",
+    name: "Whole day (2 sessions)",
     checkInTime: "08:00",
     checkOutTime: "05:00",
     label: "8:00 AM – 5:00 AM (next day, 2 sessions)",
@@ -105,11 +111,9 @@ const PRIVATE_VENUE_FIXED_SCHEDULES = {
   },
 };
 
-/* Birthday packages run on the same fixed sessions as the Private Venue packages
-   (Morning 8 AM–5 PM or Night 7 PM–5 AM) but are always a single session —
-   no duration picker, no custom check-in time and no multi-day stay. */
+/* Event bookings use the same fixed session windows as the Private Venue. */
 const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
-const BIRTHDAY_SESSION_SCHEDULES = {
+const EVENT_SESSION_SCHEDULES = {
   morning: {
     key: "morning",
     name: "Morning session",
@@ -126,8 +130,17 @@ const BIRTHDAY_SESSION_SCHEDULES = {
     label: "7:00 PM – 5:00 AM (next day)",
     durationKey: "12hr",
   },
+  "whole-day": {
+    key: "whole-day",
+    name: "Whole day (2 sessions)",
+    checkInTime: "08:00",
+    checkOutTime: "05:00",
+    label: "8:00 AM – 5:00 AM (next day, 2 sessions)",
+    durationKey: "24hr",
+  },
 };
 const BIRTHDAY_DEFAULT_SESSION = "morning";
+const BIRTHDAY_SESSION_SCHEDULES = EVENT_SESSION_SCHEDULES;
 
 function isBirthdayPackage(packageOption) {
   return BIRTHDAY_PACKAGE_KEYS.includes(packageOption);
@@ -135,10 +148,7 @@ function isBirthdayPackage(packageOption) {
 
 function getFixedEventSchedule(packageOption, sessionKey) {
   if (PRIVATE_VENUE_FIXED_SCHEDULES[packageOption]) return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption];
-  if (isBirthdayPackage(packageOption)) {
-    return BIRTHDAY_SESSION_SCHEDULES[sessionKey] || BIRTHDAY_SESSION_SCHEDULES[BIRTHDAY_DEFAULT_SESSION];
-  }
-  return null;
+  return EVENT_SESSION_SCHEDULES[sessionKey] || EVENT_SESSION_SCHEDULES[BIRTHDAY_DEFAULT_SESSION];
 }
 
 const EVENT_PACKAGE_CATALOG = {
@@ -853,8 +863,8 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
     durationKey,
-    durationLabel: fixedSchedule ? (fixedSchedule.name && isBirthdayPackage(packageOption) ? `${fixedSchedule.name} · ${fixedSchedule.label}` : fixedSchedule.label) : dur.get(durationKey).label,
-    eventSession: fixedSchedule && isBirthdayPackage(packageOption) ? fixedSchedule.key : null,
+    durationLabel: fixedSchedule ? `${fixedSchedule.name} · ${fixedSchedule.label}` : dur.get(durationKey).label,
+    eventSession: fixedSchedule?.key || null,
     ...window_,
     roomSubtotal: subRounded,
     addOnsTotal: addOns.total,
@@ -1384,6 +1394,7 @@ window.CVRBookingCatalog = {
   getEventPackageCatalog,
   getFixedEventSchedule,
   isBirthdayPackage,
+  EVENT_SESSION_SCHEDULES,
   BIRTHDAY_SESSION_SCHEDULES,
   getEventMotifs,
   getPackageAddOns,

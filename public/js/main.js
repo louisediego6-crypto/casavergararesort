@@ -2509,56 +2509,26 @@ function renderAdminSidebar(active = "") {
   const navRows = `
     <ul class="nav flex-column admin-drawer-nav">
       ${links.map(([id, label, href, icon], i) =>
-        `<li class="nav-item cvr-sidebar-fade" style="animation-delay:${i * 0.03}s"><a class="nav-link px-3 py-2 ${id === "live-chat" ? "nav-link--bell position-relative" : ""} ${active===id?"active":""}" href="${href}"><i class="bi ${icon}"></i>${label}${id === "live-chat" ? `<span id="adminLiveChatBadge" class="badge rounded-pill text-bg-danger nav-bell-count nav-bell-count--inline d-none">0</span>` : ""}</a></li>`
+        `<li class="nav-item cvr-sidebar-fade" style="animation-delay:${i * 0.03}s"><a class="nav-link px-3 py-2 ${id === "live-chat" ? "nav-link--bell position-relative" : ""} ${active===id?"active":""}" href="${href}" title="${label}"><i class="bi ${icon}"></i><span class="admin-nav-label">${label}</span>${id === "live-chat" ? `<span id="adminLiveChatBadge" class="badge rounded-pill text-bg-danger nav-bell-count nav-bell-count--inline d-none">0</span>` : ""}</a></li>`
       ).join("")}
     </ul>
     <div class="admin-drawer-utility">
       <span class="admin-drawer-utility-label">Account</span>
-      <a class="nav-link nav-link--bell position-relative px-3 py-2 cvr-sidebar-fade ${active === "notifications" ? "active" : "text-muted-brand"}" style="animation-delay:${links.length * 0.03}s" href="notifications.html" id="adminNotifBellBtn">
-        <i class="bi bi-bell"></i>Notifications
-        <span id="adminNotifCountBadge" class="badge rounded-pill text-bg-danger nav-bell-count nav-bell-count--inline d-none">0</span>
-      </a>
-      <button type="button" class="nav-link px-3 py-2 text-muted-brand border-0 bg-transparent w-100 text-start cvr-sidebar-fade" style="animation-delay:${(links.length + 1) * 0.03}s" id="adminSwitchAccountBtn"><i class="bi bi-arrow-left-right"></i>Switch account</button>
-      <button type="button" class="nav-link mt-1 px-3 py-2 text-muted-brand border-0 bg-transparent w-100 text-start cvr-sidebar-fade" style="animation-delay:${(links.length + 2) * 0.03}s" id="adminLogoutBtn"><i class="bi bi-box-arrow-right"></i>Logout</button>
+      <button type="button" class="nav-link px-3 py-2 cvr-sidebar-fade" style="animation-delay:${links.length * 0.03}s" id="adminSwitchAccountBtn" title="Switch account"><i class="bi bi-arrow-left-right"></i><span class="admin-nav-label">Switch account</span></button>
+      <button type="button" class="nav-link mt-1 px-3 py-2 cvr-sidebar-fade" style="animation-delay:${(links.length + 1) * 0.03}s" id="adminLogoutBtn" title="Logout"><i class="bi bi-box-arrow-right"></i><span class="admin-nav-label">Logout</span></button>
     </div>
   `;
 
   holder.innerHTML = `
-    <header class="admin-topbar">
-      <div class="admin-topbar-inner">
-        <a class="admin-topbar-brand" href="dashboard.html">
-          <img src="${assetUrl("images/logo.png")}" class="brand-logo rounded-3 p-1" alt="Logo" />
-          <span class="min-w-0">
-            <strong class="text-brand d-block text-truncate brand-title">Casa Vergara Resort</strong>
-            <span class="admin-role-pill ${isFullAdmin ? "" : "is-staff"}">${isFullAdmin ? "Admin Portal" : "Staff Portal"}</span>
+    <aside class="admin-drawer admin-sidebar-desktop" aria-label="${isFullAdmin ? "Admin" : "Staff"} navigation">
+      <div class="admin-drawer-head">
+        <a class="admin-sidebar-brand" href="dashboard.html" title="Casa Vergara Resort">
+          <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="admin-drawer-logo" />
+          <span class="admin-sidebar-brand-copy">
+            <strong class="admin-drawer-title d-block">Casa Vergara</strong>
+            <span class="admin-drawer-subtitle">${isFullAdmin ? "Admin Portal" : "Staff Portal"}</span>
           </span>
         </a>
-        ${cvrThemeToggleMarkup()}
-        <span class="admin-topbar-divider" aria-hidden="true"></span>
-        <span class="admin-topbar-section">
-          <span class="admin-topbar-section-eyebrow">You're viewing</span>
-          <span class="admin-topbar-section-title">${escapeHtml(sectionTitle || "Menu")}</span>
-        </span>
-        <div class="admin-topbar-actions">
-          <button type="button" class="admin-icon-btn admin-nav-toggle" id="adminNavToggle" aria-label="Open menu" aria-expanded="false" aria-controls="adminNavDrawer" title="Menu">
-            <i class="bi bi-list"></i>
-            <span class="admin-nav-toggle-dot d-none" id="adminNavToggleDot"></span>
-          </button>
-          <a class="admin-icon-btn" href="${pageUrl("landing.html")}" title="View website" aria-label="View website">
-            <i class="bi bi-house"></i>
-          </a>
-        </div>
-      </div>
-    </header>
-    <div class="admin-drawer-backdrop" id="adminNavBackdrop" hidden></div>
-    <aside class="admin-drawer" id="adminNavDrawer" aria-hidden="true">
-      <div class="admin-drawer-head">
-        <img src="${assetUrl("images/logo.png")}" alt="Casa Vergara" class="admin-drawer-logo" />
-        <span>
-          <span class="admin-drawer-title d-block">Menu</span>
-          <span class="admin-drawer-subtitle">${isFullAdmin ? "Admin Portal" : "Staff Portal"}</span>
-        </span>
-        <button type="button" class="admin-icon-btn admin-icon-btn--sm" id="adminNavClose" aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="admin-drawer-body">
         ${navRows}
@@ -2566,43 +2536,35 @@ function renderAdminSidebar(active = "") {
     </aside>
   `;
 
-  const drawer = holder.querySelector("#adminNavDrawer");
-  const backdrop = holder.querySelector("#adminNavBackdrop");
-  const toggle = holder.querySelector("#adminNavToggle");
-
-  const closeDrawer = () => {
-    drawer?.classList.remove("is-open");
-    backdrop?.classList.remove("is-open");
-    if (backdrop) backdrop.hidden = true;
-    drawer?.setAttribute("aria-hidden", "true");
-    toggle?.setAttribute("aria-expanded", "false");
-    document.body.classList.remove("cvr-drawer-open");
-  };
-  const openDrawer = () => {
-    drawer?.classList.add("is-open");
-    if (backdrop) backdrop.hidden = false;
-    requestAnimationFrame(() => backdrop?.classList.add("is-open"));
-    drawer?.setAttribute("aria-hidden", "false");
-    toggle?.setAttribute("aria-expanded", "true");
-    document.body.classList.add("cvr-drawer-open");
-    drawer?.querySelector(".nav-link")?.focus?.();
-  };
-
-  toggle?.addEventListener("click", () => {
-    drawer?.classList.contains("is-open") ? closeDrawer() : openDrawer();
-  });
-  holder.querySelector("#adminNavClose")?.addEventListener("click", closeDrawer);
-  backdrop?.addEventListener("click", closeDrawer);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeDrawer();
-  });
+  const main = holder.parentElement?.querySelector(".admin-main");
+  if (main) {
+    main.querySelector(".admin-topbar")?.remove();
+    main.insertAdjacentHTML("afterbegin", `
+      <header class="admin-topbar">
+        <div class="admin-topbar-inner">
+          <span class="admin-topbar-section">
+            <span class="admin-topbar-section-eyebrow">You're viewing</span>
+            <span class="admin-topbar-section-title">${escapeHtml(sectionTitle || "Menu")}</span>
+          </span>
+          <div class="admin-topbar-actions">
+            <a class="admin-icon-btn admin-notification-btn" href="notifications.html" id="adminNotifBellBtn" title="Notifications" aria-label="Notifications">
+              <i class="bi bi-bell"></i>
+              <span id="adminNotifCountBadge" class="badge rounded-pill text-bg-danger nav-bell-count d-none" aria-live="polite" aria-atomic="true">0</span>
+            </a>
+            <a class="admin-icon-btn" href="${pageUrl("landing.html")}" title="View website" aria-label="View website">
+              <i class="bi bi-house"></i>
+            </a>
+            ${cvrThemeToggleMarkup()}
+          </div>
+        </div>
+      </header>
+    `);
+  }
 
   holder.querySelector("#adminLogoutBtn")?.addEventListener("click", () => {
-    closeDrawer();
     cvrConfirmLogout(pageUrl("login.html"));
   });
   holder.querySelector("#adminSwitchAccountBtn")?.addEventListener("click", () => {
-    closeDrawer();
     openCvrSwitchAccountModal();
   });
 
@@ -2695,8 +2657,6 @@ async function initAdminNotifBell() {
       countBadge.classList.add("d-none");
     }
 
-    const dot = document.getElementById("adminNavToggleDot");
-    if (dot) dot.classList.toggle("d-none", unread.length === 0);
   };
 
   await poll();
@@ -4266,9 +4226,11 @@ function updateEventFormSummary(cat, pending) {
   pending.children = split.children;
 
   const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
-  const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
+  const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "morning");
+  const durationKey = fixedSchedule?.durationKey || (pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr");
   pending.preferredDate = eventDate;
   pending.durationKey = durationKey;
+  pending.eventSession = fixedSchedule?.key || pending.eventSession || null;
 
   const selectedAddOns = getSelectedAddOnIds();
   const customCheckInTime = syncPendingCheckInTime(pending, durationKey);
@@ -4311,9 +4273,11 @@ function updateEventFormSummary(cat, pending) {
   const list = document.getElementById("eventSummaryList");
   if (list) {
     const spansDays = pending.checkOutDate && pending.checkOutDate !== pending.preferredDate;
+    const session = cat.EVENT_SESSION_SCHEDULES?.[pending.eventSession];
     list.innerHTML = `
       <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
       <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
+      ${session ? `<li><strong>Session:</strong> ${escapeHtml(session.name)} · ${escapeHtml(session.label)}</li>` : ""}
       <li><strong>${spansDays ? "Start date" : "Date"}:</strong> ${formatDateReserved(pending.preferredDate)}</li>
       ${spansDays ? `<li><strong>End date:</strong> ${formatDateReserved(pending.checkOutDate)}</li>` : ""}
       ${pending.durationKey === "extended" && pending.extendedNights ? `<li><strong>Nights:</strong> ${escapeHtml(String(pending.extendedNights))}</li>` : ""}
@@ -4524,28 +4488,14 @@ function buildReservationFromForm(cat, pending, flow) {
 
     if (!eventDate) return { error: "Please select an event date." };
 
-    const evNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
-    const evTimeSelection = readResCheckInTimeSelection();
-    if (evTimeSelection.incomplete) {
-      return { error: "Choose hour, minutes, and AM/PM for your arrival time, or clear all three to use the default." };
-    }
-    if (evTimeSelection.outOfRange) {
-      return { error: "Please choose a valid arrival time." };
-    }
-    const evCustomCheckInTime = evTimeSelection.time || null;
-    const evCustomCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
-
-    const evWin = window.CVRDuration?.buildWindow(eventDate, durationKey, evNights, evCustomCheckInTime, evCustomCheckOutTime);
-    if (!evWin) return { error: "Invalid event duration." };
-    if ((evCustomCheckInTime && evWin.customCheckInTime !== evCustomCheckInTime) || (evCustomCheckOutTime && evWin.customCheckOutTime !== evCustomCheckOutTime)) {
-      return { error: STALE_SCRIPT_ERROR };
-    }
-    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(evWin.scheduledCheckIn, evWin.scheduledCheckOut, excludeId)) {
-      return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or duration." };
-    }
-
-    const totals = cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, evCustomCheckInTime, evNights, evCustomCheckOutTime, guestsNum, pending.eventSession || null);
+    const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "morning");
+    const eventSession = fixedSchedule?.key || pending.eventSession || "morning";
+    const eventDuration = fixedSchedule?.durationKey || durationKey;
+    const totals = cat.calculateDurationEventTotal(eventDate, eventDuration, pending.packageOption || "", selectedAddOns, null, null, null, guestsNum, eventSession);
     if (!totals) return { error: "Invalid event duration." };
+    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(totals.scheduledCheckIn, totals.scheduledCheckOut, excludeId)) {
+      return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or session." };
+    }
     const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
     const maxGuests = pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999;
 
@@ -4557,9 +4507,9 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.eventType = pending.eventType;
     reservation.preferredDate = totals.checkInDateOnly;
     reservation.eventTime = totals.checkInLabel;
-    reservation.durationKey = durationKey;
+    reservation.durationKey = eventDuration;
     reservation.durationLabel = totals.durationLabel;
-    reservation.extendedNights = durationKey === "extended" ? totals.nights : null;
+    reservation.extendedNights = null;
     reservation.scheduledCheckIn = totals.scheduledCheckIn;
     reservation.scheduledCheckOut = totals.scheduledCheckOut;
     reservation.checkInLabel = totals.checkInLabel;
@@ -4956,9 +4906,11 @@ function initReservationFormPage() {
     const list = document.getElementById("eventSummaryList");
     if (list) {
       const spansDays = pending.checkOutDate && pending.checkOutDate !== pending.preferredDate;
+      const session = cat.EVENT_SESSION_SCHEDULES?.[pending.eventSession];
       list.innerHTML = `
         <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
         <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
+        ${session ? `<li><strong>Session:</strong> ${escapeHtml(session.name)} · ${escapeHtml(session.label)}</li>` : ""}
         <li><strong>${spansDays ? "Start date" : "Date"}:</strong> ${formatDateReserved(pending.preferredDate)}</li>
         ${spansDays ? `<li><strong>End date:</strong> ${formatDateReserved(pending.checkOutDate)}</li>` : ""}
         ${pending.durationKey === "extended" && pending.extendedNights ? `<li><strong>Nights:</strong> ${escapeHtml(String(pending.extendedNights))}</li>` : ""}
@@ -4973,11 +4925,8 @@ function initReservationFormPage() {
     const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
     pending.durationKey = initialDuration;
 
-    // Birthday packages run on a fixed session (Morning / Night), so there is no arrival time to pick.
-    if (cat.isBirthdayPackage?.(pending.packageOption)) {
-      document.getElementById("cvrResCheckInTimeWrap")?.classList.add("d-none");
-      setResCheckInTimeSelection("");
-    }
+    document.getElementById("cvrResCheckInTimeWrap")?.classList.add("d-none");
+    setResCheckInTimeSelection("");
 
     populateResGuestSplit(editRecord || pending);
 
@@ -5651,12 +5600,11 @@ async function initReservationStatusView() {
   );
   setIf("statusEventTime", target.eventTime || "—");
   {
-    // Birthday packages run on a fixed Morning / Night session — show it as a badge.
     const bcat = window.CVRBookingCatalog;
     const sessionRow = document.getElementById("statusSessionRow");
     const sessionEl = document.getElementById("statusSession");
-    const sched = target.bookingType === "event" && target.eventSession && bcat?.isBirthdayPackage?.(target.packageOption)
-      ? bcat.BIRTHDAY_SESSION_SCHEDULES?.[target.eventSession]
+    const sched = target.bookingType === "event" && target.eventSession
+      ? bcat.EVENT_SESSION_SCHEDULES?.[target.eventSession]
       : null;
     if (sessionRow && sessionEl) {
       sessionRow.classList.toggle("d-none", !sched);
@@ -7039,8 +6987,8 @@ function cvrRenderDashNextStay(list) {
   const days = Math.round((d - today) / 86400000);
   const when = days === 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days} days`;
   const cat = window.CVRBookingCatalog;
-  const sched = r.bookingType === "event" && r.eventSession && cat?.isBirthdayPackage?.(r.packageOption)
-    ? cat.BIRTHDAY_SESSION_SCHEDULES?.[r.eventSession] : null;
+  const sched = r.bookingType === "event" && r.eventSession
+    ? cat.EVENT_SESSION_SCHEDULES?.[r.eventSession] : null;
   const timeText = sched ? `${sched.name} · ${sched.label}` : (r.checkInLabel ? `Check-in ${r.checkInLabel}` : (r.eventTime || ""));
   el.innerHTML = `
     <div class="acct-next-count"><strong>${escapeHtml(when)}</strong><span>${escapeHtml(formatDateReserved(r.checkIn || r.preferredDate))}</span></div>

@@ -317,11 +317,46 @@
     }
   };
 
+  function getEventWindowForDate(ymd) {
+    const catalog = window.CVRBookingCatalog;
+    const duration = window.CVRDuration;
+    if (!catalog?.getFixedEventSchedule || !duration?.buildFixedWindow) return null;
+
+    const pending = window.__cvrReservationFlow?.type === "event"
+      ? window.__cvrReservationFlow.pending
+      : null;
+    const eventType = document.getElementById("eventType")?.value || "";
+    const packageOption = pending?.packageOption
+      || (catalog.getEventPackageCatalog(eventType)
+        ? eventType
+        : eventType === "Birthday"
+          ? document.getElementById("eventBirthdayPackage")?.value || ""
+          : "");
+    const sessionKey = pending?.eventSession
+      || document.querySelector('input[name="eventSession"]:checked')?.value
+      || "morning";
+    const schedule = catalog.getFixedEventSchedule(packageOption, sessionKey);
+    if (!schedule) return null;
+
+    return duration.buildFixedWindow(ymd, schedule.checkInTime, schedule.checkOutTime);
+  }
+
   function isEventDateTaken(ymd, excludeReservationId) {
+    const requestedWindow = getEventWindowForDate(ymd);
+    const duration = window.CVRDuration;
     for (const r of readReservations()) {
       if (excludeReservationId && r.id === excludeReservationId) continue;
       if (r.bookingType && r.bookingType !== "event") continue;
       if (isReservationCanceled(r)) continue;
+      if (requestedWindow && duration && r.scheduledCheckIn && r.scheduledCheckOut) {
+        if (duration.windowsOverlap(
+          requestedWindow.scheduledCheckIn,
+          requestedWindow.scheduledCheckOut,
+          r.scheduledCheckIn,
+          r.scheduledCheckOut
+        )) return true;
+        continue;
+      }
       if (!r.preferredDate) continue;
       const start = r.preferredDate;
       const end = r.checkOutDateOnly || r.checkOut || start;
@@ -369,7 +404,7 @@
       }
     }
 
-    flatpickr(mount, {
+    const eventDatePicker = flatpickr(mount, {
       disableMobile: true,
       inline: true,
       appendTo: mount,
@@ -394,6 +429,13 @@
           styleHolidayDay(dayElem, dayElem.dateObj);
         }
       },
+    });
+    const refreshEventAvailability = () => eventDatePicker.redraw();
+    ["eventType", "eventBirthdayPackage"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
+    });
+    document.querySelectorAll('input[name="eventSession"]').forEach((radio) => {
+      radio.addEventListener("change", refreshEventAvailability);
     });
   };
 })();

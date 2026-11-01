@@ -35,14 +35,6 @@
 .admin-topbar-brand { font-family: "Playfair Display", serif; font-weight: 700; color: var(--am-navy); text-decoration: none; }
 .admin-topbar-section-eyebrow { color: var(--am-muted); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .admin-topbar-section-title { color: var(--am-navy); font-weight: 600; }
-.admin-nav-toggle {
-  background: var(--am-navy) !important;
-  color: #fff !important;
-  border-radius: 0.8rem !important;
-  box-shadow: 0 8px 18px rgba(12, 59, 93, 0.25);
-  transition: transform 0.25s var(--am-ease), box-shadow 0.25s var(--am-ease);
-}
-.admin-nav-toggle:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(12, 59, 93, 0.3); }
 .admin-icon-btn { border-radius: 0.8rem; transition: background 0.2s ease, transform 0.2s ease; }
 .admin-icon-btn:hover { background: #eaf3fa; transform: translateY(-1px); }
 
@@ -290,4 +282,138 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---- persistent left navigation and portal toolbar -------------------- */
+#admin-sidebar {
+  position: relative;
+  top: auto;
+  z-index: 1020;
+  flex: 0 0 270px;
+  width: 270px;
+  min-width: 0;
+  align-self: stretch;
+}
+#admin-sidebar .admin-sidebar-desktop {
+  position: sticky;
+  top: 0;
+  left: auto;
+  z-index: 1020;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  border-radius: 0;
+  box-shadow: 8px 0 28px rgba(12, 59, 93, 0.06);
+  transform: none;
+  visibility: visible;
+}
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  text-decoration: none;
+}
+.admin-sidebar-brand-copy { min-width: 0; }
+.admin-sidebar-brand .admin-drawer-title {
+  color: var(--am-navy);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+#admin-sidebar .admin-drawer-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+}
+#admin-sidebar .admin-drawer-nav { gap: 0.2rem; }
+#admin-sidebar .admin-drawer .nav-link {
+  min-height: 2.65rem;
+  gap: 0;
+  text-decoration: none;
+}
+#admin-sidebar .admin-drawer .nav-link > .admin-nav-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#admin-sidebar .admin-drawer-utility { margin-top: auto; }
+#admin-sidebar .admin-drawer-utility .nav-link {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+.admin-main {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+.admin-main > .admin-topbar {
+  margin: 0 calc(-1 * clamp(0.9rem, 2.5vw, 2rem)) 1.5rem;
+}
+.admin-topbar-inner {
+  min-height: 72px;
+  padding: 0 clamp(0.9rem, 2.5vw, 2rem);
+}
+html body .admin-topbar-inner .admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-left: auto;
+}
+.admin-notification-btn .nav-bell-count {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.3rem;
+  min-width: 1.15rem;
+  padding: 0.2rem 0.35rem;
+  border: 2px solid #fff;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+@media (max-width: 767.98px) {
+  #admin-sidebar {
+    flex-basis: 68px;
+    width: 68px;
+  }
+  #admin-sidebar .admin-drawer-head {
+    justify-content: center;
+    padding: 0.75rem 0.35rem;
+  }
+  #admin-sidebar .admin-sidebar-brand { justify-content: center; }
+  #admin-sidebar .admin-sidebar-brand-copy,
+  #admin-sidebar .admin-drawer-utility-label,
+  #admin-sidebar .admin-nav-label { display: none; }
+  #admin-sidebar .admin-drawer-body { align-items: center; padding: 0.55rem 0.3rem; }
+  #admin-sidebar .admin-drawer-nav { width: 100%; }
+  #admin-sidebar .admin-drawer .nav-link {
+    justify-content: center;
+    padding: 0.35rem !important;
+  }
+  #admin-sidebar .admin-drawer .nav-link > i {
+    margin: 0;
+  }
+  #admin-sidebar .admin-drawer-utility {
+    width: 100%;
+    padding-top: 0.55rem;
+  }
+  #admin-sidebar .admin-drawer-utility .nav-link { justify-content: center; }
+}
+
+@media (max-width: 575.98px) {
+  #admin-sidebar {
+    flex-basis: 60px;
+    width: 60px;
+  }
+  #admin-sidebar .admin-drawer-logo { width: 38px; height: 38px; }
+  .admin-main > .admin-topbar { margin-bottom: 1rem; }
+  .admin-topbar-inner { min-height: 60px; }
 }

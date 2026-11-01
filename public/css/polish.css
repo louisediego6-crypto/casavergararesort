@@ -789,23 +789,6 @@ footer a:hover {
   border-radius: 0.7rem;
 }
 
-.admin-nav-toggle-dot {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.4rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: #dc3545;
-  box-shadow: 0 0 0 2px #fff;
-}
-
-.admin-nav-toggle[aria-expanded="true"] {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  border-color: transparent;
-  color: #fff;
-}
-
 .admin-drawer-backdrop {
   position: fixed;
   inset: 0;

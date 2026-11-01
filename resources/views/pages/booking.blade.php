@@ -166,7 +166,7 @@
       <div id="eventBookingSection" class="d-none">
         <div class="bk-results-head">
           <h2 class="text-brand">Event Reservation</h2>
-          <p class="bk-results-meta">Four quick steps. Dates with an existing event or blocked day can't be selected.</p>
+          <p class="bk-results-meta">Four quick steps. Choose one of three fixed sessions; dates with a conflicting booking or blocked day can't be selected.</p>
         </div>
         <div class="soft-card p-4 booking-event-card">
           <form id="eventReservationForm" class="row g-4 booking-event-form">
@@ -194,11 +194,11 @@
               <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
               <select id="eventBirthdayPackage" class="form-select"></select>
             </div>
-            <div class="col-12 d-none" id="eventBirthdaySessionWrap">
+            <div class="col-12 d-none" id="eventSessionWrap">
               <span class="form-label text-brand d-block">Choose your session <span class="text-danger">*</span></span>
-              <div class="bk-session-picker" role="radiogroup" aria-label="Birthday session">
+              <div class="bk-session-picker" role="radiogroup" aria-label="Event session">
                 <label class="bk-session-card">
-                  <input type="radio" name="eventBirthdaySession" value="morning" checked>
+                  <input type="radio" name="eventSession" value="morning" checked>
                   <span class="bk-session-body">
                     <span class="bk-session-ico"><i class="bi bi-sunrise-fill" aria-hidden="true"></i></span>
                     <span class="bk-session-text"><strong>Morning session</strong><small>8:00 AM – 5:00 PM</small></span>
@@ -206,15 +206,23 @@
                   </span>
                 </label>
                 <label class="bk-session-card">
-                  <input type="radio" name="eventBirthdaySession" value="night">
+                  <input type="radio" name="eventSession" value="night">
                   <span class="bk-session-body">
                     <span class="bk-session-ico"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></span>
                     <span class="bk-session-text"><strong>Night session</strong><small>7:00 PM – 5:00 AM (next day)</small></span>
                     <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
                   </span>
                 </label>
+                <label class="bk-session-card">
+                  <input type="radio" name="eventSession" value="whole-day">
+                  <span class="bk-session-body">
+                    <span class="bk-session-ico"><i class="bi bi-sun-fill" aria-hidden="true"></i></span>
+                    <span class="bk-session-text"><strong>Whole day (2 sessions)</strong><small>8:00 AM – 5:00 AM (next day)</small></span>
+                    <i class="bi bi-check-circle-fill bk-session-check" aria-hidden="true"></i>
+                  </span>
+                </label>
               </div>
-              <p class="small text-muted-brand mb-0 mt-2"><i class="bi bi-clock-history me-1"></i>Birthday packages run on a fixed single session, so there's no duration, custom arrival time or multi-day stay to choose.</p>
+              <p class="small text-muted-brand mb-0 mt-2"><i class="bi bi-clock-history me-1"></i>Events run on a fixed schedule, so there's no duration or custom check-in time to choose.</p>
             </div>
             <div class="col-12">
               <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
@@ -272,7 +280,7 @@
               <div class="row g-3">
             <div class="col-12 booking-event-date-col">
               <label class="form-label text-brand">Preferred Date <span class="text-danger">*</span></label>
-              <p class="small text-muted-brand mb-3 mb-md-2">Dates with an existing event booking or blocked days cannot be selected.</p>
+              <p class="small text-muted-brand mb-3 mb-md-2">Dates with your chosen session already booked or blocked cannot be selected.</p>
               <input type="hidden" id="eventDate" name="eventDate" value="" required>
               <div class="cvr-event-date-shell">
                 <div class="cvr-stay-calendars-wrap cvr-event-pref-inner">
@@ -280,7 +288,7 @@
                 </div>
                 <div class="cvr-calendar-legend cvr-event-date-legend d-flex flex-wrap align-items-center justify-content-center gap-3 small text-muted-brand">
                   <span class="d-inline-flex align-items-center gap-2"><span class="cvr-legend-swatch cvr-legend-available"></span> Available</span>
-                  <span class="d-inline-flex align-items-center gap-2"><span class="cvr-legend-swatch cvr-legend-booked"></span> Event booked</span>
+                  <span class="d-inline-flex align-items-center gap-2"><span class="cvr-legend-swatch cvr-legend-booked"></span> Session booked</span>
                   <span class="d-inline-flex align-items-center gap-2"><span class="cvr-legend-swatch cvr-legend-blocked"></span> Blocked</span>
                   <span class="d-inline-flex align-items-center gap-2"><span class="cvr-legend-swatch cvr-legend-holiday"></span> PH holiday</span>
                 </div>
@@ -297,7 +305,7 @@
               <p class="small text-muted-brand mb-0 mt-1" id="eventDurationHint">Your check-in time is flexible and check-out follows exactly 3, 12, or 24 hours later, so the full event duration is always fulfilled. Overtime is billed per hour past that check-out time.</p>
             </div>
             <div class="col-12 d-none" id="eventFixedScheduleNote">
-              <p class="small text-muted-brand mb-0"><i class="bi bi-clock-history me-1"></i><span id="eventFixedScheduleText"></span> This package runs on a fixed schedule, so there's no duration or check-in time to choose.</p>
+              <p class="small text-muted-brand mb-0"><i class="bi bi-clock-history me-1"></i><span id="eventFixedScheduleText"></span> This event runs on a fixed schedule, so there's no duration or check-in time to choose.</p>
             </div>
             <div class="col-md-6 d-none" id="eventNightsWrap">
               <label for="eventNights" class="form-label text-brand">Number of Nights <span class="text-danger">*</span></label>
@@ -470,14 +478,14 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261031a"></script>
+  <script src="../js/main.js?v=20261101a"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261031a"></script>
+  <script src="../js/booking-data.js?v=20261101a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20261026a"></script>
+  <script src="../js/reservation-calendar.js?v=20261101a"></script>
   <script src="../js/package-media.js?v=20261031a"></script>
-  <script src="../js/booking.js?v=20261031a"></script>
+  <script src="../js/booking.js?v=20261101a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

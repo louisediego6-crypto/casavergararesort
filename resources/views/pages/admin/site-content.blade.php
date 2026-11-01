@@ -16,7 +16,7 @@
   <link href="../../css/polish.css?v=20260926a" rel="stylesheet">
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
-  <link href="../../css/admin-modern.css?v=20261018a" rel="stylesheet">
+  <link href="../../css/admin-modern.css?v=20261101a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <style>
 
@@ -1047,10 +1047,10 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261031a"></script>
+  <script src="../../js/main.js?v=20261101a"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20261031a"></script>
+  <script src="../../js/booking-data.js?v=20261101a"></script>
   <script src="../../js/admin-packages.js?v=20261031a"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>

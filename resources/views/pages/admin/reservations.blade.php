@@ -16,7 +16,7 @@
   <link href="../../css/polish.css?v=20260830i" rel="stylesheet">
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
-  <link href="../../css/admin-modern.css?v=20261018a" rel="stylesheet">
+  <link href="../../css/admin-modern.css?v=20261101a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../../css/theme.css?v=20261024e" rel="stylesheet">
@@ -134,9 +134,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="../../js/main.js?v=20261031a"></script>
+  <script src="../../js/main.js?v=20261101a"></script>
   <script src="../../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../../js/booking-data.js?v=20261031a"></script>
+  <script src="../../js/booking-data.js?v=20261101a"></script>
   <script src="../../js/admin-export.js?v=20261024h"></script>
   <script src="../../js/admin-reservations.js?v=20261025a"></script>
   <script>renderAdminSidebar("reservations"); initAdminReservationsPage();</script>

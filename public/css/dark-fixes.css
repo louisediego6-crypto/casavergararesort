@@ -46,7 +46,7 @@ html[data-theme="dark"] .nav-toggler-clean .navbar-toggler-icon {
   width: 1.6em;
   height: 1.6em;
 }
-/* admin/staff top bar icon buttons (hamburger-style menu button) */
+/* admin/staff toolbar icon buttons */
 html[data-theme="dark"] body .admin-icon-btn {
   background: #1d3042 !important;
   border-color: #5d7b96 !important;

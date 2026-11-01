@@ -405,31 +405,28 @@ function initBookingPage() {
 
   if (eventForm) {
 
-    const VENUE_PACKAGE_KEYS = [
+    const PRIVATE_VENUE_PACKAGE_KEYS = [
       "Private Venue – Morning (8:00 AM–5:00 PM)",
       "Private Venue – Night (7:00 PM–5:00 AM)",
       "Private Venue – Whole Day (2 Sessions)",
+    ];
+    const VENUE_PACKAGE_KEYS = [
+      ...PRIVATE_VENUE_PACKAGE_KEYS,
       "Wedding Package",
       "Debut Package",
     ];
     const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
 
-    const sessionRadios = () => Array.from(document.querySelectorAll('input[name="eventBirthdaySession"]'));
-    const getBirthdaySession = () => sessionRadios().find((r) => r.checked)?.value || "morning";
-    const getFixedSchedule = (key) => cat.getFixedEventSchedule?.(key, getBirthdaySession()) || null;
+    const sessionRadios = () => Array.from(document.querySelectorAll('input[name="eventSession"]'));
+    const getSelectedEventSession = () => sessionRadios().find((r) => r.checked)?.value || "morning";
+    const getFixedSchedule = (key) => eventTypeEl?.value ? cat.getFixedEventSchedule?.(key, getSelectedEventSession()) || null : null;
     const isBirthdayKey = (key) => Boolean(cat.isBirthdayPackage?.(key));
-
-    const FIXED_DURATION_ONLY = {
-      "Wedding Package": "24hr",
-      "Debut Package": "24hr",
-    };
-    const getFixedDurationOnly = (key) => FIXED_DURATION_ONLY[key] || null;
 
     const eventTypeEl = document.getElementById("eventType");
     const venueGroupEl = document.getElementById("eventTypeVenueGroup");
     const birthdayWrapEl = document.getElementById("eventBirthdayPackageWrap");
     const birthdayEl = document.getElementById("eventBirthdayPackage");
-    const birthdaySessionWrapEl = document.getElementById("eventBirthdaySessionWrap");
+    const eventSessionWrapEl = document.getElementById("eventSessionWrap");
     const otherSpecifyWrapEl = document.getElementById("eventOtherSpecifyWrap");
     const otherSpecifyEl = document.getElementById("eventOtherSpecify");
     const detailsEl = document.getElementById("eventPackageDetails");
@@ -497,21 +494,17 @@ function initBookingPage() {
     const syncFixedScheduleVisibility = () => {
       const selectedKey = getSelectedPackageKey();
       const schedule = getFixedSchedule(selectedKey);
-      const fixedDurationKey = getFixedDurationOnly(selectedKey);
-      birthdaySessionWrapEl?.classList.toggle("d-none", !isBirthdayKey(selectedKey));
-      durationWrapEl?.classList.toggle("d-none", Boolean(schedule) || Boolean(fixedDurationKey));
+      const selectedEventType = eventTypeEl?.value || "";
+      const venuePackageHasSchedule = PRIVATE_VENUE_PACKAGE_KEYS.includes(selectedEventType);
+      eventSessionWrapEl?.classList.toggle("d-none", !selectedEventType || venuePackageHasSchedule);
+      durationWrapEl?.classList.toggle("d-none", Boolean(schedule));
       checkInTimeWrapEl?.classList.toggle("d-none", Boolean(schedule));
       fixedNoteEl?.classList.toggle("d-none", !schedule);
-      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = isBirthdayKey(selectedKey) ? `${schedule.name}: ${schedule.label}.` : schedule.label;
+      if (schedule && fixedNoteTextEl) fixedNoteTextEl.textContent = `${schedule.name}: ${schedule.label}.`;
       if (schedule) {
 
         const durationEl = document.getElementById("eventDuration");
         if (durationEl) durationEl.value = schedule.durationKey;
-        document.getElementById("eventNightsWrap")?.classList.add("d-none");
-        document.getElementById("eventCheckOutTimeWrap")?.classList.add("d-none");
-      } else if (fixedDurationKey) {
-        const durationEl = document.getElementById("eventDuration");
-        if (durationEl) durationEl.value = fixedDurationKey;
         document.getElementById("eventNightsWrap")?.classList.add("d-none");
         document.getElementById("eventCheckOutTimeWrap")?.classList.add("d-none");
       }
@@ -559,9 +552,9 @@ function initBookingPage() {
         : pkg.extraPaxRate && pkg.maxPax
         ? `Good for ${pkg.pax} pax (up to ${pkg.maxPax} pax, +₱${Number(pkg.extraPaxRate).toLocaleString()}/person past ${pkg.pax})`
         : `Good for ${pkg.pax} pax`;
-      const birthdaySchedule = isBirthdayKey(key) ? getFixedSchedule(key) : null;
-      const priceLabel = birthdaySchedule
-        ? `package price · ${birthdaySchedule.name} (${birthdaySchedule.label})`
+      const fixedSchedule = key ? getFixedSchedule(key) : null;
+      const priceLabel = fixedSchedule
+        ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
         : pkg.flatRate
         ? "flat package price — same regardless of duration selected"
         : pkg.isCustom
@@ -838,20 +831,18 @@ function initBookingPage() {
         return;
       }
 
-      const win = window.CVRDuration.buildWindow(eventDateVal, durationKey, eventNights, checkInSelection.time, checkOutSelection.time);
+      const win = fixedSchedule
+        ? window.CVRDuration.buildFixedWindow(eventDateVal, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
+        : window.CVRDuration.buildWindow(eventDateVal, durationKey, eventNights, checkInSelection.time, checkOutSelection.time);
       if (!win) {
         showMessage("Please select a valid event date and duration.", true);
         return;
       }
-      // Birthday sessions are checked against their real fixed hours (not a generic 12-hour window).
-      const overlapWin = fixedSchedule && isBirthdayKey(packageOption)
-        ? window.CVRDuration.buildFixedWindow(eventDateVal, fixedSchedule.checkInTime, fixedSchedule.checkOutTime) || win
-        : win;
-      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(overlapWin.scheduledCheckIn, overlapWin.scheduledCheckOut, "")) {
+      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "")) {
         showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or session.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), isBirthdayKey(packageOption) ? getBirthdaySession() : null) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), fixedSchedule?.key || null) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -875,7 +866,7 @@ function initBookingPage() {
         customCheckOutTime: win.customCheckOutTime,
         eventTime: win.checkInLabel,
         packageOption,
-        eventSession: isBirthdayKey(packageOption) ? getBirthdaySession() : null,
+        eventSession: fixedSchedule?.key || null,
         additionalNotes,
         motif,
         ...totals,
