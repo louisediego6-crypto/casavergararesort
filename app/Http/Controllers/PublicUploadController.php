@@ -48,8 +48,7 @@ class PublicUploadController extends Controller
     }
 
     /**
-     * Payment receipts are private: only a signed-in admin can open them
-     * (this is what the "View" link and thumbnail in Payment Verification use).
+     * Payment receipts are private: only signed-in staff or admins can open them.
      */
     public function paymentProof(Request $request, string $file)
     {
@@ -69,8 +68,8 @@ class PublicUploadController extends Controller
             return response('Not found.', 404);
         }
 
-        $dir = realpath(cvr_path('uploads/payments'));
-        $filePath = realpath(cvr_path('uploads/payments/' . $file));
+        $dir = realpath(storage_path('app/private/uploads/payments'));
+        $filePath = realpath(cvr_private_payment_proof_path($file));
         if (!$dir || !$filePath || !str_starts_with($filePath, $dir . DIRECTORY_SEPARATOR) || !is_file($filePath)) {
             return response('Receipt file not found on the server.', 404);
         }

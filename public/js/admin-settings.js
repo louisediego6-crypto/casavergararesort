@@ -6,6 +6,11 @@ function initAdminSettingsPage() {
   const photoAlert = document.getElementById("adminPhotoAlert");
   const profileName = document.getElementById("adminProfileName");
   const profileEmail = document.getElementById("adminProfileEmail");
+  const profileFirstName = document.getElementById("staffProfileFirstName");
+  const profileLastName = document.getElementById("staffProfileLastName");
+  const profilePhone = document.getElementById("staffProfilePhone");
+  const profileSaveBtn = document.getElementById("staffProfileSaveBtn");
+  const profileAlert = document.getElementById("staffProfileAlert");
 
   const resortNameInput = document.getElementById("resortNameInput");
   const resortEmailInput = document.getElementById("resortEmailInput");
@@ -64,12 +69,48 @@ function initAdminSettingsPage() {
     const initials = (user.firstName?.[0] || "A") + (user.lastName?.[0] || "");
     if (profileName) profileName.textContent = fullName;
     if (profileEmail) profileEmail.textContent = user.email || "";
+    if (profileFirstName) profileFirstName.value = user.firstName || "";
+    if (profileLastName) profileLastName.value = user.lastName || "";
+    if (profilePhone) profilePhone.value = user.phone || "";
     setPhoto(user.avatarUrl, initials.toUpperCase());
 
     if (typeof setCustomerSession === "function" && typeof getCustomerSession === "function") {
       setCustomerSession({ ...getCustomerSession(), avatarUrl: user.avatarUrl || null });
     }
   };
+
+  profileSaveBtn?.addEventListener("click", async () => {
+    hideAlert(profileAlert);
+    const firstName = profileFirstName?.value.trim() || "";
+    const lastName = profileLastName?.value.trim() || "";
+    const phone = profilePhone?.value.trim() || "";
+    if (!firstName || !lastName || !phone) {
+      showAlert(profileAlert, "Please enter your first name, last name, and phone number.");
+      return;
+    }
+
+    setBusy(profileSaveBtn, true);
+    try {
+      const { ok, body } = await cvrApiPost("account/update-profile", { firstName, lastName, phone });
+      if (!ok || !body?.success) {
+        showAlert(profileAlert, body?.message || "Could not save your profile.");
+        return;
+      }
+
+      const user = body.data?.user;
+      if (user) {
+        if (profileName) profileName.textContent = [user.firstName, user.lastName].filter(Boolean).join(" ");
+        if (typeof setCustomerSession === "function" && typeof getCustomerSession === "function") {
+          setCustomerSession({ ...getCustomerSession(), ...user });
+        }
+      }
+      showAlert(profileAlert, "Your profile has been updated.", "success");
+    } catch (err) {
+      showAlert(profileAlert, "Network error while updating your profile. Please try again.");
+    } finally {
+      setBusy(profileSaveBtn, false);
+    }
+  });
 
   const loadResortSettings = async () => {
     if (!resortNameInput) return;
@@ -354,6 +395,20 @@ function initAdminSettingsPage() {
     }
   });
 
+  const isFullAdmin = typeof isFullAdminSession === "function" && isFullAdminSession(getCustomerSession());
+  document.querySelectorAll(".admin-setting-only").forEach((el) => {
+    el.classList.toggle("d-none", !isFullAdmin);
+  });
+  if (!isFullAdmin) {
+    const eyebrow = document.querySelector(".settings-eyebrow");
+    if (eyebrow) eyebrow.textContent = "Staff account";
+    const description = document.querySelector(".settings-hero p");
+    if (description) description.textContent = "Manage your staff profile, profile photo, and account password.";
+    document.title = "Staff Settings - Casa Vergara";
+    const passwordDescription = document.getElementById("adminPasswordDescription");
+    if (passwordDescription) passwordDescription.textContent = "Update the password used to sign in to your staff account.";
+  }
+
   loadProfile();
-  loadResortSettings();
+  if (isFullAdmin) loadResortSettings();
 }

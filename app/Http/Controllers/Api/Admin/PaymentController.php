@@ -47,10 +47,12 @@ class PaymentController extends Controller
         }
 
         $relative = (string) ($proof['file_path'] ?? '');
-        if ($relative !== '' && strpos($relative, '..') === false) {
-            $absolute = cvr_path($relative);
+        if (preg_match('/\Auploads\/payments\/(proof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+)\z/', $relative, $match)) {
+            $absolute = cvr_private_payment_proof_path($match[1]);
             if (is_file($absolute)) {
-                @unlink($absolute);
+                if (!unlink($absolute)) {
+                    error_log('admin/payments-delete.php: could not remove private receipt file.');
+                }
             }
         }
 
@@ -122,7 +124,7 @@ class PaymentController extends Controller
                 'packageName' => $row['package_name'],
                 'amount' => $row['amount'],
                 'paymentMethod' => $row['payment_method'],
-                'fileUrl' => config('cvr.site_url') . '/' . $row['file_path'],
+                'fileUrl' => config('cvr.site_url') . '/uploads/payments/' . rawurlencode(basename((string) $row['file_path'])),
                 'fileName' => $row['file_name'],
                 'fileType' => $row['file_type'],
                 'fileSize' => (int) $row['file_size'],
@@ -359,10 +361,12 @@ class PaymentController extends Controller
                 $deleted = true;
 
                 $relative = (string) ($proof['file_path'] ?? '');
-                if ($relative !== '' && strpos($relative, '..') === false) {
-                    $absolute = cvr_path($relative);
+                if (preg_match('/\Auploads\/payments\/(proof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+)\z/', $relative, $match)) {
+                    $absolute = cvr_private_payment_proof_path($match[1]);
                     if (is_file($absolute)) {
-                        @unlink($absolute);
+                        if (!unlink($absolute)) {
+                            error_log('admin/payments-update.php: could not remove private receipt file.');
+                        }
                     }
                 }
             } catch (\Throwable $e) {

@@ -47,6 +47,15 @@ function cvr_path(string $relative = ''): string
     return public_path($relative);
 }
 
+function cvr_private_payment_proof_path(string $fileName): string
+{
+    if (!preg_match('/\Aproof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+\z/', $fileName)) {
+        throw new InvalidArgumentException('Invalid payment receipt filename.');
+    }
+
+    return storage_path('app/private/uploads/payments/' . $fileName);
+}
+
 function get_json_body(): array
 {
     $raw = request()->getContent();

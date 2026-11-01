@@ -47,7 +47,7 @@
       <div class="row g-4">
         <div class="col-lg-8">
 
-          <section class="soft-card admin-settings-card settings-section mb-4">
+          <section class="soft-card admin-settings-card settings-section mb-4 admin-setting-only">
             <header class="settings-section-head">
               <span class="settings-section-icon"><i class="bi bi-buildings"></i></span>
               <div class="flex-grow-1">
@@ -86,7 +86,7 @@
             </footer>
           </section>
 
-          <section class="soft-card admin-settings-card settings-section mb-4" id="paymentQrCard">
+          <section class="soft-card admin-settings-card settings-section mb-4 admin-setting-only" id="paymentQrCard">
             <header class="settings-section-head">
               <span class="settings-section-icon"><i class="bi bi-qr-code"></i></span>
               <div class="flex-grow-1">
@@ -131,7 +131,7 @@
             </div>
           </section>
 
-          <section class="soft-card admin-settings-card settings-section mb-4" id="checkinReminderCard">
+          <section class="soft-card admin-settings-card settings-section mb-4 admin-setting-only" id="checkinReminderCard">
             <header class="settings-section-head">
               <span class="settings-section-icon"><i class="bi bi-bell"></i></span>
               <div class="flex-grow-1">
@@ -148,7 +148,7 @@
             </div>
           </section>
 
-          <section class="soft-card admin-settings-card settings-section mb-4" id="checkoutReminderCard">
+          <section class="soft-card admin-settings-card settings-section mb-4 admin-setting-only" id="checkoutReminderCard">
             <header class="settings-section-head">
               <span class="settings-section-icon"><i class="bi bi-door-open"></i></span>
               <div class="flex-grow-1">
@@ -170,7 +170,7 @@
               <span class="settings-section-icon"><i class="bi bi-shield-lock"></i></span>
               <div class="flex-grow-1">
                 <h5 class="text-brand mb-1">Security</h5>
-                <p class="small text-muted-brand mb-0">Update the password used to sign in to this admin account.</p>
+                <p class="small text-muted-brand mb-0" id="adminPasswordDescription">Update the password used to sign in to your account.</p>
               </div>
             </header>
             <div class="settings-section-body">
@@ -219,14 +219,29 @@
                 </button>
               </div>
               <p class="small text-muted-brand mb-0 mt-2">JPG, PNG, or WEBP, up to 2 MB.</p>
+              <hr class="my-4">
+              <div id="staffProfileAlert" class="alert d-none small mb-3 text-start" role="alert"></div>
+              <div class="text-start">
+                <h6 class="text-brand mb-3">My profile</h6>
+                <label class="form-label small" for="staffProfileFirstName">First name</label>
+                <input class="form-control mb-3" id="staffProfileFirstName" autocomplete="given-name">
+                <label class="form-label small" for="staffProfileLastName">Last name</label>
+                <input class="form-control mb-3" id="staffProfileLastName" autocomplete="family-name">
+                <label class="form-label small" for="staffProfilePhone">Phone number</label>
+                <input class="form-control mb-3" id="staffProfilePhone" type="tel" autocomplete="tel">
+                <button type="button" class="btn btn-brand btn-sm w-100" id="staffProfileSaveBtn">
+                  <span class="admin-btn-label">Save profile</span>
+                  <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
+                </button>
+              </div>
             </div>
 
             <div class="soft-card p-4 settings-links-card">
               <h6 class="text-brand mb-3"><i class="bi bi-lightning-charge me-2"></i>Quick links</h6>
-              <a class="settings-quick-link" href="calendar.html"><span><i class="bi bi-calendar3 me-2"></i>Availability calendar</span><i class="bi bi-chevron-right"></i></a>
-              <a class="settings-quick-link" href="site-content.html?tab=packages"><span><i class="bi bi-box-seam me-2"></i>Packages &amp; pricing</span><i class="bi bi-chevron-right"></i></a>
-              <a class="settings-quick-link" href="payments.html"><span><i class="bi bi-credit-card me-2"></i>Payment verification</span><i class="bi bi-chevron-right"></i></a>
-              <a class="settings-quick-link" href="site-content.html?tab=team"><span><i class="bi bi-people me-2"></i>Team members</span><i class="bi bi-chevron-right"></i></a>
+              <a class="settings-quick-link admin-setting-only" href="calendar.html"><span><i class="bi bi-calendar3 me-2"></i>Availability calendar</span><i class="bi bi-chevron-right"></i></a>
+              <a class="settings-quick-link admin-setting-only" href="site-content.html?tab=packages"><span><i class="bi bi-box-seam me-2"></i>Packages &amp; pricing</span><i class="bi bi-chevron-right"></i></a>
+              <a class="settings-quick-link admin-setting-only" href="payments.html"><span><i class="bi bi-credit-card me-2"></i>Payment verification</span><i class="bi bi-chevron-right"></i></a>
+              <a class="settings-quick-link admin-setting-only" href="site-content.html?tab=team"><span><i class="bi bi-people me-2"></i>Team members</span><i class="bi bi-chevron-right"></i></a>
               <button type="button" class="settings-quick-link w-100 border-0 bg-transparent text-start" id="settingsSwitchAccountBtnSide">
                 <span><i class="bi bi-arrow-left-right me-2"></i>Switch account</span><i class="bi bi-chevron-right"></i>
               </button>
@@ -237,8 +252,8 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261102a"></script>
-  <script src="../../js/admin-settings.js?v=20260830i"></script>
+  <script src="../../js/main.js?v=20261103a"></script>
+  <script src="../../js/admin-settings.js?v=20261103a"></script>
   <script>
     renderAdminSidebar("settings");
     initAdminSettingsPage();

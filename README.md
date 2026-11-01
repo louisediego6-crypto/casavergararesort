@@ -20,8 +20,11 @@ Edit `.env` for the database password, `APP_URL`, and the keys that used to live
 (`MAIL_USERNAME` / `MAIL_PASSWORD` for Gmail SMTP, `CVR_AI_API_KEY`, `CVR_GIPHY_API_KEY`, …). Make sure `storage/` is writable.
 If you serve it over HTTPS set `SESSION_SECURE_COOKIE=true`.
 
-On Railway, mount a persistent volume at `/app/storage/app/public`. Uploaded files are written under
-`storage/app/public/uploads` and served from `/uploads/...`; chat attachments stay private behind the chat API.
+On Railway, mount a persistent volume at `/app/storage/app` so both public uploads and private payment receipts
+survive deployments. Public uploads are written under `storage/app/public/uploads` and served from `/uploads/...`;
+payment receipts are stored under `storage/app/private/uploads/payments` and are only available to signed-in staff.
+Run `php artisan migrate --force` in production to move legacy payment receipts out of public storage.
+Chat attachments stay private behind the chat API.
 
 `php artisan migrate --seed` gives you the same starter data as the old SQL import (admin + event-manager logins,
 FAQs, terms, packages, site content, team).

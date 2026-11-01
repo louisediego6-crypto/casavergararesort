@@ -134,6 +134,44 @@
 .admin-wrap .table-responsive,
 .admin-wrap .admin-table-card .table-responsive { -webkit-overflow-scrolling: touch; }
 
+.admin-payments-page .cvr-payment-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.admin-payments-page .cvr-payment-proofs-table {
+  width: 100%;
+  min-width: 1000px;
+  table-layout: fixed;
+}
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(1),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(1) { width: 12%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(2),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(2) { width: 15%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(3),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(3) { width: 12%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(4),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(4) { width: 17%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(5),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(5) { width: 8%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(6),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(6) { width: 14%; }
+.admin-payments-page .cvr-payment-proofs-table th:nth-child(7),
+.admin-payments-page .cvr-payment-proofs-table td:nth-child(7) { width: 22%; }
+.admin-payments-page .cvr-payment-proofs-table td {
+  overflow-wrap: anywhere;
+  padding: 1rem .7rem;
+}
+.admin-payments-page .cvr-payment-proofs-table td:last-child .d-flex {
+  align-items: flex-start;
+  min-width: 190px;
+}
+@media (min-width: 1200px) {
+  .admin-payments-page .cvr-payment-proofs-table {
+    min-width: 0;
+  }
+}
+
 /* ---- badges & chips ---------------------------------------------------- */
 .admin-wrap .badge { border-radius: 999px; font-weight: 600; }
 .admin-result-badge { background: #eaf3fa !important; color: var(--am-navy) !important; border-color: transparent !important; }

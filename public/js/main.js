@@ -256,7 +256,7 @@ function isFullAdminSession(session) {
 }
 window.isFullAdminSession = isFullAdminSession;
 
-const CVR_ADMIN_ONLY_SECTIONS = ["users", "settings"];
+const CVR_ADMIN_ONLY_SECTIONS = ["users"];
 
 function setCustomerSession(profile) {
   if (!profile?.email) return;

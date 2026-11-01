@@ -16,7 +16,7 @@
   <link href="../../css/polish.css?v=20260830i" rel="stylesheet">
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
-  <link href="../../css/admin-modern.css?v=20261102a" rel="stylesheet">
+  <link href="../../css/admin-modern.css?v=20261103a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../../css/theme.css?v=20261024g" rel="stylesheet">
@@ -40,7 +40,7 @@
 
       <div class="soft-card p-3 mb-4">
         <h6 class="text-brand mb-3">Export payment records</h6>
-        <p class="text-muted-brand small mb-3">Filters apply to the <strong>date submitted</strong>. Exports use the exact same submissions shown in the table below, and always download — even when no submission matches the filters.</p>
+        <p class="text-muted-brand small mb-3">Filters apply to the <strong>date submitted</strong>. PDF and DOCX open a preview before download; Excel opens its preview first.</p>
         <div class="row g-3 align-items-end">
           <div class="col-md-3">
             <label class="form-label small text-muted-brand mb-1" for="paymentExportDateFrom">Submitted from</label>
@@ -88,8 +88,8 @@
             <span class="text-danger">Rejected: <strong id="proofCountRejected">0</strong></span>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table align-middle">
+        <div class="table-responsive cvr-payment-table-wrap">
+          <table class="table align-middle cvr-payment-proofs-table">
             <thead>
               <tr>
                 <th>Reservation</th>
@@ -104,14 +104,14 @@
             <tbody id="submittedProofsTableBody"></tbody>
           </table>
         </div>
-        <small class="text-muted-brand d-block mt-2">All uploaded file types are accepted and served from secure server storage (/uploads/payments), visible only to signed-in staff accounts. Use “View” to open or download any receipt file.</small>
+        <small class="text-muted-brand d-block mt-2">Receipts are stored outside the public webroot and served only to signed-in staff accounts. Use “View” to open or download a receipt.</small>
       </div>
       <div class="soft-card p-3 mt-4 admin-payment-security-note">
         <h6 class="text-brand mb-2">Upload Security Policy</h6>
         <ul class="small text-muted-brand mb-0 ps-3">
           <li>All file types are supported — photos (JPG, PNG, HEIC, WEBP), PDF, Word, Excel, and archive files.</li>
           <li>Maximum upload size is 5MB per file.</li>
-          <li>Filenames are sanitized and stored under secure server storage before metadata is saved.</li>
+          <li>Filenames are sanitized and receipts are stored outside the public webroot before metadata is saved.</li>
           <li>Only executable/script file types (.exe, .bat, .php, .js, and similar) are blocked for security.</li>
         </ul>
       </div>
@@ -119,9 +119,9 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="../../js/main.js?v=20261101b"></script>
+  <script src="../../js/main.js?v=20261103a"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
-  <script src="../../js/admin-payments.js?v=20261025a"></script>
+  <script src="../../js/admin-payments.js?v=20261101a"></script>
   <script src="../../js/admin.js?v=20261024h"></script>
   <script>
     renderAdminSidebar("payments");

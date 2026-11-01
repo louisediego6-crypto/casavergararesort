@@ -69,19 +69,27 @@ class PaymentController extends Controller
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']) ?: 'application/octet-stream';
         $fileName = 'proof_' . $safeReservation . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        $dir = cvr_path('uploads/payments');
+        $dir = storage_path('app/private/uploads/payments');
 
-        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
             json_response(false, 'Could not create the upload folder.', [], 500);
+        }
+        if (!chmod($dir, 0700)) {
+            json_response(false, 'Could not restrict receipt storage permissions.', [], 500);
         }
 
         $absolutePath = $dir . '/' . $fileName;
         if (!move_uploaded_file($file['tmp_name'], $absolutePath)) {
             json_response(false, 'Could not save the uploaded receipt. Please try again.', [], 500);
         }
+        if (!chmod($absolutePath, 0600)) {
+            if (!unlink($absolutePath)) {
+                error_log('api/payment-upload.php: could not remove receipt after permission setting failed.');
+            }
+            json_response(false, 'Could not secure the uploaded receipt. Please try again.', [], 500);
+        }
 
         $relativePath = 'uploads/payments/' . $fileName;
-        $publicUrl = config('cvr.site_url') . '/' . $relativePath;
 
         $proofId = null;
         $pdo = null;
@@ -165,7 +173,7 @@ class PaymentController extends Controller
             . ($packageName !== '' ? '<p><strong>Package:</strong> ' . htmlspecialchars($packageName) . '</p>' : '')
             . ($amount !== '' ? '<p><strong>Amount paid:</strong> ' . htmlspecialchars($amount) . '</p>' : '') . '
             <p><strong>Payment method:</strong> ' . htmlspecialchars($paymentMethod) . '</p>
-            <p><strong>Receipt file:</strong> <a href="' . htmlspecialchars($publicUrl) . '">' . htmlspecialchars($fileName) . '</a> (also attached)</p>
+            <p><strong>Receipt file:</strong> ' . htmlspecialchars($fileName) . ' (attached; review in Payment Verification after staff sign-in)</p>
             <p style="margin-top:20px;">Review and approve or reject it in the Admin Portal &rarr; Payment Verification.</p>
         ';
 
