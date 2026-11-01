@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
-  <title id="t">Private Venue morning session</title><desc id="d">Sunny resort pool and pavilion for a morning event.</desc>
-  <defs><linearGradient id="sky" y2="1"><stop stop-color="#203749"/><stop offset="1" stop-color="#344b55"/></linearGradient><linearGradient id="pool" y2="1"><stop stop-color="#267b8d"/><stop offset="1" stop-color="#15536b"/></linearGradient></defs>
-  <rect width="720" height="420" rx="30" fill="url(#sky)"/><circle cx="590" cy="88" r="47" fill="#e6b958"/><path d="M0 235q95-28 190 0t190 0 190 0 150 0v185H0z" fill="#46664f"/>
-  <rect x="120" y="147" width="480" height="132" rx="18" fill="#d8d1b9"/><path d="M88 159 360 70l272 89z" fill="#956844"/><path d="M174 176v94m124-94v94m124-94v94m124-94v94" stroke="#77593f" stroke-width="12"/><rect x="0" y="278" width="720" height="142" fill="url(#pool)"/><path d="M0 310q60-18 120 0t120 0 120 0 120 0 120 0 120 0M0 360q60-18 120 0t120 0 120 0 120 0 120 0 120 0" fill="none" stroke="#88d6d5" stroke-opacity=".55" stroke-width="6"/>
-  <text x="360" y="220" text-anchor="middle" fill="#183748" font-family="Georgia,serif" font-size="31" font-weight="bold">Private Venue</text><text x="360" y="255" text-anchor="middle" fill="#235667" font-family="Arial,sans-serif" font-size="15" letter-spacing="4">MORNING SESSION · 8 AM – 5 PM</text>
-</svg>

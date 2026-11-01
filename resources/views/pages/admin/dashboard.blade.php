@@ -53,7 +53,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
           <div>
             <h6 class="text-brand mb-1">Download reports</h6>
-            <p class="text-muted-brand small mb-0">Uses live reservation data saved in your browser. Choose filters, then Excel (preview &amp; print), DOCX or PDF.</p>
+            <p class="text-muted-brand small mb-0">Uses live reservation data saved in your browser. Choose filters, then preview PDF or DOCX before downloading, or preview and print Excel.</p>
           </div>
           <div id="dashReportStatus" class="small fw-semibold d-none" role="status"></div>
         </div>
@@ -145,8 +145,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../../js/main.js?v=20261102a"></script>
-  <script src="../../js/admin-export.js?v=20261024h"></script>
+  <script src="../../js/main.js?v=20261101b"></script>
+  <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin.js?v=20261024h"></script>
   <script src="../../js/admin-live-charts.js?v=20261027a"></script>
   <script>

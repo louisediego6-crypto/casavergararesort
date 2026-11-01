@@ -356,14 +356,7 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         : []),
     ]);
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${baseName}-${safeStamp()}.docx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.docx`, "docx", buildPrintableHtml(dataset, title), title);
     return true;
   }
 
@@ -445,7 +438,8 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
       doc.text("No records match the selected filters.", marginLeft, y);
     }
 
-    doc.save(`${baseName}-${safeStamp()}.pdf`);
+    const blob = doc.output("blob");
+    window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.pdf`, "pdf", "", title);
     return true;
   }
 
@@ -1015,11 +1009,11 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         });
       } else if (format === "pdf") {
         if (exportPdf(dataset, "Reservations Export", "CasaVergara-Reservations")) {
-          setStatus(statusEl, `Exported ${dataRows.length} reservation(s) as PDF.`, "ok");
+          setStatus(statusEl, `PDF preview ready for ${dataRows.length} reservation(s). Download from the preview when ready.`, "ok");
         }
       } else {
         exportDocx(dataset, "Reservations Export", "CasaVergara-Reservations");
-        setStatus(statusEl, `Exported ${dataRows.length} reservation(s) as Word (.docx).`, "ok");
+        setStatus(statusEl, `DOCX preview ready for ${dataRows.length} reservation(s). Download from the preview when ready.`, "ok");
       }
     });
   }
@@ -1096,8 +1090,8 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         setStatus(
           statusEl,
           dataset.rows.length
-            ? `Exported ${dataset.rows.length} payment record(s) as ${formatLabelOf(format)}.`
-            : `No matching records \u2014 downloaded an empty ${formatLabelOf(format)} report.`,
+            ? `${formatLabelOf(format)} preview ready for ${dataset.rows.length} payment record(s). Download from the preview when ready.`
+            : `No matching records \u2014 previewing an empty ${formatLabelOf(format)} report.`,
           dataset.rows.length ? "ok" : "muted",
         );
       });
@@ -1187,8 +1181,8 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         setStatus(
           statusEl,
           dataset.rows.length
-            ? `Exported ${dataset.rows.length} ${reportType} record(s) as ${formatLabel}.`
-            : `No records matched \u2014 downloaded an empty ${formatLabel} report.`,
+            ? `${formatLabel} preview ready for ${dataset.rows.length} ${reportType} record(s). Download from the preview when ready.`
+            : `No records matched \u2014 previewing an empty ${formatLabel} report.`,
           dataset.rows.length ? "ok" : "muted",
         );
       });

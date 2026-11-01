@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
-  <title id="t">Anica birthday package</title><desc id="d">Elegant gold birthday celebration with a decorated cake and lighted stage.</desc>
-  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#211e27"/><stop offset="1" stop-color="#382a32"/></linearGradient><linearGradient id="stage" x2="1" y2="1"><stop stop-color="#a87532"/><stop offset="1" stop-color="#92565f"/></linearGradient></defs>
-  <rect width="720" height="420" rx="30" fill="url(#bg)"/><circle cx="88" cy="82" r="42" fill="#57452e"/><circle cx="628" cy="91" r="57" fill="#543a36"/>
-  <path d="M88 166V124m0 42-16 20m16-20 16 20M628 176V148m0 28-15 17m15-17 15 17" fill="none" stroke="#e3c07d" stroke-width="3"/><g fill="#c58d7b"><ellipse cx="88" cy="100" rx="26" ry="34"/><ellipse cx="628" cy="119" rx="31" ry="40"/></g>
-  <rect x="136" y="108" width="448" height="222" rx="28" fill="url(#stage)"/><path d="M158 304h404" stroke="#fff3d4" stroke-opacity=".52" stroke-width="5"/><path d="M194 120v180m332-180v180" stroke="#ffe8b0" stroke-opacity=".38" stroke-width="10"/>
-  <rect x="285" y="266" width="150" height="35" rx="7" fill="#e0c290"/><rect x="305" y="238" width="110" height="32" rx="8" fill="#fff0d5"/><path d="M360 238v-22m-8 9 8-9 8 9" fill="none" stroke="#ffd477" stroke-width="5" stroke-linecap="round"/><path d="M329 251h62" stroke="#c77c87" stroke-width="4" stroke-dasharray="4 8"/>
-  <text x="360" y="183" text-anchor="middle" fill="#fff9e8" font-family="Georgia,serif" font-size="39" font-weight="bold">Anica</text><text x="360" y="218" text-anchor="middle" fill="#ffefc8" font-family="Arial,sans-serif" font-size="15" letter-spacing="5">SIGNATURE BIRTHDAY</text>
-</svg>

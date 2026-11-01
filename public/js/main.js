@@ -3067,6 +3067,67 @@ function canCurrentUserDownloadReceipt(reservation) {
 
 let cachedReceiptLogoDataUrl = null;
 
+function cvrOpenReportPreview(blob, filename, format, previewHtml, title) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "cvr-report-preview-dialog";
+  dialog.setAttribute("aria-label", `${title} ${format.toUpperCase()} preview`);
+  dialog.innerHTML = `
+    <div class="cvr-report-preview-head">
+      <div>
+        <strong>${title} preview</strong>
+        <div class="cvr-report-preview-hint">${format === "pdf" ? "PDF document preview" : "DOCX layout preview; final appearance may vary slightly in Word."}</div>
+      </div>
+      <div class="cvr-report-preview-actions">
+        <button type="button" class="btn btn-brand cvr-report-preview-download">Download ${format.toUpperCase()}</button>
+        <button type="button" class="btn btn-outline-secondary cvr-report-preview-close" aria-label="Close preview">Close</button>
+      </div>
+    </div>
+    <iframe class="cvr-report-preview-frame" title="${title} ${format.toUpperCase()} preview"></iframe>`;
+  const style = document.createElement("style");
+  style.textContent = `
+    .cvr-report-preview-dialog { width: min(96vw, 1200px); height: min(92vh, 960px); max-width: none; max-height: none; padding: 0; border: 0; border-radius: 14px; color: #1c2733; box-shadow: 0 24px 80px rgba(0,0,0,.35); overflow: hidden; }
+    .cvr-report-preview-dialog::backdrop { background: rgba(5,18,30,.72); }
+    .cvr-report-preview-head { min-height: 76px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border-bottom: 1px solid #dbe3eb; }
+    .cvr-report-preview-hint { color: #657587; font-size: .82rem; margin-top: 3px; }
+    .cvr-report-preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cvr-report-preview-frame { display: block; width: 100%; height: calc(100% - 76px); border: 0; background: #f2f5f8; }
+    @media (max-width: 640px) { .cvr-report-preview-head { align-items: flex-start; flex-direction: column; } .cvr-report-preview-actions { width: 100%; } .cvr-report-preview-actions .btn { flex: 1; } .cvr-report-preview-frame { height: calc(100% - 116px); } }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(dialog);
+
+  const frame = dialog.querySelector(".cvr-report-preview-frame");
+  let previewUrl = "";
+  if (format === "pdf") {
+    previewUrl = URL.createObjectURL(blob);
+    frame.src = previewUrl;
+  } else {
+    frame.srcdoc = previewHtml;
+  }
+
+  dialog.querySelector(".cvr-report-preview-download").addEventListener("click", () => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  });
+  dialog.querySelector(".cvr-report-preview-close").addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener("close", () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    style.remove();
+    dialog.remove();
+  }, { once: true });
+  dialog.showModal();
+}
+window.cvrOpenReportPreview = cvrOpenReportPreview;
+
 async function loadReceiptLogoDataUrl() {
   if (cachedReceiptLogoDataUrl) return cachedReceiptLogoDataUrl;
   try {
@@ -3236,7 +3297,7 @@ async function downloadReceiptPdf(receipt) {
   doc.text("Casa Vergara Resort \u2022 Purok 3, Barangay Langkiwa, Bi\u00f1an, Laguna \u2022 0970 323 6544", left, y);
 
   const safeId = (receipt.reservation_id || "reservation").replace(/[^\w\-]/g, "_");
-  doc.save(`CasaVergara-Receipt-${safeId}.pdf`);
+  cvrOpenReportPreview(doc.output("blob"), `CasaVergara-Receipt-${safeId}.pdf`, "pdf", "", "Payment receipt");
 }
 
 function todayYMD() {

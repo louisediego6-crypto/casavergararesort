@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
-  <title id="t">Ayesha birthday package</title><desc id="d">Pastel birthday stage with balloons and a celebration cake.</desc>
-  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff5fb"/><stop offset="1" stop-color="#e8f5ff"/></linearGradient><linearGradient id="stage" x2="1" y2="1"><stop stop-color="#f8a9d2"/><stop offset="1" stop-color="#9f8ce8"/></linearGradient></defs>
-  <rect width="720" height="420" rx="30" fill="url(#bg)"/><circle cx="92" cy="85" r="52" fill="#ffd7eb"/><circle cx="635" cy="100" r="68" fill="#d9e8ff"/>
-  <path d="M92 180V130m0 50-16 21m16-21 17 20M626 190v-57m0 57-18 20m18-20 18 20" fill="none" stroke="#ad80b9" stroke-width="3"/><g fill="#f3a5ce"><ellipse cx="92" cy="105" rx="29" ry="38"/><ellipse cx="626" cy="106" rx="34" ry="44"/></g>
-  <rect x="136" y="115" width="448" height="215" rx="28" fill="url(#stage)"/><path d="M160 300h400" stroke="#fff" stroke-opacity=".55" stroke-width="5"/><path d="M206 125v184m308-184v184" stroke="#fff" stroke-opacity=".45" stroke-width="12"/>
-  <rect x="286" y="266" width="148" height="35" rx="7" fill="#fff1d2"/><rect x="303" y="238" width="114" height="32" rx="8" fill="#fffaf2"/><path d="M360 238v-22m-8 9 8-9 8 9" fill="none" stroke="#e8a93f" stroke-width="5" stroke-linecap="round"/><circle cx="330" cy="253" r="4" fill="#ef97c0"/><circle cx="390" cy="253" r="4" fill="#ef97c0"/>
-  <text x="360" y="190" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-size="39" font-weight="bold">Ayesha</text><text x="360" y="224" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="15" letter-spacing="5">BIRTHDAY PACKAGE</text>
-</svg>

@@ -115,7 +115,7 @@
             </ul>
             <div id="reservationReceiptWrap" class="d-none mt-3">
               <button type="button" id="downloadReceiptBtn" class="btn btn-brand w-100">
-                <i class="bi bi-receipt me-2"></i>Download Receipt
+                <i class="bi bi-receipt me-2"></i>Preview / Download Receipt
               </button>
               <small class="text-muted-brand d-block mt-2">Receipt becomes available after payment approval.</small>
             </div>
@@ -139,7 +139,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
   <script src="../js/booking-data.js?v=20261102a"></script>
-  <script src="../js/main.js?v=20261102a"></script>
+  <script src="../js/main.js?v=20261101b"></script>
   <script>renderNavbar(""); renderFooter();</script>
 </body>
 </html>

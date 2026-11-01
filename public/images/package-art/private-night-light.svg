@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
-  <title id="t">Private Venue night session</title><desc id="d">Moonlit resort pavilion beside a softly illuminated pool.</desc>
-  <defs><linearGradient id="sky" y2="1"><stop stop-color="#202b53"/><stop offset="1" stop-color="#8b78a5"/></linearGradient><linearGradient id="pool" y2="1"><stop stop-color="#437a9d"/><stop offset="1" stop-color="#25476f"/></linearGradient></defs>
-  <rect width="720" height="420" rx="30" fill="url(#sky)"/><circle cx="588" cy="82" r="38" fill="#fff2c6"/><circle cx="606" cy="68" r="34" fill="#394265"/><g fill="#fff4d5"><circle cx="105" cy="78" r="3"/><circle cx="197" cy="53" r="3"/><circle cx="520" cy="133" r="3"/><circle cx="653" cy="175" r="3"/></g>
-  <path d="M0 245q95-28 190 0t190 0 190 0 150 0v175H0z" fill="#496c61"/><rect x="120" y="147" width="480" height="132" rx="18" fill="#f5e6ca"/><path d="M88 159 360 70l272 89z" fill="#896248"/><path d="M174 176v94m124-94v94m124-94v94m124-94v94" stroke="#7f6148" stroke-width="12"/><rect x="0" y="278" width="720" height="142" fill="url(#pool)"/><path d="M0 314q60-18 120 0t120 0 120 0 120 0 120 0 120 0" fill="none" stroke="#b8dff0" stroke-opacity=".65" stroke-width="6"/>
-  <text x="360" y="220" text-anchor="middle" fill="#34405c" font-family="Georgia,serif" font-size="31" font-weight="bold">Private Venue</text><text x="360" y="255" text-anchor="middle" fill="#405578" font-family="Arial,sans-serif" font-size="15" letter-spacing="4">NIGHT SESSION · 7 PM – 5 AM</text>
-</svg>

@@ -44,7 +44,8 @@
       </div>
 
       <div class="soft-card p-4 mb-4" id="adminReportsExportRoot">
-        <h6 class="text-brand mb-3">Filtered exports</h6>
+        <h6 class="text-brand mb-1">Filtered exports</h6>
+        <p class="text-muted-brand small mb-3">PDF and DOCX open in a preview first; download only when you choose it.</p>
         <div class="row g-3 mb-3">
           <div class="col-md-3">
             <label class="form-label small text-muted-brand mb-1" for="repReportDateFrom">From (check-in)</label>
@@ -139,8 +140,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../../js/main.js?v=20261102a"></script>
-  <script src="../../js/admin-export.js?v=20261001c"></script>
+  <script src="../../js/main.js?v=20261101b"></script>
+  <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin.js?v=20260830i"></script>
   <script src="../../js/admin-live-charts.js?v=20261027a"></script>
   <script>
