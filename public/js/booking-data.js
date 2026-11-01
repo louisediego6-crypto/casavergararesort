@@ -2,6 +2,9 @@
 
 const CV_BOOKING_STORAGE_KEY = "cv_bookings_v1";
 const CVR_PENDING_RESERVATION_KEY = "cvr_pending_reservation";
+const CVR_EVENT_INCLUDED_GUESTS = 50;
+const CVR_EVENT_EXTRA_GUEST_RATE = 1000;
+const CVR_EVENT_MAX_GUESTS = 200;
 
 let CVR_SERVER_CATALOG = null;
 
@@ -34,18 +37,23 @@ function cvrNormalizeServerRoom(row) {
 }
 
 function cvrNormalizeServerEvent(row) {
+  const inclusions = Array.isArray(row.inclusions) ? row.inclusions.map((item) =>
+    String(item)
+      .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,000 per guest above 50 (maximum 200 guests)")
+      .replace(/Good for 100 pax\s*·\s*/g, "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · ")
+  ) : [];
   return {
     price: Number(row.price) || 0,
     pax: row.pax ?? 0,
-    maxPax: row.maxPax != null ? Number(row.maxPax) : undefined,
-    extraPaxRate: row.extraPaxRate != null ? Number(row.extraPaxRate) : undefined,
+    maxPax: CVR_EVENT_MAX_GUESTS,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     isActive: true,
     isCustom: Boolean(row.isCustom),
     flatRate: Boolean(row.isFlatRate),
     doubleRateOn24hr: Boolean(row.doubleRateOn24hr),
     image: row.image || "",
     imageDark: row.imageDark || "",
-    inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
+    inclusions,
     motifs: Array.isArray(row.motifs) ? row.motifs : [],
     addOns: Array.isArray(row.addOns) ? row.addOns : [],
   };
@@ -302,7 +310,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Private Venue – Morning (8:00 AM–5:00 PM)": {
     price: 10000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     flatRate: true,
     isActive: true,
@@ -311,7 +319,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -332,7 +340,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Private Venue – Night (7:00 PM–5:00 AM)": {
     price: 12000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     flatRate: true,
     isActive: true,
@@ -341,7 +349,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -362,7 +370,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Private Venue – Whole Day (2 Sessions)": {
     price: 17000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     flatRate: true,
     isActive: true,
@@ -371,7 +379,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -395,7 +403,7 @@ const EVENT_PACKAGE_CATALOG = {
     flatRate: true,
     isActive: true,
     inclusions: [
-      "Good for 100 pax · 10 hours + 3 hours preparation time",
+      "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
       "Exclusive private use of the resort — pools, function hall, tables & chairs",
       "Extended stay: ₱1,500 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
@@ -421,7 +429,7 @@ const EVENT_PACKAGE_CATALOG = {
     flatRate: true,
     isActive: true,
     inclusions: [
-      "Good for 100 pax · 10 hours + 3 hours preparation time",
+      "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
       "Exclusive private use of the resort — pools, function hall, tables & chairs",
       "Extended stay: ₱1,500 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
@@ -445,7 +453,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Reunion": {
     price: 10000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     doubleRateOn24hr: true,
     isActive: true,
@@ -454,7 +462,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -475,7 +483,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Team Building": {
     price: 10000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     doubleRateOn24hr: true,
     isActive: true,
@@ -484,7 +492,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -505,7 +513,7 @@ const EVENT_PACKAGE_CATALOG = {
   "Others": {
     price: 10000,
     pax: 50,
-    maxPax: 100,
+    maxPax: 200,
     extraPaxRate: 1000,
     doubleRateOn24hr: true,
     isActive: true,
@@ -514,7 +522,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per person for 51–100 pax",
+      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -743,18 +751,14 @@ function sumSelectedAddOns(addOnCatalog, selectedIds) {
 }
 
 function calculatePaxSurcharge(pkg, guestCount) {
-  const rate = Number(pkg?.extraPaxRate) || 0;
-  const baseline = Number(pkg?.pax) || 0;
-  if (!rate || !baseline) return null;
-  const cap = Number(pkg?.maxPax) || baseline;
   const guests = Math.max(0, Number(guestCount) || 0);
-  if (guests <= baseline) return null;
-  const extraPax = Math.min(guests, cap) - baseline;
+  if (guests <= CVR_EVENT_INCLUDED_GUESTS) return null;
+  const extraPax = Math.min(guests, CVR_EVENT_MAX_GUESTS) - CVR_EVENT_INCLUDED_GUESTS;
   if (extraPax <= 0) return null;
-  const price = Math.round(extraPax * rate * 100) / 100;
+  const price = Math.round(extraPax * CVR_EVENT_EXTRA_GUEST_RATE * 100) / 100;
   return {
     id: "extra-pax-surcharge",
-    label: `Additional guests (${extraPax} × ₱${rate.toLocaleString()}/pax, ${baseline + 1}–${cap} pax)`,
+    label: `Additional guests (${extraPax} × ₱${CVR_EVENT_EXTRA_GUEST_RATE.toLocaleString()}/pax, guests ${CVR_EVENT_INCLUDED_GUESTS + 1}–${CVR_EVENT_MAX_GUESTS})`,
     price,
     category: "extra",
   };
@@ -1386,6 +1390,9 @@ window.CVRQuotation = {
 };
 
 window.CVRBookingCatalog = {
+  EVENT_INCLUDED_GUESTS: CVR_EVENT_INCLUDED_GUESTS,
+  EVENT_EXTRA_GUEST_RATE: CVR_EVENT_EXTRA_GUEST_RATE,
+  EVENT_MAX_GUESTS: CVR_EVENT_MAX_GUESTS,
   ROOM_PACKAGES,
   EVENT_PACKAGE_CATALOG,
   ROOM_PACKAGE_ADDONS,

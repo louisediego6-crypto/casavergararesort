@@ -106,11 +106,11 @@
                 <div class="row g-2">
                   <div class="col-6">
                     <label class="small text-muted-brand mb-1" for="resAdultCount">Adults</label>
-                    <input id="resAdultCount" type="number" min="1" class="form-control" value="1" inputmode="numeric">
+                    <input id="resAdultCount" type="number" min="1" max="200" step="1" class="form-control" value="1" inputmode="numeric">
                   </div>
                   <div class="col-6">
                     <label class="small text-muted-brand mb-1" for="resChildCount">Kids</label>
-                    <input id="resChildCount" type="number" min="0" class="form-control" value="0" inputmode="numeric">
+                    <input id="resChildCount" type="number" min="0" max="200" step="1" class="form-control" value="0" inputmode="numeric">
                   </div>
                 </div>
                 <input id="resGuestCount" type="hidden" value="1">
@@ -233,11 +233,11 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261101a"></script>
+  <script src="../js/booking-data.js?v=20261101b"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261101a"></script>
-  <script src="../js/main.js?v=20261101a"></script>
+  <script src="../js/main.js?v=20261101b"></script>
   <script>
     (async () => {
 

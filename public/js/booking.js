@@ -547,11 +547,7 @@ function initBookingPage() {
       const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(pkg, guestCountVal) : null;
       const totalWithSurcharge = durationRate + (paxSurcharge?.price || 0);
       const money = cat.formatMoney(totalWithSurcharge, "PHP");
-      const paxLabel = pkg.isCustom
-        ? `Flexible — up to ${pkg.pax} pax`
-        : pkg.extraPaxRate && pkg.maxPax
-        ? `Good for ${pkg.pax} pax (up to ${pkg.maxPax} pax, +₱${Number(pkg.extraPaxRate).toLocaleString()}/person past ${pkg.pax})`
-        : `Good for ${pkg.pax} pax`;
+      const paxLabel = `Includes up to ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1000).toLocaleString()}/person above ${cat.EVENT_INCLUDED_GUESTS || 50}`;
       const fixedSchedule = key ? getFixedSchedule(key) : null;
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
@@ -627,8 +623,8 @@ function initBookingPage() {
 
       const schedule = getFixedSchedule(key);
       const facts = [
-        `Capacity: ${pkg.isCustom ? `flexible, up to ${pkg.pax} pax` : pkg.maxPax ? `${pkg.pax} pax included, up to ${pkg.maxPax} pax` : `${pkg.pax} pax`}`,
-        pkg.extraPaxRate && pkg.maxPax ? `Extra guests: +${cat.formatMoney(pkg.extraPaxRate, "PHP")} per person past ${pkg.pax}` : "",
+        `Includes up to ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`,
+        `Extra guests: +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1000, "PHP")} per person above ${cat.EVENT_INCLUDED_GUESTS || 50}`,
         schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Check-in is flexible; check-out follows your chosen duration",
         pkg.flatRate ? "Flat package price, same regardless of duration" : "",
       ].filter(Boolean);
@@ -691,15 +687,19 @@ function initBookingPage() {
     const guestAdultsEl = document.getElementById("eventAdults");
     const guestKidsEl = document.getElementById("eventChildren");
     const guestTotalEl = document.getElementById("eventGuests");
+    const maxEventGuests = cat.EVENT_MAX_GUESTS || 200;
     const readCount = (el, min) => Math.max(min, parseInt(el?.value, 10) || 0);
 
     const paintGuestSummary = (a, c) => {
       const text = document.getElementById("eventGuestTotalText");
       if (!text) return;
       const t = a + c;
+      const overLimit = t > maxEventGuests;
       text.textContent = t === 0
-        ? "No guests added yet"
-        : `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""}`;
+        ? `No guests added yet · maximum ${maxEventGuests} guests`
+        : `${t} guest${t !== 1 ? "s" : ""} in total: ${a} adult${a !== 1 ? "s" : ""}${c ? ` + ${c} kid${c !== 1 ? "s" : ""}` : ""} · maximum ${maxEventGuests}`;
+      text.classList.toggle("text-danger", overLimit);
+      text.classList.toggle("text-muted-brand", !overLimit);
     };
     // 0 shows as an empty box (placeholder "0") so nothing is pre-filled
     const setCount = (el, n) => { if (el) el.value = n > 0 ? String(n) : ""; };
@@ -736,7 +736,13 @@ function initBookingPage() {
       btn.addEventListener("click", () => {
         const target = document.getElementById(btn.dataset.guestTarget);
         if (!target) return;
-        const next = Math.max(0, (parseInt(target.value, 10) || 0) + Number(btn.dataset.guestStep));
+        const current = parseInt(target.value, 10) || 0;
+        const otherGuests = target === guestTotalEl ? 0
+          : (parseInt(guestTotalEl?.value, 10) || 0) - current;
+        const next = Math.max(0, Math.min(
+          target === guestTotalEl ? maxEventGuests : maxEventGuests - otherGuests,
+          current + Number(btn.dataset.guestStep)
+        ));
         setCount(target, next);
         syncEventGuestTotal(target === guestTotalEl ? "total" : "parts");
       });
@@ -789,12 +795,22 @@ function initBookingPage() {
       }
       const eventAdults = Math.max(0, parseInt(document.getElementById("eventAdults")?.value, 10) || 0);
       const eventChildren = Math.max(0, parseInt(document.getElementById("eventChildren")?.value, 10) || 0);
+      const adultInputValue = Number(document.getElementById("eventAdults")?.value || 0);
+      const childInputValue = Number(document.getElementById("eventChildren")?.value || 0);
+      if (!Number.isInteger(Number(eventGuests)) || !Number.isInteger(adultInputValue) || !Number.isInteger(childInputValue)) {
+        showMessage("Guest counts must be whole numbers.", true);
+        return;
+      }
       if (eventAdults < 1) {
         showMessage("Please enter at least one adult.", true);
         return;
       }
       if (!eventGuests || Number(eventGuests) < 1) {
         showMessage("Enter a valid number of guests.", true);
+        return;
+      }
+      if (Number(eventGuests) > maxEventGuests || eventAdults + eventChildren > maxEventGuests) {
+        showMessage(`The maximum occupancy for the resort is ${maxEventGuests} guests per event.`, true);
         return;
       }
       if (!eventDateVal) {

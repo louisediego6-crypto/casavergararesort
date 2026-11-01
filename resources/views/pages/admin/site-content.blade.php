@@ -16,7 +16,7 @@
   <link href="../../css/polish.css?v=20260926a" rel="stylesheet">
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
-  <link href="../../css/admin-modern.css?v=20261101a" rel="stylesheet">
+  <link href="../../css/admin-modern.css?v=20261101b" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <style>
 
@@ -133,7 +133,7 @@
 
         <div class="tab-pane fade" id="tab-packages" role="tabpanel">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <p class="text-muted-brand mb-0">Add, edit, or delete room and event packages, and manage each package's paid lighting, sound, and extra add-ons. Deactivated packages are hidden from the public booking page.</p>
+            <p class="text-muted-brand mb-0">Add, edit, or delete room and event packages, and manage each package's paid lighting, sound, and extra add-ons. All event bookings include up to 50 guests, add ₱1,000 per guest from 51 to 200, and cannot exceed 200 guests. Deactivated packages are hidden from the public booking page.</p>
           </div>
 
           <div id="adminPackagesAlert" class="alert d-none small" role="alert"></div>
@@ -150,7 +150,7 @@
                     <th style="width:70px;">Order</th>
                     <th>Package</th>
                     <th>Starting price</th>
-                    <th>Guests</th>
+                    <th>Package pax</th>
                     <th>Motifs</th>
                     <th>Add-ons</th>
                     <th class="text-end">Status</th>
@@ -642,8 +642,9 @@
               <input type="number" class="form-control" id="epFormPrice" min="0" max="1000000" step="1" placeholder="9000" required>
             </div>
             <div class="col-md-4">
-              <label class="form-label small text-muted-brand mb-1" for="epFormPax">Guests (pax)</label>
+              <label class="form-label small text-muted-brand mb-1" for="epFormPax">Package pax reference</label>
               <input type="number" class="form-control" id="epFormPax" min="1" max="2000" step="1" placeholder="50" required>
+              <div class="form-text">The resort-wide event surcharge still starts above 50 guests, regardless of this package value.</div>
             </div>
             <div class="col-md-4 d-flex align-items-center pt-4">
               <div class="form-check form-switch">
@@ -1047,11 +1048,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261101a"></script>
+  <script src="../../js/main.js?v=20261101b"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20261101a"></script>
-  <script src="../../js/admin-packages.js?v=20261031a"></script>
+  <script src="../../js/booking-data.js?v=20261101b"></script>
+  <script src="../../js/admin-packages.js?v=20261031b"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>
   <script src="../../js/admin-team.js?v=20260830i"></script>

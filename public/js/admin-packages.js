@@ -149,7 +149,7 @@ function initAdminPackagesPage() {
           <td>${moveButtonsHtml(index === 0, index === keys.length - 1, dataAttrs)}</td>
           <td class="fw-semibold text-brand">${thumbHtml(pkg.image, DEFAULT_EVENT_IMAGE, key)}${escapeHtml(key)}</td>
           <td>${escapeHtml(cat.formatMoney(pkg.price, "PHP"))} <span class="small text-muted-brand">starting</span></td>
-          <td>${escapeHtml(String(pkg.pax || "—"))} pax</td>
+          <td>${escapeHtml(String(pkg.pax || "—"))} pax reference</td>
           <td class="small text-muted-brand">${pkg.motifs?.length || 0} motifs</td>
           <td class="small text-muted-brand">${pkg.addOns?.length || 0} add-ons</td>
           <td class="text-end">${statusToggleHtml(isActive, dataAttrs)}</td>

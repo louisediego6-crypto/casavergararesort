@@ -195,7 +195,7 @@
             <img class="room-cover" src="../images/booking-photo-2.png" alt="Private venue with pool and function hall" data-site-image-slot="landing_room_single">
             <div class="p-4 room-card-body">
               <h5 class="text-brand" data-site-text-key="landing_card2_title">Private Venue</h5>
-              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card2_sub">Good for 50 pax · add ₱1,000/head up to 100 pax</p>
+              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card2_sub">Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests</p>
               <ul class="list-unstyled small text-muted-brand mb-3">
                 <li><span data-site-text-key="landing_card2_row1">Morning (8 AM–5 PM)</span> — <strong data-rate-event="Private Venue – Morning (8:00 AM–5:00 PM)">₱10,000</strong></li>
                 <li><span data-site-text-key="landing_card2_row2">Night (7 PM–5 AM)</span> — <strong data-rate-event="Private Venue – Night (7:00 PM–5:00 AM)">₱12,000</strong></li>
@@ -213,7 +213,7 @@
             <img class="room-cover" src="../images/booking-photo-3.png" alt="Wedding and debut venue setup" data-site-image-slot="landing_room_family">
             <div class="p-4 room-card-body">
               <h5 class="text-brand" data-site-text-key="landing_card3_title">Weddings &amp; Debuts</h5>
-              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card3_sub">Good for 100 pax · 10 hours + 3 hours preparation</p>
+              <p class="text-muted-brand small mb-2" data-site-text-key="landing_card3_sub">Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · 10 hours + 3 hours preparation</p>
               <ul class="list-unstyled small text-muted-brand mb-3">
                 <li><span data-site-text-key="landing_card3_row1">Wedding</span> — <strong data-rate-event="Wedding Package">₱20,000</strong></li>
                 <li><span data-site-text-key="landing_card3_row2">Debut</span> — <strong data-rate-event="Debut Package">₱17,000</strong></li>
@@ -403,9 +403,9 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/booking-data.js?v=20261101a"></script>
+  <script src="../js/booking-data.js?v=20261101b"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
-  <script src="../js/main.js?v=20261101a"></script>
+  <script src="../js/main.js?v=20261101b"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
   <script src="../js/casa-refresh.js?v=20261018a"></script>
   <script>

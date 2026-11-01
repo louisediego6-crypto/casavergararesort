@@ -112,6 +112,24 @@ class ReservationController extends Controller
         }
 
         $bookingType = ($reservation['bookingType'] ?? '') === 'event' ? 'event' : 'room';
+        if ($bookingType === 'event') {
+            $eventGuests = $reservation['eventGuests'] ?? $reservation['guests'] ?? null;
+            $splitGuests = 0;
+            foreach (['adults', 'children'] as $field) {
+                if (isset($reservation[$field])) {
+                    if (!is_numeric($reservation[$field]) || floor((float) $reservation[$field]) !== (float) $reservation[$field] || (float) $reservation[$field] < 0) {
+                        json_response(false, 'Event guest counts must be non-negative whole numbers.', [], 422);
+                    }
+                    $splitGuests += (int) $reservation[$field];
+                }
+            }
+            if ($eventGuests !== null && (!is_numeric($eventGuests) || floor((float) $eventGuests) !== (float) $eventGuests || (float) $eventGuests < 0)) {
+                json_response(false, 'Event guest count must be a non-negative whole number.', [], 422);
+            }
+            if (($eventGuests !== null && (float) $eventGuests > 200) || $splitGuests > 200) {
+                json_response(false, 'The maximum occupancy for the resort is 200 guests per event.', [], 422);
+            }
+        }
         $checkIn = !empty($reservation['checkIn']) ? substr($reservation['checkIn'], 0, 10) : null;
         $checkOut = !empty($reservation['checkOut']) ? substr($reservation['checkOut'], 0, 10) : null;
 

@@ -246,7 +246,7 @@
                   <label for="eventGuests" class="small text-muted-brand mb-1">Total guests</label>
                   <div class="bk-stepper">
                     <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventGuests" aria-label="Fewer total guests"><i class="bi bi-dash-lg"></i></button>
-                    <input id="eventGuests" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <input id="eventGuests" type="number" min="0" max="200" step="1" value="" placeholder="0" class="form-control" inputmode="numeric">
                     <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventGuests" aria-label="More total guests"><i class="bi bi-plus-lg"></i></button>
                   </div>
                 </div>
@@ -255,7 +255,7 @@
                   <label for="eventAdults" class="small text-muted-brand mb-1">Adults</label>
                   <div class="bk-stepper">
                     <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventAdults" aria-label="Fewer adults"><i class="bi bi-dash-lg"></i></button>
-                    <input id="eventAdults" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <input id="eventAdults" type="number" min="0" max="200" step="1" value="" placeholder="0" class="form-control" inputmode="numeric">
                     <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventAdults" aria-label="More adults"><i class="bi bi-plus-lg"></i></button>
                   </div>
                 </div>
@@ -264,13 +264,13 @@
                   <label for="eventChildren" class="small text-muted-brand mb-1">Kids</label>
                   <div class="bk-stepper">
                     <button type="button" class="bk-stepper-btn" data-guest-step="-1" data-guest-target="eventChildren" aria-label="Fewer kids"><i class="bi bi-dash-lg"></i></button>
-                    <input id="eventChildren" type="number" min="0" value="" placeholder="0" class="form-control" inputmode="numeric">
+                    <input id="eventChildren" type="number" min="0" max="200" step="1" value="" placeholder="0" class="form-control" inputmode="numeric">
                     <button type="button" class="bk-stepper-btn" data-guest-step="1" data-guest-target="eventChildren" aria-label="More kids"><i class="bi bi-plus-lg"></i></button>
                   </div>
                 </div>
               </div>
               <div class="small text-muted-brand mt-2" id="eventGuestTotalText" aria-live="polite">No guests added yet</div>
-              <div class="small text-muted-brand">Total, adults and kids stay in sync: change any one and the others update.</div>
+              <div class="small text-muted-brand">Total, adults and kids stay in sync. The resort can accommodate up to 200 guests per event; each guest above 50 adds ₱1,000.</div>
             </div>
               </div>
             </div>
@@ -478,14 +478,14 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261101a"></script>
+  <script src="../js/main.js?v=20261101b"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261101a"></script>
+  <script src="../js/booking-data.js?v=20261101b"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261101a"></script>
   <script src="../js/package-media.js?v=20261031a"></script>
-  <script src="../js/booking.js?v=20261101a"></script>
+  <script src="../js/booking.js?v=20261101b"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
   <script src="../js/booking-staff.js?v=20260830i"></script>
   <script>

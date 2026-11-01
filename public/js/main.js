@@ -4364,10 +4364,18 @@ function buildReservationFromForm(cat, pending, flow) {
   const selectedAddOns = getSelectedAddOnIds();
   const excludeId = flow?.editId || "";
 
+  const adultInputValue = Number(document.getElementById("resAdultCount")?.value || 0);
+  const childInputValue = Number(document.getElementById("resChildCount")?.value || 0);
+  if (pending.bookingType === "event" && (!Number.isInteger(adultInputValue) || !Number.isInteger(childInputValue))) {
+    return { error: "Guest counts must be whole numbers." };
+  }
   const guestSplit = readResGuestSplit();
   const guestsNum = guestSplit.total;
   if (guestSplit.adults < 1) return { error: "Please enter at least one adult." };
   if (guestsNum < 1) return { error: "Please enter the number of guests." };
+  if (pending.bookingType === "event" && guestsNum > (cat.EVENT_MAX_GUESTS || 200)) {
+    return { error: `The maximum occupancy for the resort is ${cat.EVENT_MAX_GUESTS || 200} guests per event.` };
+  }
   if (pending.bookingType !== "event") {
     const cap = flow?.pkg?.capacity;
     if (cap && (guestsNum < cap.min || guestsNum > cap.max)) {
@@ -4496,11 +4504,10 @@ function buildReservationFromForm(cat, pending, flow) {
     if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(totals.scheduledCheckIn, totals.scheduledCheckOut, excludeId)) {
       return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or session." };
     }
-    const pkgCat = cat.getEventPackageCatalog(pending.packageOption || "");
-    const maxGuests = pkgCat?.maxPax || pkgCat?.pax || pending.eventGuests || 999;
+    const maxGuests = cat.EVENT_MAX_GUESTS || 200;
 
     if (guestsNum < 1) return { error: "Enter a valid number of guests." };
-    if (guestsNum > maxGuests) return { error: `Guest count cannot exceed ${maxGuests} for this package.` };
+    if (guestsNum > maxGuests) return { error: `Guest count cannot exceed ${maxGuests} for an event.` };
 
     reservation.checkIn = totals.checkInDateOnly;
     reservation.checkOut = totals.checkOutDateOnly;
