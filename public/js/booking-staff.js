@@ -34,7 +34,8 @@
     }
   };
 
-  const isCanceled = (r) => String(r.reservationStatus || "").toLowerCase().includes("cancel");
+  const isCanceled = (r) => String(r.reservationStatus || r.status || "").toLowerCase().includes("cancel");
+  const eventDateOf = (r) => String(r.preferredDate || r.eventDate || r.checkIn || "").slice(0, 10);
 
   const prettyDate = (value) => {
     if (!value) return "";
@@ -69,13 +70,76 @@
 
   function upcomingEventDates(days = 90) {
     const today = ymd(new Date());
-    const horizon = ymd(new Date(Date.now() + days * MS_DAY));
+    const horizonDate = new Date();
+    horizonDate.setDate(horizonDate.getDate() + Math.max(0, days - 1));
+    const horizon = ymd(horizonDate);
     const blocked = readBlocked().filter((d) => d >= today && d <= horizon);
     const events = readReservations()
-      .filter((r) => !isCanceled(r) && r.bookingType === "event" && r.eventDate)
-      .filter((r) => r.eventDate >= today && r.eventDate <= horizon)
-      .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
-    return { blocked: blocked.sort(), events };
+      .filter((r) => !isCanceled(r) && r.bookingType === "event")
+      .filter((r) => {
+        const start = eventDateOf(r);
+        const end = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || start).slice(0, 10);
+        return start && start <= horizon && end >= today;
+      })
+      .sort((a, b) => eventDateOf(a).localeCompare(eventDateOf(b)));
+    return { today, horizon, blocked: new Set(blocked), events };
+  }
+
+  const eventSessions = [
+    { key: "morning", label: "Morning", schedule: "8:00 AM–5:00 PM" },
+    { key: "night", label: "Night", schedule: "7:00 PM–5:00 AM" },
+    { key: "whole-day", label: "Whole day", schedule: "8:00 AM–5:00 AM (next day)" },
+  ];
+
+  function reservationAffectsDate(reservation, date) {
+    const start = eventDateOf(reservation);
+    const end = String(reservation.checkOutDate || reservation.checkOutDateOnly || reservation.checkOut || start).slice(0, 10);
+    return Boolean(start && start <= date && end >= date);
+  }
+
+  function eventOverlapsSession(reservation, date, session, cat) {
+    const duration = window.CVRDuration;
+    const fixed = cat.getFixedEventSchedule?.("", session.key);
+    const requested = fixed && duration?.buildFixedWindow
+      ? duration.buildFixedWindow(date, fixed.checkInTime, fixed.checkOutTime, fixed.label)
+      : null;
+    if (requested && reservation.scheduledCheckIn && reservation.scheduledCheckOut && duration?.windowsOverlap) {
+      return duration.windowsOverlap(
+        requested.scheduledCheckIn,
+        requested.scheduledCheckOut,
+        reservation.scheduledCheckIn,
+        reservation.scheduledCheckOut
+      );
+    }
+    return reservationAffectsDate(reservation, date);
+  }
+
+  function eventRecordName(reservation) {
+    const packageName = String(reservation.packageOption || "").trim();
+    const eventType = String(reservation.eventType || "").trim();
+    if (packageName && eventType && packageName !== eventType) return `${eventType} — ${packageName}`;
+    return packageName || eventType || "Event booking";
+  }
+
+  function eventStatusLabel(reservation) {
+    return reservation.reservationStatus || reservation.paymentStatus || "Reserved";
+  }
+
+  function eventDayDetails(date, events, blocked, cat) {
+    const eventsOnDate = events.filter((event) => reservationAffectsDate(event, date));
+    const sessions = eventSessions.map((session) => {
+      const event = eventsOnDate.find((item) => eventOverlapsSession(item, date, session, cat));
+      return { ...session, event: event || null, available: !blocked.has(date) && !event };
+    });
+    const availableCount = sessions.filter((session) => session.available).length;
+    const status = blocked.has(date)
+      ? "Blocked"
+      : availableCount === sessions.length
+      ? "Available"
+      : availableCount
+      ? "Partially available"
+      : "Fully reserved";
+    return { eventsOnDate, sessions, status };
   }
 
   function availabilityChips(takenMap, days = 21) {
@@ -96,28 +160,41 @@
     const cat = window.CVRBookingCatalog;
     if (!mount || !cat) return;
 
-    const { blocked, events } = upcomingEventDates();
+    const { today, horizon, blocked, events } = upcomingEventDates();
     const packages = cat.getRoomPackages({ activeOnly: true });
 
-    const eventRows = events.length
-      ? events
-          .map(
-            (e) => `
-              <tr>
-                <td class="text-nowrap">${esc(prettyDate(e.eventDate))}</td>
-                <td>${esc(e.eventType || "Event")}</td>
-                <td class="small text-muted-brand">${esc(e.fullName || e.customerName || "—")}</td>
-                <td><span class="badge text-bg-danger">Reserved</span></td>
-              </tr>`
-          )
-          .join("")
-      : `<tr><td colspan="4" class="text-center text-muted-brand py-3">No event bookings in the next 90 days — every date is open.</td></tr>`;
-
-    const blockedRow = blocked.length
-      ? `<p class="small text-muted-brand mb-0 mt-2"><i class="bi bi-slash-circle me-1"></i>Blocked days: ${blocked
-          .map((d) => esc(prettyDate(d)))
-          .join(", ")}</p>`
-      : "";
+    let eventRows = "";
+    const currentDate = new Date(`${today}T12:00:00`);
+    const totalDays = Math.round((new Date(`${horizon}T12:00:00`) - currentDate) / MS_DAY);
+    for (let offset = 0; offset <= totalDays; offset += 1) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() + offset);
+      const dateKey = ymd(date);
+      const details = eventDayDetails(dateKey, events, blocked, cat);
+      const bookedEvents = details.eventsOnDate.map(eventRecordName);
+      const eventSummary = bookedEvents.length
+        ? Array.from(new Set(bookedEvents)).join(", ")
+        : details.status === "Blocked"
+        ? "Resort closed"
+        : "—";
+      const sessionSummary = details.sessions
+        .map((session) => `${session.label}: ${session.available ? "Available" : session.event ? eventRecordName(session.event) : "Blocked"}`)
+        .join(" · ");
+      const statusClass = details.status === "Available"
+        ? "text-bg-success"
+        : details.status === "Blocked"
+        ? "text-bg-secondary"
+        : details.status === "Fully reserved"
+        ? "text-bg-danger"
+        : "text-bg-warning";
+      eventRows += `
+        <tr>
+          <td><button type="button" class="staff-event-date-button" data-staff-event-date="${dateKey}">${esc(prettyDate(dateKey))}</button></td>
+          <td>${esc(eventSummary)}</td>
+          <td><span class="badge ${statusClass}">${esc(details.status)}</span></td>
+          <td class="small text-muted-brand">${esc(sessionSummary)}</td>
+        </tr>`;
+    }
 
     const roomRows = packages
       .map((pkg) => {
@@ -152,17 +229,17 @@
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
           <div>
             <h4 class="text-brand mb-1"><i class="bi bi-calendar-check me-2"></i>Event availability</h4>
-            <p class="small text-muted-brand mb-0">Dates already reserved for events over the next 90 days.</p>
+            <p class="small text-muted-brand mb-0">Select a date to see its event bookings and availability for each fixed session over the next 90 days.</p>
           </div>
           <a href="admin/calendar.html" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3 me-1"></i>Open admin calendar</a>
         </div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead><tr><th>Date</th><th>Event</th><th>Guest</th><th>Status</th></tr></thead>
+        <div class="table-responsive staff-event-availability-table">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Date</th><th>Event / package</th><th>Status</th><th>Session availability</th></tr></thead>
             <tbody>${eventRows}</tbody>
           </table>
         </div>
-        ${blockedRow}
+        <div class="small text-muted-brand mt-2">Green = available · Yellow = partly available · Red = fully reserved · Gray = blocked. Click any date for details.</div>
       </div>
 
       <div class="soft-card p-4 mb-4">
@@ -177,8 +254,57 @@
           <span class="d-inline-flex align-items-center gap-1"><span class="badge text-bg-secondary">&nbsp;</span> Blocked</span>
         </div>
       </div>
+
+      <div class="modal fade" id="staffEventAvailabilityModal" tabindex="-1" aria-labelledby="staffEventAvailabilityTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title text-brand" id="staffEventAvailabilityTitle">Event availability</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="staffEventAvailabilityDetails"></div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
     `;
 
+    mount.querySelectorAll(".staff-event-date-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const date = button.dataset.staffEventDate || "";
+        const details = eventDayDetails(date, events, blocked, cat);
+        const title = mount.querySelector("#staffEventAvailabilityTitle");
+        const content = mount.querySelector("#staffEventAvailabilityDetails");
+        if (!title || !content) return;
+        title.textContent = `Event availability — ${prettyDate(date)}`;
+        const eventCards = details.eventsOnDate.length
+          ? details.eventsOnDate.map((event) => `
+              <div class="border rounded-3 p-3 mb-2">
+                <div class="fw-semibold text-brand">${esc(eventRecordName(event))}</div>
+                <div class="small text-muted-brand">${esc(event.checkInLabel || event.eventTime || "Schedule not specified")}${event.checkOutLabel ? ` – ${esc(event.checkOutLabel)}` : ""}</div>
+                <div class="small mt-1">${esc(event.guests ?? event.eventGuests ?? "—")} guests · ${esc(eventStatusLabel(event))}</div>
+                <div class="small text-muted-brand">${esc(event.customerName || event.fullName || "Guest not specified")}</div>
+              </div>`)
+            .join("")
+          : `<p class="small text-muted-brand mb-0">${details.status === "Blocked" ? "No event booking; the resort is blocked on this date." : "No event bookings on this date."}</p>`;
+        const sessionRows = details.sessions.map((session) => `
+          <div class="d-flex justify-content-between align-items-start gap-2 border-bottom py-2">
+            <div>
+              <div class="fw-semibold">${esc(session.label)}</div>
+              <div class="small text-muted-brand">${esc(session.schedule)}</div>
+              ${session.event ? `<div class="small text-danger">${esc(eventRecordName(session.event))}</div>` : ""}
+            </div>
+            <span class="badge ${session.available ? "text-bg-success" : session.event ? "text-bg-danger" : "text-bg-secondary"}">${session.available ? "Available" : session.event ? "Reserved" : "Blocked"}</span>
+          </div>`).join("");
+        content.innerHTML = `
+          <div class="mb-3"><span class="badge ${details.status === "Available" ? "text-bg-success" : details.status === "Blocked" ? "text-bg-secondary" : details.status === "Fully reserved" ? "text-bg-danger" : "text-bg-warning"}">${esc(details.status)}</span></div>
+          <h6 class="text-brand">Bookings</h6>${eventCards}
+          <h6 class="text-brand mt-4">Session availability</h6>${sessionRows}`;
+        bootstrap.Modal.getOrCreateInstance(mount.querySelector("#staffEventAvailabilityModal")).show();
+      });
+    });
     mount.querySelectorAll(".staff-room-details-btn").forEach((btn) => {
       btn.addEventListener("click", () => window.cvrShowRoomDetails?.(btn.dataset.packageId));
     });
@@ -404,6 +530,16 @@
     document.getElementById("staffRoomsIntro")?.classList.remove("d-none");
     document.getElementById("staffAvailabilityPanel")?.classList.remove("d-none");
     renderStaffAvailabilityPanel();
+    if (!window.__cvrStaffAvailabilityRefreshBound) {
+      window.__cvrStaffAvailabilityRefreshBound = true;
+      document.addEventListener("cvr-reservations-synced", renderStaffAvailabilityPanel);
+      window.addEventListener("storage", (event) => {
+        if (event.key === "cvrReservations" || event.key === "cvrBlockedDates") renderStaffAvailabilityPanel();
+      });
+    }
+    if (typeof window.cvrSyncReservationsFromServer === "function") {
+      window.cvrSyncReservationsFromServer();
+    }
     return true;
   }
 

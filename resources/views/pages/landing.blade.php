@@ -8,7 +8,15 @@
   <meta charset="UTF-8" />
   <script src="../js/theme.js?v=20261024f"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Casa Vergara Resort - Home</title>
+  <title>Casa Vergara Resort | Rooms, Events &amp; Pools in Biñan, Laguna</title>
+  <meta name="description" content="Discover Casa Vergara Resort in Biñan, Laguna. Explore comfortable rooms, swimming pools, and event venues, and plan your next stay." />
+  <link rel="canonical" href="https://casavergararesort.online/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Casa Vergara Resort" />
+  <meta property="og:title" content="Casa Vergara Resort | Rooms, Events &amp; Pools in Biñan, Laguna" />
+  <meta property="og:description" content="Explore comfortable rooms, swimming pools, and event venues at Casa Vergara Resort in Biñan, Laguna." />
+  <meta property="og:url" content="https://casavergararesort.online/" />
+  <meta property="og:image" content="https://casavergararesort.online/images/booking-photo-1.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">

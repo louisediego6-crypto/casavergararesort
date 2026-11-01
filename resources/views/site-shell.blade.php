@@ -3,7 +3,35 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Casa Vergara Resort</title>
+    <title>Casa Vergara Resort | Resort in Biñan, Laguna</title>
+    <meta name="description" content="Discover Casa Vergara Resort in Biñan, Laguna. Explore comfortable rooms, swimming pools, event venues, and plan your visit." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://casavergararesort.online/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Casa Vergara Resort" />
+    <meta property="og:title" content="Casa Vergara Resort | Resort in Biñan, Laguna" />
+    <meta property="og:description" content="Explore comfortable rooms, swimming pools, and event venues at Casa Vergara Resort in Biñan, Laguna." />
+    <meta property="og:url" content="https://casavergararesort.online/" />
+    <meta property="og:image" content="https://casavergararesort.online/images/logo-email.png" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "LodgingBusiness",
+            "name": "Casa Vergara Resort",
+            "url": "https://casavergararesort.online/",
+            "image": "https://casavergararesort.online/images/booking-photo-1.png",
+            "logo": "https://casavergararesort.online/images/logo-email.png",
+            "telephone": "+639703236544",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Purok 3, Barangay Langkiwa",
+                "addressLocality": "Biñan",
+                "addressRegion": "Laguna",
+                "addressCountry": "PH"
+            }
+        }
+    </script>
     <style>
         html,
         body {

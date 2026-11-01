@@ -23,7 +23,7 @@
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
-  <link href="../css/booking-ui.css?v=20261105a" rel="stylesheet">
+  <link href="../css/booking-ui.css?v=20261105b" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/booking-extras.css?v=20261026c" rel="stylesheet">
@@ -486,7 +486,7 @@
   <script src="../js/package-media.js?v=20261031a"></script>
   <script src="../js/booking.js?v=20261105a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
-  <script src="../js/booking-staff.js?v=20261102a"></script>
+  <script src="../js/booking-staff.js?v=20261105b"></script>
   <script>
     (async () => {
 

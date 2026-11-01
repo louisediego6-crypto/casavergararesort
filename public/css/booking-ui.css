@@ -166,6 +166,26 @@ html[data-theme="dark"] .bk-steps li.active .n { color: #0e161e; }
 .bk-rate.is-selected .p { color: var(--bk-brand-dark); }
 .bk-rate.ext { grid-column: 1 / -1; }
 .bk-rate.ext .p.hint { font-size: .8rem; font-weight: 500; font-style: italic; color: var(--bk-muted); }
+.staff-event-date-button {
+  border: 0;
+  padding: .25rem .4rem;
+  border-radius: .4rem;
+  color: var(--bk-brand);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
+.staff-event-date-button:hover,
+.staff-event-date-button:focus-visible {
+  color: var(--bk-brand-dark);
+  background: var(--bk-surface-2);
+}
+.staff-event-date-button:focus-visible { outline: 2px solid var(--bk-brand); outline-offset: 2px; }
+.staff-event-availability-table { max-height: 34rem; overflow: auto; }
+.staff-event-availability-table thead { position: sticky; top: 0; z-index: 1; background: var(--bk-surface); }
 
 .bk-note { font-size: .78rem; color: var(--bk-muted); margin: 0; }
 .bk-note summary { cursor: pointer; color: var(--bk-brand); font-weight: 600; list-style: none; }
