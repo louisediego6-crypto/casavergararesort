@@ -23,7 +23,7 @@
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
   <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
-  <link href="../css/booking-ui.css?v=20261026b" rel="stylesheet">
+  <link href="../css/booking-ui.css?v=20261102a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261026b" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/booking-extras.css?v=20261026c" rel="stylesheet">
@@ -174,7 +174,7 @@
               <div class="bk-sec-head"><span class="n">1</span><div><h3>What are you celebrating?</h3><p>Pick the event type, and a package if you have one in mind.</p></div></div>
               <div class="row g-3">
             <div class="col-md-6">
-              <label for="eventType" class="form-label text-brand">Event Type</label>
+              <label for="eventType" class="form-label text-brand">Event Type <span class="text-danger">*</span></label>
               <select id="eventType" class="form-select" required>
                 <option value="">Select event type</option>
                 <optgroup label="General">
@@ -270,13 +270,13 @@
                 </div>
               </div>
               <div class="small text-muted-brand mt-2" id="eventGuestTotalText" aria-live="polite">No guests added yet</div>
-              <div class="small text-muted-brand">Total, adults and kids stay in sync. The resort can accommodate up to 200 guests per event. Non-birthday events add ₱1,000 per additional 50-guest band above 50; birthday bookings have no extra guest surcharge.</div>
+              <div class="small text-muted-brand">Total, adults and kids stay in sync. The resort can accommodate up to 200 guests per event. Non-birthday events add ₱1,500 per additional 50-guest band above 50; birthday bookings have no extra guest surcharge.</div>
             </div>
               </div>
             </div>
             </div>
             <div class="col-12"><div class="bk-form-section">
-              <div class="bk-sec-head"><span class="n">3</span><div><h3>When is it?</h3><p>Choose your date, then how long you need the venue.</p></div></div>
+              <div class="bk-sec-head"><span class="n">3</span><div><h3>When is it?</h3><p>Choose your date and the venue's fixed session schedule.</p></div></div>
               <div class="row g-3">
             <div class="col-12 booking-event-date-col">
               <label class="form-label text-brand">Preferred Date <span class="text-danger">*</span></label>
@@ -302,7 +302,7 @@
                 <option value="24hr">24-Hours Stay</option>
                 <option value="extended">Multi-Day / Extended Event (2+ nights)</option>
               </select>
-              <p class="small text-muted-brand mb-0 mt-1" id="eventDurationHint">Your check-in time is flexible and check-out follows exactly 3, 12, or 24 hours later, so the full event duration is always fulfilled. Overtime is billed per hour past that check-out time.</p>
+              <p class="small text-muted-brand mb-0 mt-1" id="eventDurationHint">Events follow a fixed session schedule. Overtime is billed per hour past the scheduled check-out time.</p>
             </div>
             <div class="col-12 d-none" id="eventFixedScheduleNote">
               <p class="small text-muted-brand mb-0"><i class="bi bi-clock-history me-1"></i><span id="eventFixedScheduleText"></span> This event runs on a fixed schedule, so there's no duration or check-in time to choose.</p>
@@ -394,9 +394,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="room-details-photo-wrap mb-3">
-            <img id="roomDetailsPhoto" src="" alt="" class="room-details-photo">
-          </div>
+          <div id="roomDetailsGallery" class="room-details-photo-wrap mb-3"></div>
+          <p class="small text-muted-brand mb-3">Photos show the room and different views of Casa Vergara's resort spaces.</p>
           <p class="text-muted-brand mb-1" id="roomDetailsTagline"></p>
           <p class="text-muted-brand" id="roomDetailsDescription"></p>
           <h6 class="text-brand mt-4 mb-2">Room facts</h6>
@@ -416,11 +415,11 @@
             <h6 class="text-brand mb-2">Guests for this stay</h6>
             <div class="row g-2">
               <div class="col-6">
-                <label for="roomAdults" class="small text-muted-brand mb-1">Adults</label>
+                <label for="roomAdults" class="small text-muted-brand mb-1">Adults <span class="text-danger">*</span></label>
                 <input id="roomAdults" type="number" min="1" value="1" class="form-control" inputmode="numeric">
               </div>
               <div class="col-6">
-                <label for="roomChildren" class="small text-muted-brand mb-1">Kids</label>
+                <label for="roomChildren" class="small text-muted-brand mb-1">Kids (optional)</label>
                 <input id="roomChildren" type="number" min="0" value="0" class="form-control" inputmode="numeric">
               </div>
             </div>
@@ -478,16 +477,16 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261101c"></script>
+  <script src="../js/main.js?v=20261102a"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261101c"></script>
+  <script src="../js/booking-data.js?v=20261102a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261101a"></script>
   <script src="../js/package-media.js?v=20261031a"></script>
-  <script src="../js/booking.js?v=20261101c"></script>
+  <script src="../js/booking.js?v=20261102a"></script>
   <script src="../js/booking-search-calendar.js?v=20261026a"></script>
-  <script src="../js/booking-staff.js?v=20260830i"></script>
+  <script src="../js/booking-staff.js?v=20261102a"></script>
   <script>
     (async () => {
 

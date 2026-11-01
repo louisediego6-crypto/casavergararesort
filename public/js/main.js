@@ -4048,7 +4048,7 @@ function renderPackageAddOnsUI(cat, bookingType, packageKey, selectedIds = []) {
         <input type="checkbox" class="form-check-input mt-1 cvr-addon-checkbox" value="${escapeHtml(a.id)}" ${selected.has(a.id) ? "checked" : ""}>
         <span class="flex-grow-1">
           <span class="fw-semibold text-brand d-block">${escapeHtml(a.label)}</span>
-          <span class="small text-muted-brand">+ ${escapeHtml(cat.formatMoney(a.price, currency))}</span>
+          <span class="small text-muted-brand">+ ${escapeHtml(cat.formatMoney(a.price, currency))}${a.perPax ? " per guest" : ""}</span>
         </span>
       </label>`
         )
@@ -4260,7 +4260,7 @@ function updateEventFormSummary(cat, pending) {
   const eventNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
   const customCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests, pending.eventSession || null)
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests, pending.eventSession || null, pending.eventType || "")
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
@@ -4522,7 +4522,7 @@ function buildReservationFromForm(cat, pending, flow) {
     const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "morning");
     const eventSession = fixedSchedule?.key || pending.eventSession || "morning";
     const eventDuration = fixedSchedule?.durationKey || durationKey;
-    const totals = cat.calculateDurationEventTotal(eventDate, eventDuration, pending.packageOption || "", selectedAddOns, null, null, null, guestsNum, eventSession);
+    const totals = cat.calculateDurationEventTotal(eventDate, eventDuration, pending.packageOption || "", selectedAddOns, null, null, null, guestsNum, eventSession, pending.eventType || "");
     if (!totals) return { error: "Invalid event duration." };
     if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(totals.scheduledCheckIn, totals.scheduledCheckOut, excludeId)) {
       return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or session." };

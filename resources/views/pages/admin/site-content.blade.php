@@ -16,7 +16,7 @@
   <link href="../../css/polish.css?v=20260926a" rel="stylesheet">
   <link href="../../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../../css/laravel-ui.css?v=20261018b" rel="stylesheet">
-  <link href="../../css/admin-modern.css?v=20261101c" rel="stylesheet">
+  <link href="../../css/admin-modern.css?v=20261102a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <style>
 
@@ -133,7 +133,7 @@
 
         <div class="tab-pane fade" id="tab-packages" role="tabpanel">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <p class="text-muted-brand mb-0">Add, edit, or delete room and event packages, and manage each package's paid lighting, sound, and extra add-ons. Non-birthday events include 50 guests, add ₱1,000 per additional 50-guest band, and cannot exceed 200 guests. Birthday packages have no guest surcharge. Deactivated packages are hidden from the public booking page.</p>
+            <p class="text-muted-brand mb-0">Add, edit, or delete room and event packages, and manage each package's paid lighting, sound, and extra add-ons. Non-birthday events include 50 guests, add ₱1,500 per additional 50-guest band, and cannot exceed 200 guests. Birthday packages have no guest surcharge. Deactivated packages are hidden from the public booking page.</p>
           </div>
 
           <div id="adminPackagesAlert" class="alert d-none small" role="alert"></div>
@@ -1048,10 +1048,10 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261101c"></script>
+  <script src="../../js/main.js?v=20261102a"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-  <script src="../../js/booking-data.js?v=20261101c"></script>
+  <script src="../../js/booking-data.js?v=20261102a"></script>
   <script src="../../js/admin-packages.js?v=20261031c"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>

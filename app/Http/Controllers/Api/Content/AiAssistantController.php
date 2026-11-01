@@ -96,7 +96,7 @@ class AiAssistantController extends Controller
             $eventDbRows = null;
         }
         if ($eventDbRows !== null && count($eventDbRows) > 0) {
-            $eventBlock = '';
+            $eventBlock = "All event bookings use a fixed morning, night, or whole-day session. Optional buffet catering is PHP 250 per guest, up to 200 guests.\n";
             foreach ($eventDbRows as $e) {
                 $inclusions = json_decode((string) $e['inclusions_json'], true) ?: [];
                 $motifs = json_decode((string) $e['motifs_json'], true) ?: [];

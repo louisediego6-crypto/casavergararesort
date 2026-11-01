@@ -460,7 +460,7 @@ const SITE_TEXT_FIELDS = [
         'group' => 'Home Page',
         'page' => 'pages/landing.html',
         'type' => 'text',
-        'default' => 'Includes 50 guests · +₱1,000 per additional 50 guests · maximum 200 guests',
+        'default' => 'Includes 50 guests · +₱1,500 per additional 50 guests · maximum 200 guests',
     ],
     'landing_card2_row1' => [
         'label' => 'Card 2 (Private Venue) — price row 1 label',
@@ -502,7 +502,7 @@ const SITE_TEXT_FIELDS = [
         'group' => 'Home Page',
         'page' => 'pages/landing.html',
         'type' => 'text',
-        'default' => 'Includes 50 guests · +₱1,000 per additional 50 guests · maximum 200 guests · 10 hours + 3 hours preparation',
+        'default' => 'Includes 50 guests · +₱1,500 per additional 50 guests · maximum 200 guests · 10 hours + 3 hours preparation',
     ],
     'landing_card3_row1' => [
         'label' => 'Card 3 (Weddings & Debuts) — price row 1 label',

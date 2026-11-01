@@ -233,11 +233,11 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261101c"></script>
+  <script src="../js/booking-data.js?v=20261102a"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
   <script src="../js/reservation-calendar.js?v=20261101a"></script>
-  <script src="../js/main.js?v=20261101c"></script>
+  <script src="../js/main.js?v=20261102a"></script>
   <script>
     (async () => {
 

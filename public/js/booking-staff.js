@@ -286,13 +286,29 @@
     if (!cat || !modalEl || !pkg) return;
 
     modalEl.querySelector("#roomDetailsTitle").textContent = pkg.title;
-    const photoImg = modalEl.querySelector("#roomDetailsPhoto");
-    photoImg.src = window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : (pkg.image || "");
-    photoImg.alt = pkg.title;
-
-    photoImg.classList.remove("room-details-photo-anim");
-    void photoImg.offsetWidth;
-    photoImg.classList.add("room-details-photo-anim");
+    const gallery = modalEl.querySelector("#roomDetailsGallery");
+    const galleryImages = [
+      { src: pkg.image, caption: pkg.title },
+      { src: "../images/booking-photo-1.png", caption: "Pool and resort view" },
+      { src: "../images/booking-photo-2.png", caption: "Covered lounge and venue" },
+      { src: "../images/booking-photo-3.png", caption: "Poolside venue perspective" },
+    ].filter((image, index, list) => image.src && list.findIndex((candidate) => candidate.src === image.src) === index);
+    if (gallery) {
+      gallery.innerHTML = `
+        <div id="roomDetailsCarousel" class="carousel slide cvr-booking-gallery" data-bs-ride="false" aria-label="${esc(pkg.title)} photo gallery">
+          <div class="carousel-inner">
+            ${galleryImages.map((image, index) => {
+              const src = window.cvrResolvePackageImage ? cvrResolvePackageImage(image.src) : image.src;
+              return `<div class="carousel-item${index === 0 ? " active" : ""}">
+                <img src="${esc(src)}" class="d-block w-100" alt="${esc(image.caption)}">
+                <div class="carousel-caption"><span>${esc(image.caption)}</span></div>
+              </div>`;
+            }).join("")}
+          </div>
+          ${galleryImages.length > 1 ? `<button class="carousel-control-prev" type="button" data-bs-target="#roomDetailsCarousel" data-bs-slide="prev" aria-label="Previous photo"><span class="carousel-control-prev-icon" aria-hidden="true"></span></button>
+          <button class="carousel-control-next" type="button" data-bs-target="#roomDetailsCarousel" data-bs-slide="next" aria-label="Next photo"><span class="carousel-control-next-icon" aria-hidden="true"></span></button>` : ""}
+        </div>`;
+    }
 
     modalEl.querySelector("#roomDetailsTagline").textContent = pkg.tagline || "";
     modalEl.querySelector("#roomDetailsDescription").textContent = pkg.description || "";
@@ -315,14 +331,22 @@
 
     renderRoomDetailsReviews(modalEl, pkg.id);
 
-    // Fresh guest picker for this room: one adult by default, and the room's allowed total shown plainly.
+    // Prefill the room's advertised occupancy while keeping children part of the same capacity.
     const roomAdultsEl = modalEl.querySelector("#roomAdults");
     const roomChildrenEl = modalEl.querySelector("#roomChildren");
     const capMin = Math.max(1, pkg.capacity?.min ?? 1);
-    const capMax = pkg.capacity?.max ?? capMin;
-    // Start at the room's minimum so a 2-guest room doesn't open with an invalid "1 guest".
-    if (roomAdultsEl) roomAdultsEl.value = String(capMin);
+    const capMax = Math.max(capMin, pkg.capacity?.max ?? capMin);
+    const fixedSingleGuest = capMax === 1;
+    if (roomAdultsEl) {
+      roomAdultsEl.value = String(capMax);
+      roomAdultsEl.max = String(capMax);
+      roomAdultsEl.disabled = fixedSingleGuest;
+    }
     if (roomChildrenEl) roomChildrenEl.value = "0";
+    if (roomChildrenEl) {
+      roomChildrenEl.max = String(capMax);
+      roomChildrenEl.disabled = fixedSingleGuest;
+    }
     const guestErrorEl = modalEl.querySelector("#roomGuestError");
     if (guestErrorEl) {
       guestErrorEl.textContent = "";
@@ -332,7 +356,9 @@
     if (guestHint) {
       const min = pkg.capacity?.min ?? 1;
       const max = pkg.capacity?.max ?? 1;
-      guestHint.textContent = `This room holds ${min}–${max} guest${max !== 1 ? "s" : ""} in total (adults + kids).`;
+      guestHint.textContent = fixedSingleGuest
+        ? "This room is fixed at 1 guest."
+        : `Prefilled for ${capMax} guests. Adults and kids share the ${min}–${max} guest room limit.`;
     }
 
     const staff = typeof isStaffSession === "function" && isStaffSession(getCustomerSession?.());

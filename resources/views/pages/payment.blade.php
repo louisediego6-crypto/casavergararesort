@@ -85,7 +85,7 @@
             <div id="paymentTermsDoc"></div>
             <div class="form-check mb-3 mt-3">
               <input class="form-check-input" type="checkbox" id="paymentTermsAccept" required>
-              <label class="form-check-label small" for="paymentTermsAccept">I have read and agree to the Terms &amp; Conditions above.</label>
+              <label class="form-check-label small" for="paymentTermsAccept">I have read and agree to the Terms &amp; Conditions above. <span class="text-danger fw-bold" aria-label="required">*</span></label>
             </div>
           </div>
 
@@ -94,7 +94,7 @@
             <p class="small text-muted-brand mb-3" id="paymentTermsGateHint">Accept the Terms &amp; Conditions above to enable payment upload.</p>
             <form id="proofUploadForm" novalidate>
               <div class="mb-3">
-                <label for="proofFile" class="form-label fw-semibold">Payment Receipt File</label>
+                <label for="proofFile" class="form-label fw-semibold">Payment Receipt File <span class="text-danger fw-bold" aria-label="required">*</span></label>
                 <input id="proofFile" name="proofFile" type="file" class="form-control" required>
                 <small id="proofFileName" class="text-muted-brand d-block mt-2">No file chosen</small>
               </div>
@@ -150,8 +150,8 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20260924d"></script>
-  <script src="../js/booking-data.js?v=20261101c"></script>
-  <script src="../js/main.js?v=20261101c"></script>
+  <script src="../js/booking-data.js?v=20261102a"></script>
+  <script src="../js/main.js?v=20261102a"></script>
   <script src="../js/legal-doc.js?v=20260830i"></script>
   <script>renderNavbar("booking"); renderFooter();</script>
 </body>

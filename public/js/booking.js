@@ -544,12 +544,12 @@ function initBookingPage() {
         ? window.CVRDuration.eventRate(pkg.price, durationKey, eventNights)
         : pkg.price;
       const guestCountVal = Number(document.getElementById("eventGuests")?.value) || 0;
-      const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(guestCountVal, key) : null;
+      const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(guestCountVal, key, eventTypeEl?.value || "") : null;
       const totalWithSurcharge = durationRate + (paxSurcharge?.price || 0);
       const money = cat.formatMoney(totalWithSurcharge, "PHP");
       const paxLabel = isBirthdayKey(key)
         ? `Birthday package · no additional guest surcharge · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`
-        : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1000).toLocaleString()} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band`;
+        : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1500).toLocaleString()} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band`;
       const fixedSchedule = key ? getFixedSchedule(key) : null;
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
@@ -558,7 +558,7 @@ function initBookingPage() {
         : pkg.isCustom
         ? `starting price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`
         : `package price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`;
-      const addOnCount = pkg.addOns?.length || 0;
+      const addOnCount = cat.getPackageAddOns("event", key).length;
       detailsEl.classList.remove("d-none");
       const mediaKind = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.kindOf(pkg.image) : "image";
       const coverUrl = pkg.image ? (window.cvrResolvePackageImage ? cvrResolvePackageImage(pkg.image) : pkg.image) : "";
@@ -620,24 +620,47 @@ function initBookingPage() {
       q("#eventDetailsSurcharge").textContent = v.paxSurcharge
         ? `+ ${cat.formatMoney(v.paxSurcharge.price, "PHP")} for ${v.guestCountVal} guests`
         : "";
-      // Photo: click it to open the full-size viewer (works for any file type).
-      q("#eventDetailsPhoto").innerHTML = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark }) : "";
+      const eventGalleryEl = q("#eventDetailsPhoto");
+      if (pkg.image && window.CVRPackageMedia?.kindOf(pkg.image) === "image") {
+        const images = [pkg.image, "../images/booking-photo-1.png", "../images/booking-photo-2.png", "../images/booking-photo-3.png"]
+          .filter((image, index, list) => image && list.indexOf(image) === index);
+        const galleryId = "eventDetailsGallery";
+        eventGalleryEl.innerHTML = `
+          <div id="${galleryId}" class="carousel slide cvr-booking-gallery" data-bs-ride="false" aria-label="${escapeHtml(key)} photo gallery">
+            <div class="carousel-inner">
+              ${images.map((image, index) => {
+                const src = window.cvrResolvePackageImage ? cvrResolvePackageImage(image) : image;
+                const caption = index === 0 ? `${key} package` : `Casa Vergara venue view ${index}`;
+                return `<div class="carousel-item${index === 0 ? " active" : ""}">
+                  <img src="${escapeHtml(src)}" class="d-block w-100" alt="${escapeHtml(caption)}">
+                  <div class="carousel-caption"><span>${escapeHtml(caption)}</span></div>
+                </div>`;
+              }).join("")}
+            </div>
+            ${images.length > 1 ? `<button class="carousel-control-prev" type="button" data-bs-target="#${galleryId}" data-bs-slide="prev" aria-label="Previous photo"><span class="carousel-control-prev-icon" aria-hidden="true"></span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#${galleryId}" data-bs-slide="next" aria-label="Next photo"><span class="carousel-control-next-icon" aria-hidden="true"></span></button>` : ""}
+          </div>`;
+      } else {
+        eventGalleryEl.innerHTML = pkg.image && window.CVRPackageMedia
+          ? window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark })
+          : "";
+      }
 
       const schedule = getFixedSchedule(key);
       const facts = [
         isBirthdayKey(key)
           ? `Birthday package: no additional guest surcharge · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`
-          : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1000, "PHP")} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band · maximum ${cat.EVENT_MAX_GUESTS || 200}`,
-        schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Check-in is flexible; check-out follows your chosen duration",
+          : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1500, "PHP")} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band · maximum ${cat.EVENT_MAX_GUESTS || 200}`,
+        schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Events follow a fixed session schedule",
         pkg.flatRate ? "Flat package price, same regardless of duration" : "",
       ].filter(Boolean);
       q("#eventDetailsFacts").innerHTML = facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
       q("#eventDetailsInclusions").innerHTML = (pkg.inclusions || []).map((i) => `<li>${escapeHtml(i)}</li>`).join("");
 
-      const addOns = pkg.addOns || [];
+      const addOns = cat.getPackageAddOns("event", key);
       q("#eventDetailsAddonsWrap").classList.toggle("d-none", !addOns.length);
       q("#eventDetailsAddons").innerHTML = addOns
-        .map((a) => `<li>${escapeHtml(a.label)}${Number(a.price) ? ` <span class="text-brand fw-semibold">· ${escapeHtml(cat.formatMoney(Number(a.price), "PHP"))}</span>` : ""}</li>`)
+        .map((a) => `<li>${escapeHtml(a.label)}${Number(a.price) ? ` <span class="text-brand fw-semibold">· ${escapeHtml(cat.formatMoney(Number(a.price), "PHP"))}${a.perPax ? " per guest" : ""}</span>` : ""}</li>`)
         .join("");
 
       const motifs = (cat.getEventMotifs ? cat.getEventMotifs(key) : pkg.motifs) || [];
@@ -861,7 +884,7 @@ function initBookingPage() {
         showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or session.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), fixedSchedule?.key || null) || cat.calculateEventTotal(packageOption, [], Number(eventGuests));
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), fixedSchedule?.key || null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];

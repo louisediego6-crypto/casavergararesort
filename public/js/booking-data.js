@@ -3,7 +3,7 @@
 const CV_BOOKING_STORAGE_KEY = "cv_bookings_v1";
 const CVR_PENDING_RESERVATION_KEY = "cvr_pending_reservation";
 const CVR_EVENT_INCLUDED_GUESTS = 50;
-const CVR_EVENT_EXTRA_GUEST_RATE = 1000;
+const CVR_EVENT_EXTRA_GUEST_RATE = 1500;
 const CVR_EVENT_MAX_GUESTS = 200;
 
 let CVR_SERVER_CATALOG = null;
@@ -39,8 +39,10 @@ function cvrNormalizeServerRoom(row) {
 function cvrNormalizeServerEvent(row) {
   const inclusions = Array.isArray(row.inclusions) ? row.inclusions.map((item) =>
     String(item)
-      .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)")
-      .replace(/Good for 100 pax\s*·\s*/g, "Includes 50 guests · +₱1,000 per additional 50 guests · maximum 200 guests · ")
+      .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)")
+      .replace(/Add ₱1,000 per additional 50-guest band above 50/g, "Add ₱1,500 per additional 50-guest band above 50")
+      .replace(/Good for 100 pax\s*·\s*/g, "Includes 50 guests · +₱1,500 per additional 50 guests · maximum 200 guests · ")
+      .replace(/\+₱1,000\/person above 50/g, "+₱1,500 per additional 50-guest band above 50")
   ) : [];
   return {
     price: Number(row.price) || 0,
@@ -55,7 +57,9 @@ function cvrNormalizeServerEvent(row) {
     imageDark: row.imageDark || "",
     inclusions,
     motifs: Array.isArray(row.motifs) ? row.motifs : [],
-    addOns: Array.isArray(row.addOns) ? row.addOns : [],
+    addOns: Array.isArray(row.addOns) ? row.addOns.map((item) =>
+      item?.id === "cx-catering-buffet" || item?.perPax ? { ...item, perPax: true } : item
+    ) : [],
   };
 }
 
@@ -311,7 +315,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 10000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
     inclusions: [
@@ -319,7 +323,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -341,7 +345,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 12000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
     inclusions: [
@@ -349,7 +353,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -371,7 +375,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 17000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
     inclusions: [
@@ -379,7 +383,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -403,7 +407,7 @@ const EVENT_PACKAGE_CATALOG = {
     flatRate: true,
     isActive: true,
     inclusions: [
-      "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
+      "Includes 50 guests · +₱1,500 per additional 50-guest band above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
       "Exclusive private use of the resort — pools, function hall, tables & chairs",
       "Extended stay: ₱1,500 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
@@ -429,7 +433,7 @@ const EVENT_PACKAGE_CATALOG = {
     flatRate: true,
     isActive: true,
     inclusions: [
-      "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
+      "Includes 50 guests · +₱1,500 per additional 50-guest band above 50 · maximum 200 guests · 10 hours + 3 hours preparation time",
       "Exclusive private use of the resort — pools, function hall, tables & chairs",
       "Extended stay: ₱1,500 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
@@ -454,7 +458,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 10000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     doubleRateOn24hr: true,
     isActive: true,
     inclusions: [
@@ -462,7 +466,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -484,7 +488,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 10000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     doubleRateOn24hr: true,
     isActive: true,
     inclusions: [
@@ -492,7 +496,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -514,7 +518,7 @@ const EVENT_PACKAGE_CATALOG = {
     price: 10000,
     pax: 50,
     maxPax: 200,
-    extraPaxRate: 1000,
+    extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     doubleRateOn24hr: true,
     isActive: true,
     inclusions: [
@@ -522,7 +526,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
+      "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -729,30 +733,54 @@ function getEventMotifs(packageOption) {
 
 function getPackageAddOns(bookingType, packageKey) {
   if (bookingType === "event") {
-    return getEventPackageCatalog(packageKey)?.addOns || [];
+    const addOns = getEventPackageCatalog(packageKey)?.addOns || [];
+    const normalized = addOns.map((item) =>
+      item.id === "cx-catering-buffet" || item.perPax ? { ...item, perPax: true } : item
+    );
+    if (!normalized.some((item) => item.perPax && item.category === "catering")) {
+      normalized.push({
+        id: "cvr-event-buffet-catering",
+        label: "Buffet-style catering (per pax)",
+        price: 250,
+        category: "catering",
+        perPax: true,
+      });
+    }
+    return normalized;
   }
   const pkg = getRoomPackageById(packageKey);
   if (pkg && Array.isArray(pkg.addOns)) return pkg.addOns;
   return ROOM_PACKAGE_ADDONS[packageKey] || [];
 }
 
-function sumSelectedAddOns(addOnCatalog, selectedIds) {
+function sumSelectedAddOns(addOnCatalog, selectedIds, guestCount = 1) {
   const ids = Array.isArray(selectedIds) ? selectedIds : [];
+  const guests = Math.max(0, Number(guestCount) || 0);
   let total = 0;
   const lines = [];
   ids.forEach((id) => {
     const item = addOnCatalog.find((a) => a.id === id);
     if (item) {
-      total += Number(item.price) || 0;
-      lines.push({ ...item, category: item.category || "other" });
+      const quantity = item.perPax ? guests : 1;
+      const unitPrice = Number(item.price) || 0;
+      const price = Math.round(unitPrice * quantity * 100) / 100;
+      total += price;
+      lines.push({
+        ...item,
+        category: item.category || "other",
+        label: item.perPax ? `${item.label} (${quantity} guests)` : item.label,
+        quantity,
+        unitPrice,
+        price,
+      });
     }
   });
   return { total: Math.round(total * 100) / 100, lines };
 }
 
-function calculatePaxSurcharge(guestCount, packageOption = "") {
+function calculatePaxSurcharge(guestCount, packageOption = "", eventType = "") {
   const guests = Math.max(0, Number(guestCount) || 0);
-  if (isBirthdayPackage(packageOption) || guests <= CVR_EVENT_INCLUDED_GUESTS) return null;
+  if (isBirthdayPackage(packageOption) || eventType === "Birthday" || guests <= CVR_EVENT_INCLUDED_GUESTS) return null;
   const extraGuests = Math.min(guests, CVR_EVENT_MAX_GUESTS) - CVR_EVENT_INCLUDED_GUESTS;
   if (extraGuests <= 0) return null;
   const surchargeBands = Math.ceil(extraGuests / CVR_EVENT_INCLUDED_GUESTS);
@@ -767,11 +795,11 @@ function calculatePaxSurcharge(guestCount, packageOption = "") {
   };
 }
 
-function calculateEventTotal(packageOption, selectedAddOnIds = [], guestCount = null) {
+function calculateEventTotal(packageOption, selectedAddOnIds = [], guestCount = null, eventType = "") {
   const pkg = getEventPackageCatalog(packageOption) || {};
   const base = pkg.price ?? 0;
-  const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds);
-  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption);
+  const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds, guestCount);
+  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption, eventType);
   if (paxSurcharge) {
     addOns.lines = [...addOns.lines, paxSurcharge];
     addOns.total = Math.round((addOns.total + paxSurcharge.price) * 100) / 100;
@@ -843,7 +871,7 @@ function cvrWholeDayRate(pkg) {
   return whole > 0 ? whole : Math.max(0, Number(pkg?.price) || 0) * 2;
 }
 
-function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null) {
+function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null, eventType = "") {
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
@@ -860,8 +888,8 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
     : pkg?.doubleRateOn24hr && durationKey === "24hr"
     ? cvrWholeDayRate(pkg)
     : dur.eventRate(basePrice, durationKey, nights);
-  const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds);
-  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption);
+  const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds, guestCount);
+  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption, eventType);
   if (paxSurcharge) {
     addOns.lines = [...addOns.lines, paxSurcharge];
     addOns.total = Math.round((addOns.total + paxSurcharge.price) * 100) / 100;

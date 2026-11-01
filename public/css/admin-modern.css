@@ -182,7 +182,9 @@
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  min-height: 72px;
+  min-height: 58px;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
 }
 .admin-topbar-brand {
   display: flex;
@@ -356,10 +358,10 @@
   position: sticky;
   top: 0;
   z-index: 1030;
-  margin: 0 calc(-1 * clamp(0.9rem, 2.5vw, 2rem)) 1.5rem;
+  margin: calc(0px - clamp(0.9rem, 2.6vw, 2rem)) calc(0px - clamp(0.9rem, 2.5vw, 2rem)) 1.25rem;
 }
 .admin-topbar-inner {
-  min-height: 72px;
+  min-height: 58px;
   padding: 0 clamp(0.9rem, 2.5vw, 2rem);
 }
 html body .admin-topbar-inner .admin-topbar-actions {

@@ -10,6 +10,36 @@
   --bk-muted: #62788a;
   --bk-shadow: 0 6px 24px rgba(11, 60, 90, .08);
 }
+
+.cvr-booking-gallery {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #eaf1f5;
+}
+.cvr-booking-gallery .carousel-item img {
+  width: 100%;
+  height: clamp(220px, 42vw, 360px);
+  object-fit: cover;
+}
+.cvr-booking-gallery .carousel-caption {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2rem 1rem .85rem;
+  background: linear-gradient(transparent, rgba(7, 25, 39, .72));
+}
+.cvr-booking-gallery .carousel-caption span {
+  display: inline-block;
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .45);
+}
+.cvr-booking-gallery .carousel-control-prev,
+.cvr-booking-gallery .carousel-control-next {
+  width: 12%;
+  opacity: .9;
+}
 html[data-theme="dark"] .booking-page,
 html[data-theme="dark"] #roomDetailsModal {
   --bk-brand: #a5d0f0;
