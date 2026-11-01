@@ -19,19 +19,19 @@ function cv_event_packages(): array
     return [
         [
             'name' => 'Private Venue – Morning (8:00 AM–5:00 PM)', 'price' => 10000, 'pax' => 50,
-            'inclusions' => ['Exclusive private use of the resort', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per guest above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
+            'inclusions' => ['Exclusive private use of the resort', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per additional 50-guest band above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
             'motifs' => ['Tropical Fiesta', 'Simple & Elegant White', 'Rustic Nature', 'Custom motif'],
             'addOnsNote' => 'Flat rate (not scaled by duration selected). Optional: sounds & lights system (PHP 7,500), gas stove use per 6 hrs (PHP 400).',
         ],
         [
             'name' => 'Private Venue – Night (7:00 PM–5:00 AM)', 'price' => 12000, 'pax' => 50,
-            'inclusions' => ['Exclusive private use of the resort', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per guest above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
+            'inclusions' => ['Exclusive private use of the resort', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per additional 50-guest band above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
             'motifs' => ['Tropical Fiesta', 'Simple & Elegant White', 'Rustic Nature', 'Custom motif'],
             'addOnsNote' => 'Flat rate (not scaled by duration selected). Optional: sounds & lights system (PHP 7,500), gas stove use per 6 hrs (PHP 400).',
         ],
         [
             'name' => 'Private Venue – Whole Day (2 Sessions)', 'price' => 17000, 'pax' => 50,
-            'inclusions' => ['Both morning and night sessions', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per guest above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
+            'inclusions' => ['Both morning and night sessions', '1 adult pool & 1 kiddie pool', 'Function hall, tables & chairs, videoke', '2 family rooms, kitchen space, parking space', 'Add PHP 1,000 per additional 50-guest band above 50 (maximum 200 guests)', 'Extended stay: PHP 1,000/hr'],
             'motifs' => ['Tropical Fiesta', 'Simple & Elegant White', 'Rustic Nature', 'Custom motif'],
             'addOnsNote' => 'Flat rate (not scaled by duration selected). Optional: sounds & lights system (PHP 7,500), gas stove use per 6 hrs (PHP 400).',
         ],
@@ -85,7 +85,7 @@ function cv_venue_rates(): array
                 '2 Sessions (morning + night)' => 17000,
             ],
             'notes' => [
-                'For all event types, add PHP 1,000 per guest above 50 (maximum occupancy: 200 guests)',
+                'For non-birthday events, add PHP 1,000 per additional 50-guest band above 50 (maximum occupancy: 200 guests)',
                 'Extended per hour: PHP 1,000',
             ],
         ],
@@ -187,7 +187,7 @@ function cv_render_event_packages_block(): string
 {
     $out = '';
     foreach (cv_event_packages() as $e) {
-        $out .= '- ' . $e['name'] . ': PHP ' . number_format($e['price'], 2) . ' base, includes up to 50 guests; add PHP 1,000 per guest above 50, maximum 200 guests. Inclusions: '
+        $out .= '- ' . $e['name'] . ': PHP ' . number_format($e['price'], 2) . ' base, includes 50 guests; non-birthday events add PHP 1,000 per additional 50-guest band, maximum 200 guests. Inclusions: '
             . implode(', ', $e['inclusions']) . '. Motif choices: ' . implode(', ', $e['motifs']) . '. '
             . $e['addOnsNote'] . "\n";
     }

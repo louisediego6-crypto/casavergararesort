@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="refresh" content="0; url=site-content.html?tab=reviews" />
   <title>Reviews - Casa Vergara Admin</title>
-  <link href="../../css/mobile-polish.css?v=20261026a" rel="stylesheet">
+  <link href="../../css/mobile-polish.css?v=20261026b" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
   <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>

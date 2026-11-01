@@ -1,6 +1,6 @@
 /* Casa Vergara Resort - light / dark mode.
    Loaded in <head> on every page so the saved theme is applied before first paint (no flash).
-   The toggle buttons are rendered by js/main.js (navbar + admin top bar) and carry [data-cvr-theme-toggle]. */
+   Account menu theme options are rendered by js/main.js and carry [data-cvr-menu-theme]. */
 (function () {
   var PREFIX = "cvrTheme:";
   var root = document.documentElement;

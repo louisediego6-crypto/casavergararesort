@@ -544,10 +544,12 @@ function initBookingPage() {
         ? window.CVRDuration.eventRate(pkg.price, durationKey, eventNights)
         : pkg.price;
       const guestCountVal = Number(document.getElementById("eventGuests")?.value) || 0;
-      const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(pkg, guestCountVal) : null;
+      const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(guestCountVal, key) : null;
       const totalWithSurcharge = durationRate + (paxSurcharge?.price || 0);
       const money = cat.formatMoney(totalWithSurcharge, "PHP");
-      const paxLabel = `Includes up to ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1000).toLocaleString()}/person above ${cat.EVENT_INCLUDED_GUESTS || 50}`;
+      const paxLabel = isBirthdayKey(key)
+        ? `Birthday package · no additional guest surcharge · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`
+        : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1000).toLocaleString()} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band`;
       const fixedSchedule = key ? getFixedSchedule(key) : null;
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
@@ -623,8 +625,9 @@ function initBookingPage() {
 
       const schedule = getFixedSchedule(key);
       const facts = [
-        `Includes up to ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`,
-        `Extra guests: +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1000, "PHP")} per person above ${cat.EVENT_INCLUDED_GUESTS || 50}`,
+        isBirthdayKey(key)
+          ? `Birthday package: no additional guest surcharge · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`
+          : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1000, "PHP")} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band · maximum ${cat.EVENT_MAX_GUESTS || 200}`,
         schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Check-in is flexible; check-out follows your chosen duration",
         pkg.flatRate ? "Flat package price, same regardless of duration" : "",
       ].filter(Boolean);

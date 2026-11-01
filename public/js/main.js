@@ -1751,13 +1751,6 @@ function applyCustomerAvatarElements(session) {
   if (rm) rm.classList.toggle("d-none", !photo);
 }
 
-/** Light / dark mode switch. Behaviour lives in js/theme.js (click handler is delegated on [data-cvr-theme-toggle]). */
-function cvrThemeToggleMarkup(extraClass = "") {
-  const dark = (document.documentElement.getAttribute("data-theme") || "light") === "dark";
-  const label = dark ? "Switch to light mode" : "Switch to dark mode";
-  return `<button type="button" class="cvr-theme-toggle ${extraClass}" data-cvr-theme-toggle aria-pressed="${dark ? "true" : "false"}" aria-label="${label}" title="${label}"><i class="bi bi-moon-stars-fill cvr-theme-icon-moon" aria-hidden="true"></i><i class="bi bi-sun-fill cvr-theme-icon-sun" aria-hidden="true"></i></button>`;
-}
-
 function cvrEnsureAccountUiCss() {
   try {
     if (document.querySelector('link[href*="account-ui.css"]')) return;
@@ -1856,7 +1849,6 @@ function renderNavbar(active = "") {
             </ul>
           </div>
           <span class="badge ${staffBadgeClass} px-3 py-2 d-none d-lg-inline-flex" title="Staff accounts oversee the site and can't create bookings"><i class="bi ${staffBadgeIcon} me-1"></i>${staffBadgeLabel}</span>
-          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
 
@@ -1892,11 +1884,9 @@ function renderNavbar(active = "") {
             </ul>
           </div>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
-          ${cvrThemeToggleMarkup()}
           ${notifBellMarkup}
         `
     : `
-          ${cvrThemeToggleMarkup()}
           <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex" data-site-text-key="nav_login">Log in</a>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
@@ -2547,18 +2537,51 @@ function renderAdminSidebar(active = "") {
             <span class="admin-topbar-section-title">${escapeHtml(sectionTitle || "Menu")}</span>
           </span>
           <div class="admin-topbar-actions">
+            <a class="admin-icon-btn" href="${pageUrl("landing.html")}" title="View website" aria-label="View website">
+              <i class="bi bi-house"></i>
+            </a>
+            <button type="button" class="admin-icon-btn admin-sidebar-toggle" id="adminSidebarToggle" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation menu" title="Open navigation menu">
+              <i class="bi bi-list"></i>
+            </button>
             <a class="admin-icon-btn admin-notification-btn" href="notifications.html" id="adminNotifBellBtn" title="Notifications" aria-label="Notifications">
               <i class="bi bi-bell"></i>
               <span id="adminNotifCountBadge" class="badge rounded-pill text-bg-danger nav-bell-count d-none" aria-live="polite" aria-atomic="true">0</span>
             </a>
-            <a class="admin-icon-btn" href="${pageUrl("landing.html")}" title="View website" aria-label="View website">
-              <i class="bi bi-house"></i>
-            </a>
-            ${cvrThemeToggleMarkup()}
           </div>
         </div>
       </header>
+      <button type="button" class="admin-sidebar-backdrop" id="adminSidebarBackdrop" aria-label="Close navigation menu" tabindex="-1"></button>
     `);
+  }
+
+  const sidebarToggle = document.getElementById("adminSidebarToggle");
+  const setSidebarOpen = (open) => {
+    document.body.classList.toggle("cvr-admin-sidebar-open", open);
+    if (window.matchMedia("(min-width: 992px)").matches) holder.inert = false;
+    else holder.inert = !open;
+    sidebarToggle?.setAttribute("aria-expanded", String(open));
+    sidebarToggle?.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+    sidebarToggle?.setAttribute("title", open ? "Close navigation menu" : "Open navigation menu");
+    const icon = sidebarToggle?.querySelector("i");
+    icon?.classList.toggle("bi-list", !open);
+    icon?.classList.toggle("bi-x-lg", open);
+  };
+  setSidebarOpen(false);
+  sidebarToggle?.addEventListener("click", () => {
+    setSidebarOpen(!document.body.classList.contains("cvr-admin-sidebar-open"));
+  });
+  document.getElementById("adminSidebarBackdrop")?.addEventListener("click", () => setSidebarOpen(false));
+  holder.querySelectorAll(".admin-drawer-nav a").forEach((link) => {
+    link.addEventListener("click", () => setSidebarOpen(false));
+  });
+  if (!window.__cvrAdminSidebarEventsBound) {
+    window.__cvrAdminSidebarEventsBound = true;
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+    });
+    window.addEventListener("resize", () => {
+      if (window.matchMedia("(min-width: 992px)").matches) setSidebarOpen(false);
+    });
   }
 
   holder.querySelector("#adminLogoutBtn")?.addEventListener("click", () => {

@@ -39,8 +39,8 @@ function cvrNormalizeServerRoom(row) {
 function cvrNormalizeServerEvent(row) {
   const inclusions = Array.isArray(row.inclusions) ? row.inclusions.map((item) =>
     String(item)
-      .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,000 per guest above 50 (maximum 200 guests)")
-      .replace(/Good for 100 pax\s*·\s*/g, "Includes 50 guests · +₱1,000/person above 50 · maximum 200 guests · ")
+      .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)")
+      .replace(/Good for 100 pax\s*·\s*/g, "Includes 50 guests · +₱1,000 per additional 50 guests · maximum 200 guests · ")
   ) : [];
   return {
     price: Number(row.price) || 0,
@@ -319,7 +319,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -349,7 +349,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -379,7 +379,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -462,7 +462,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -492,7 +492,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -522,7 +522,7 @@ const EVENT_PACKAGE_CATALOG = {
       "1 adult pool & 1 kiddie pool",
       "Function hall, tables & chairs, videoke",
       "2 family rooms, kitchen space, parking space",
-      "Add ₱1,000 per guest above 50 (maximum 200 guests)",
+      "Add ₱1,000 per additional 50-guest band above 50 (maximum 200 guests)",
       "Extended stay: ₱1,000 per additional hour",
       "First come, first served — no down payment, no reservation without payment",
       "Non-refundable once paid",
@@ -750,15 +750,18 @@ function sumSelectedAddOns(addOnCatalog, selectedIds) {
   return { total: Math.round(total * 100) / 100, lines };
 }
 
-function calculatePaxSurcharge(pkg, guestCount) {
+function calculatePaxSurcharge(guestCount, packageOption = "") {
   const guests = Math.max(0, Number(guestCount) || 0);
-  if (guests <= CVR_EVENT_INCLUDED_GUESTS) return null;
-  const extraPax = Math.min(guests, CVR_EVENT_MAX_GUESTS) - CVR_EVENT_INCLUDED_GUESTS;
-  if (extraPax <= 0) return null;
-  const price = Math.round(extraPax * CVR_EVENT_EXTRA_GUEST_RATE * 100) / 100;
+  if (isBirthdayPackage(packageOption) || guests <= CVR_EVENT_INCLUDED_GUESTS) return null;
+  const extraGuests = Math.min(guests, CVR_EVENT_MAX_GUESTS) - CVR_EVENT_INCLUDED_GUESTS;
+  if (extraGuests <= 0) return null;
+  const surchargeBands = Math.ceil(extraGuests / CVR_EVENT_INCLUDED_GUESTS);
+  const firstGuestInBand = CVR_EVENT_INCLUDED_GUESTS + (surchargeBands - 1) * CVR_EVENT_INCLUDED_GUESTS + 1;
+  const lastGuestInBand = Math.min(CVR_EVENT_MAX_GUESTS, surchargeBands * CVR_EVENT_INCLUDED_GUESTS + CVR_EVENT_INCLUDED_GUESTS);
+  const price = Math.round(surchargeBands * CVR_EVENT_EXTRA_GUEST_RATE * 100) / 100;
   return {
     id: "extra-pax-surcharge",
-    label: `Additional guests (${extraPax} × ₱${CVR_EVENT_EXTRA_GUEST_RATE.toLocaleString()}/pax, guests ${CVR_EVENT_INCLUDED_GUESTS + 1}–${CVR_EVENT_MAX_GUESTS})`,
+    label: `Additional guest band (${surchargeBands} × ₱${CVR_EVENT_EXTRA_GUEST_RATE.toLocaleString()}, guests ${firstGuestInBand}–${lastGuestInBand})`,
     price,
     category: "extra",
   };
@@ -768,7 +771,7 @@ function calculateEventTotal(packageOption, selectedAddOnIds = [], guestCount = 
   const pkg = getEventPackageCatalog(packageOption) || {};
   const base = pkg.price ?? 0;
   const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds);
-  const paxSurcharge = calculatePaxSurcharge(pkg, guestCount);
+  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption);
   if (paxSurcharge) {
     addOns.lines = [...addOns.lines, paxSurcharge];
     addOns.total = Math.round((addOns.total + paxSurcharge.price) * 100) / 100;
@@ -858,7 +861,7 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
     ? cvrWholeDayRate(pkg)
     : dur.eventRate(basePrice, durationKey, nights);
   const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds);
-  const paxSurcharge = calculatePaxSurcharge(pkg, guestCount);
+  const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption);
   if (paxSurcharge) {
     addOns.lines = [...addOns.lines, paxSurcharge];
     addOns.total = Math.round((addOns.total + paxSurcharge.price) * 100) / 100;

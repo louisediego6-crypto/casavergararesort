@@ -4,7 +4,7 @@
    (see js/theme.js). Delete this file + its <link>/<script> lines to remove it.
    ========================================================================== */
 
-/* ---------- Toggle button (navbar + admin top bar) ------------------------ */
+/* ---------- Optional standalone toggle button ----------------------------- */
 .cvr-theme-toggle {
   position: relative;
   display: inline-flex;
