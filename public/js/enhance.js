@@ -60,6 +60,11 @@
     if (!/\.html(\?|#|$)/i.test(href) && href !== "/" ) return;
 
     e.preventDefault();
+    if (window.top !== window.self) {
+      window.location.href = href;
+      return;
+    }
+
     startProgress();
     document.body.classList.add("cv-leaving");
     window.setTimeout(() => {

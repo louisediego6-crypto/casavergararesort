@@ -90,6 +90,7 @@ class PaymentController extends Controller
         }
 
         $relativePath = 'uploads/payments/' . $fileName;
+        $fileUrl = config('cvr.site_url') . '/uploads/payments/' . rawurlencode($fileName);
 
         $proofId = null;
         $pdo = null;
@@ -217,7 +218,7 @@ class PaymentController extends Controller
 
         json_response(true, 'Proof of payment submitted. Our staff will verify it shortly.', [
             'id' => $proofId,
-            'fileUrl' => $publicUrl,
+            'fileUrl' => $fileUrl,
             'filePath' => $relativePath,
             'fileName' => $fileName,
             'emailedAdmin' => $sentToAdmin,
