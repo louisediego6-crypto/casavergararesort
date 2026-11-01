@@ -36,7 +36,7 @@ function cvrNormalizeServerRoom(row) {
   };
 }
 
-function cvrNormalizeServerEvent(row) {
+function cvrNormalizeServerEvent(row, fallback = {}) {
   const inclusions = Array.isArray(row.inclusions) ? row.inclusions.map((item) =>
     String(item)
       .replace(/Add ₱1,000 per person for 51–100 pax/g, "Add ₱1,500 per additional 50-guest band above 50 (maximum 200 guests)")
@@ -53,8 +53,8 @@ function cvrNormalizeServerEvent(row) {
     isCustom: Boolean(row.isCustom),
     flatRate: Boolean(row.isFlatRate),
     doubleRateOn24hr: Boolean(row.doubleRateOn24hr),
-    image: row.image || "",
-    imageDark: row.imageDark || "",
+    image: row.image || fallback.image || "",
+    imageDark: row.imageDark || fallback.imageDark || "",
     inclusions,
     motifs: Array.isArray(row.motifs) ? row.motifs : [],
     addOns: Array.isArray(row.addOns) ? row.addOns.map((item) =>
@@ -81,7 +81,7 @@ async function cvrSyncCatalogFromServer() {
 
     const eventsByName = {};
     events.forEach((e) => {
-      if (e?.name) eventsByName[e.name] = cvrNormalizeServerEvent(e);
+      if (e?.name) eventsByName[e.name] = cvrNormalizeServerEvent(e, EVENT_PACKAGE_CATALOG[e.name]);
     });
 
     CVR_SERVER_CATALOG = {
@@ -168,6 +168,8 @@ const EVENT_PACKAGE_CATALOG = {
     price: 7500,
     pax: 50,
     isActive: true,
+    image: "../images/package-art/ayesha-light.svg",
+    imageDark: "../images/package-art/ayesha-dark.svg",
     inclusions: [
       "2 panels theme backdrop with lights",
       "Celebrant chair",
@@ -202,6 +204,8 @@ const EVENT_PACKAGE_CATALOG = {
     price: 10000,
     pax: 50,
     isActive: true,
+    image: "../images/package-art/anica-light.svg",
+    imageDark: "../images/package-art/anica-dark.svg",
     inclusions: [
       "3 panels theme backdrop with lights",
       "Upgraded decorations",
@@ -237,6 +241,8 @@ const EVENT_PACKAGE_CATALOG = {
     price: 5000,
     pax: 30,
     isActive: true,
+    image: "../images/package-art/amarah-light.svg",
+    imageDark: "../images/package-art/amarah-dark.svg",
     inclusions: [
       "1 panel basic theme backdrop",
       "Celebrant chair",
@@ -267,6 +273,8 @@ const EVENT_PACKAGE_CATALOG = {
     pax: 100,
     isCustom: true,
     isActive: true,
+    image: "../images/package-art/custom-light.svg",
+    imageDark: "../images/package-art/custom-dark.svg",
     inclusions: [
       "Venue setup crew & basic tables/chairs",
       "On-site event coordinator",
@@ -318,6 +326,8 @@ const EVENT_PACKAGE_CATALOG = {
     extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
+    image: "../images/package-art/private-morning-light.svg",
+    imageDark: "../images/package-art/private-morning-dark.svg",
     inclusions: [
       "Exclusive private use of the resort, good for 50 pax",
       "1 adult pool & 1 kiddie pool",
@@ -348,6 +358,8 @@ const EVENT_PACKAGE_CATALOG = {
     extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
+    image: "../images/package-art/private-night-light.svg",
+    imageDark: "../images/package-art/private-night-dark.svg",
     inclusions: [
       "Exclusive private use of the resort, good for 50 pax",
       "1 adult pool & 1 kiddie pool",
@@ -378,6 +390,8 @@ const EVENT_PACKAGE_CATALOG = {
     extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     flatRate: true,
     isActive: true,
+    image: "../images/package-art/private-whole-day-light.svg",
+    imageDark: "../images/package-art/private-whole-day-dark.svg",
     inclusions: [
       "Both morning and night sessions — exclusive private use, good for 50 pax",
       "1 adult pool & 1 kiddie pool",
@@ -521,6 +535,8 @@ const EVENT_PACKAGE_CATALOG = {
     extraPaxRate: CVR_EVENT_EXTRA_GUEST_RATE,
     doubleRateOn24hr: true,
     isActive: true,
+    image: "../images/package-art/others-light.svg",
+    imageDark: "../images/package-art/others-dark.svg",
     inclusions: [
       "Exclusive private use of the resort, good for 50 pax",
       "1 adult pool & 1 kiddie pool",

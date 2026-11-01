@@ -13,7 +13,7 @@
  *         CVRPackageMedia.open(url, label)     -> opens the viewer
  */
 (function () {
-  const IMAGE = new Set(["jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "apng", "webp", "gif", "bmp", "avif", "ico", "tif", "tiff", "heic", "heif", "jxl"]);
+  const IMAGE = new Set(["jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "apng", "webp", "gif", "bmp", "avif", "ico", "tif", "tiff", "heic", "heif", "jxl", "svg"]);
   const VIDEO = new Set(["mp4", "webm", "ogv", "mov", "m4v", "3gp"]);
   const AUDIO = new Set(["mp3", "wav", "ogg", "oga", "m4a", "aac", "flac"]);
   const PDF = new Set(["pdf"]);

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
+  <title id="t">Amarah birthday package</title><desc id="d">Cheerful aqua and coral birthday stage with balloons and cake.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172b31"/><stop offset="1" stop-color="#38252d"/></linearGradient><linearGradient id="stage" x2="1" y2="1"><stop stop-color="#287d79"/><stop offset="1" stop-color="#a95f5e"/></linearGradient></defs>
+  <rect width="720" height="420" rx="30" fill="url(#bg)"/><circle cx="91" cy="82" r="48" fill="#244c4b"/><circle cx="630" cy="95" r="61" fill="#593735"/>
+  <path d="M91 174V128m0 46-16 20m16-20 16 20M630 180V142m0 38-16 19m16-19 16 19" fill="none" stroke="#7ed2c7" stroke-width="3"/><g fill="#df897c"><ellipse cx="91" cy="104" rx="28" ry="37"/><ellipse cx="630" cy="113" rx="32" ry="42"/></g>
+  <rect x="136" y="115" width="448" height="215" rx="28" fill="url(#stage)"/><path d="M158 302h404" stroke="#fff" stroke-opacity=".45" stroke-width="5"/><path d="M208 125v180m304-180v180" stroke="#fff" stroke-opacity=".3" stroke-width="10"/>
+  <rect x="286" y="266" width="148" height="35" rx="7" fill="#e9d2a7"/><rect x="304" y="238" width="112" height="32" rx="8" fill="#fff0d8"/><path d="M360 238v-22m-8 9 8-9 8 9" fill="none" stroke="#ffd274" stroke-width="5" stroke-linecap="round"/><circle cx="334" cy="253" r="4" fill="#6ecfc0"/><circle cx="386" cy="253" r="4" fill="#df897c"/>
+  <text x="360" y="190" text-anchor="middle" fill="#f2fffc" font-family="Georgia,serif" font-size="39" font-weight="bold">Amarah</text><text x="360" y="224" text-anchor="middle" fill="#e1fff7" font-family="Arial,sans-serif" font-size="15" letter-spacing="5">BIRTHDAY PACKAGE</text>
+</svg>

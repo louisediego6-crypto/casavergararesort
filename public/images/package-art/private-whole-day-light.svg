@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
+  <title id="t">Private Venue whole day package</title><desc id="d">Resort pavilion and pool under a warm sky transitioning from day to evening.</desc>
+  <defs><linearGradient id="sky" x2="1"><stop stop-color="#a7def2"/><stop offset=".52" stop-color="#f8e7c4"/><stop offset="1" stop-color="#8c82ac"/></linearGradient><linearGradient id="pool" y2="1"><stop stop-color="#3bb3c5"/><stop offset="1" stop-color="#286b91"/></linearGradient></defs>
+  <rect width="720" height="420" rx="30" fill="url(#sky)"/><circle cx="125" cy="83" r="40" fill="#ffe183"/><circle cx="615" cy="86" r="28" fill="#fff2ce"/><circle cx="625" cy="77" r="24" fill="#9990b4"/>
+  <path d="M0 244q95-27 190 0t190 0 190 0 150 0v176H0z" fill="#bad9b7"/><rect x="120" y="147" width="480" height="132" rx="18" fill="#fff4dc"/><path d="M88 159 360 70l272 89z" fill="#c58c5d"/><path d="M174 176v94m124-94v94m124-94v94m124-94v94" stroke="#ad7950" stroke-width="12"/><rect x="0" y="278" width="720" height="142" fill="url(#pool)"/><path d="M0 314q60-18 120 0t120 0 120 0 120 0 120 0 120 0" fill="none" stroke="#d6f5ed" stroke-opacity=".7" stroke-width="6"/>
+  <text x="360" y="217" text-anchor="middle" fill="#355362" font-family="Georgia,serif" font-size="31" font-weight="bold">Private Venue</text><text x="360" y="252" text-anchor="middle" fill="#496c78" font-family="Arial,sans-serif" font-size="15" letter-spacing="4">WHOLE DAY · TWO SESSIONS</text>
+</svg>
