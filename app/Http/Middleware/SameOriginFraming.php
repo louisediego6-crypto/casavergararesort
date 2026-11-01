@@ -10,6 +10,13 @@ class SameOriginFraming
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->getHost() === 'www.casavergararesort.online') {
+            return redirect()->to(
+                'https://casavergararesort.online' . $request->getRequestUri(),
+                Response::HTTP_MOVED_PERMANENTLY
+            );
+        }
+
         $response = $next($request);
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'");
