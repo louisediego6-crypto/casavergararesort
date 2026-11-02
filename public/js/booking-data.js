@@ -133,6 +133,74 @@ function getFixedEventSchedule(packageOption) {
   return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption] || null;
 }
 
+// Sessions for the other events (Birthday, Wedding, Debut, Reunion, Team Building, Others) —
+// same time windows as the Private Venue sessions.
+const CVR_EVENT_SESSIONS = {
+  morning: {
+    key: "morning",
+    name: "Morning session",
+    checkInTime: "08:00",
+    checkOutTime: "17:00",
+    label: "8:00 AM – 5:00 PM",
+    durationKey: "12hr",
+    privateKey: "Private Venue – Morning (8:00 AM–5:00 PM)",
+  },
+  night: {
+    key: "night",
+    name: "Night session",
+    checkInTime: "19:00",
+    checkOutTime: "05:00",
+    label: "7:00 PM – 5:00 AM (next day)",
+    durationKey: "12hr",
+    privateKey: "Private Venue – Night (7:00 PM–5:00 AM)",
+  },
+  "whole-day": {
+    key: "whole-day",
+    name: "Whole day (2 sessions)",
+    checkInTime: "08:00",
+    checkOutTime: "05:00",
+    label: "8:00 AM – 5:00 AM (next day, 2 sessions)",
+    durationKey: "24hr",
+    privateKey: "Private Venue – Whole Day (2 Sessions)",
+  },
+};
+
+function getEventSession(sessionKey) {
+  return CVR_EVENT_SESSIONS[sessionKey] || null;
+}
+
+/** Sessions a guest can pick for this package (none for the Private Venue packages, which already are sessions). */
+function getEventSessionOptions(packageOption) {
+  if (!packageOption || getFixedEventSchedule(packageOption)) return [];
+  const pkg = getEventPackageCatalog(packageOption);
+  if (!pkg) return [];
+  return ["morning", "night", "whole-day"].map((key) => CVR_EVENT_SESSIONS[key]);
+}
+
+/** Package price for a session. Open-venue events follow the Private Venue session prices; fixed packages keep their price. */
+function getEventSessionRate(packageOption, sessionKey) {
+  const pkg = getEventPackageCatalog(packageOption);
+  const base = Math.max(0, Number(pkg?.price) || 0);
+  if (!pkg || !CVR_EVENT_SESSIONS[sessionKey]) return base;
+  if (!pkg.doubleRateOn24hr) {
+    // Birthday / Wedding / Debut: Morning and Night keep the package price; Whole Day adds the
+    // Private Venue whole-day premium (whole-day price minus a single session).
+    if (sessionKey === "whole-day") {
+      const morning = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS.morning.privateKey)?.price);
+      const whole = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS["whole-day"].privateKey)?.price);
+      if (morning > 0 && whole > 0) return base + Math.max(0, whole - morning);
+    }
+    return base;
+  }
+  if (sessionKey === "whole-day") return cvrWholeDayRate(pkg);
+  if (sessionKey === "night") {
+    const morning = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS.morning.privateKey)?.price);
+    const night = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS.night.privateKey)?.price);
+    if (morning > 0 && night > 0) return base + Math.max(0, night - morning);
+  }
+  return base;
+}
+
 const EVENT_PACKAGE_CATALOG = {
   "Ayesha Package": {
     price: 7500,
@@ -862,7 +930,10 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
   const fixedSchedule = getFixedEventSchedule(packageOption);
-  const effectiveDurationKey = fixedSchedule?.durationKey || "12hr";
+  const session = !fixedSchedule && sessionKey && getEventSessionOptions(packageOption).some((o) => o.key === sessionKey)
+    ? CVR_EVENT_SESSIONS[sessionKey]
+    : null;
+  const effectiveDurationKey = fixedSchedule?.durationKey || session?.durationKey || "12hr";
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
     : dur.buildFixedWindow(dateStr, "00:00", "00:00", "Single-day event");
@@ -870,7 +941,9 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const pkg = getEventPackageCatalog(packageOption);
   const basePrice = pkg?.price ?? 0;
 
-  const rate = pkg?.flatRate
+  const rate = session
+    ? getEventSessionRate(packageOption, session.key)
+    : pkg?.flatRate
     ? Math.max(0, Number(basePrice) || 0)
     : pkg?.doubleRateOn24hr && effectiveDurationKey === "24hr"
     ? cvrWholeDayRate(pkg)
@@ -885,8 +958,9 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
     durationKey: effectiveDurationKey,
-    durationLabel: "Single-day event",
-    eventSession: null,
+    durationLabel: session ? session.name : "Single-day event",
+    eventSession: session ? session.key : null,
+    eventTime: session ? session.label : "",
     ...window_,
     checkInLabel: "",
     checkOutLabel: "",
@@ -1375,6 +1449,9 @@ window.CVRBookingCatalog = {
   getRoomPackageById,
   getEventPackageCatalog,
   getFixedEventSchedule,
+  getEventSession,
+  getEventSessionOptions,
+  getEventSessionRate,
   isBirthdayPackage,
   getEventMotifs,
   getPackageAddOns,
