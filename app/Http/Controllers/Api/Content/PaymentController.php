@@ -122,13 +122,15 @@ class PaymentController extends Controller
                 ) ENGINE=InnoDB'
             );
 
+            cvr_ensure_proof_data_column($pdo);
+
             $userId = (int) (session('user_id') ?? 0);
 
             $stmt = $pdo->prepare(
                 'INSERT INTO payment_proofs
                     (reservation_ref, user_id, customer_name, email, phone, package_name, amount, payment_method,
-                     file_path, file_name, file_type, file_size)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                     file_path, file_name, file_type, file_size, file_data)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 $reservationId,
@@ -143,6 +145,7 @@ class PaymentController extends Controller
                 $file['name'],
                 $mime,
                 (int) $file['size'],
+                file_get_contents($absolutePath),
             ]);
             $proofId = (int) $pdo->lastInsertId();
 
