@@ -4131,7 +4131,7 @@ function reservationToPending(record) {
     checkInLabel: record.checkInLabel || "",
     checkOutLabel: record.checkOutLabel || "",
     packageOption: record.packageOption,
-    eventSession: null,
+    eventSession: record.eventSession || null,
     additionalNotes: record.eventNotes || "",
     motif: record.motif || null,
     selectedAddOns: record.selectedAddOns || [],
@@ -4401,21 +4401,22 @@ function updateEventFormSummary(cat, pending) {
 
   const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
   const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
-  const durationKey = fixedSchedule?.durationKey || "12hr";
+  const eventSessionKey = fixedSchedule ? null : (pending.eventSession || null);
+  const durationKey = fixedSchedule?.durationKey || cat.getEventSession?.(eventSessionKey)?.durationKey || "12hr";
   pending.preferredDate = eventDate;
   pending.durationKey = durationKey;
-  pending.eventSession = null;
-  pending.durationLabel = "Single-day event";
+  pending.eventSession = eventSessionKey;
+  pending.durationLabel = cat.getEventSession?.(eventSessionKey)?.name || "Single-day event";
 
   const selectedAddOns = getSelectedAddOnIds();
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, null, null, null, guests, null, pending.eventType || "")
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, null, null, null, guests, eventSessionKey, pending.eventType || "")
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
 
   if (!totals) {
-    if (durLabelEl) durLabelEl.textContent = "Single-day event";
+    if (durLabelEl) durLabelEl.textContent = pending.durationLabel || "Single-day event";
     if (scheduleEl) scheduleEl.textContent = "Select the date for your single-day event.";
     document.getElementById("summarySidebarDates").textContent = "Select an event date";
     document.getElementById("summaryLineRoom").textContent = "—";
@@ -4426,7 +4427,7 @@ function updateEventFormSummary(cat, pending) {
   }
 
   const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
-  pending.eventTime = "";
+  pending.eventTime = totals.eventTime || "";
   pending.scheduledCheckIn = allDayWindow?.scheduledCheckIn || totals.scheduledCheckIn;
   pending.scheduledCheckOut = allDayWindow?.scheduledCheckOut || totals.scheduledCheckOut;
   pending.checkInLabel = "";
@@ -4452,8 +4453,8 @@ function updateEventFormSummary(cat, pending) {
     `;
   }
 
-  if (durLabelEl) durLabelEl.textContent = "Single-day event";
-  if (scheduleEl) scheduleEl.textContent = `Event date: ${formatDateReserved(eventDate)}`;
+  if (durLabelEl) durLabelEl.textContent = totals.durationLabel || "Single-day event";
+  if (scheduleEl) scheduleEl.textContent = `Event date: ${formatDateReserved(eventDate)}${totals.eventTime ? ` · ${totals.eventTime}` : ""}`;
 
   document.getElementById("summarySidebarTitle").textContent = `Event: ${pending.eventType}`;
   document.getElementById("summarySidebarDates").textContent = `${formatDateReserved(eventDate)} · ${guests} guest${guests !== 1 ? "s" : ""}`;
@@ -4657,7 +4658,8 @@ function buildReservationFromForm(cat, pending, flow) {
   } else {
     const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
     const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
-    const eventDuration = fixedSchedule?.durationKey || "12hr";
+    const eventSessionKey = fixedSchedule ? null : (pending.eventSession || null);
+    const eventDuration = fixedSchedule?.durationKey || cat.getEventSession?.(eventSessionKey)?.durationKey || "12hr";
     if (pending.packageOption && cat.isEventPackageActive && !cat.isEventPackageActive(pending.packageOption)) {
       return { error: "This package is no longer available for booking. Please choose another." };
     }
@@ -4674,13 +4676,13 @@ function buildReservationFromForm(cat, pending, flow) {
       null,
       null,
       guestsNum,
-      null,
+      eventSessionKey,
       pending.eventType || ""
     );
     if (!totals) return { error: "Invalid event duration." };
     const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
     if (!allDayWindow) return { error: "Please choose a valid event date." };
-    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(allDayWindow.scheduledCheckIn, allDayWindow.scheduledCheckOut, excludeId)) {
+    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(allDayWindow.scheduledCheckIn, allDayWindow.scheduledCheckOut, excludeId, window.cvrEventSlotsFor?.(pending.packageOption, eventSessionKey))) {
       return { error: "Sorry, that event date is already booked or unavailable. Please choose another date." };
     }
     const maxGuests = cat.EVENT_MAX_GUESTS || 200;
@@ -4692,9 +4694,9 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.checkOut = eventDate;
     reservation.eventType = pending.eventType;
     reservation.preferredDate = eventDate;
-    reservation.eventTime = "";
+    reservation.eventTime = totals.eventTime || "";
     reservation.durationKey = eventDuration;
-    reservation.durationLabel = "Single-day event";
+    reservation.durationLabel = totals.durationLabel || "Single-day event";
     reservation.extendedNights = null;
     reservation.scheduledCheckIn = allDayWindow.scheduledCheckIn;
     reservation.scheduledCheckOut = allDayWindow.scheduledCheckOut;
@@ -4703,7 +4705,7 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.customCheckInTime = null;
     reservation.customCheckOutTime = null;
     reservation.packageOption = pending.packageOption;
-    reservation.eventSession = null;
+    reservation.eventSession = totals.eventSession || null;
     reservation.eventNotes = pending.additionalNotes || specialRequests;
     reservation.motif = motif;
     reservation.roomName = `Event — ${pending.eventType}`;
@@ -5106,10 +5108,10 @@ function initReservationFormPage() {
 
     renderPackageAddOnsUI(cat, "event", pending.packageOption || "", pending.selectedAddOns || editRecord?.selectedAddOns || []);
 
-    pending.durationKey = cat.getFixedEventSchedule?.(pending.packageOption || "")?.durationKey || "12hr";
-    pending.durationLabel = "Single-day event";
-    pending.eventSession = null;
-    pending.eventTime = "";
+    pending.eventSession = cat.getFixedEventSchedule?.(pending.packageOption || "") ? null : (pending.eventSession || null);
+    pending.durationKey = cat.getFixedEventSchedule?.(pending.packageOption || "")?.durationKey || cat.getEventSession?.(pending.eventSession)?.durationKey || "12hr";
+    pending.durationLabel = cat.getEventSession?.(pending.eventSession)?.name || "Single-day event";
+    pending.eventTime = cat.getEventSession?.(pending.eventSession)?.label || "";
     pending.extendedNights = null;
 
     checkInTimeWrap?.classList.add("d-none");
@@ -5137,6 +5139,7 @@ function initReservationFormPage() {
           excludeReservationId: excludeId,
           mountId: "cvrEventRescheduleMount",
           hiddenId: "resEventDate",
+          getSlots: () => window.cvrEventSlotsFor?.(pending.packageOption, pending.eventSession) || null,
           onChange: recalc,
         });
       }

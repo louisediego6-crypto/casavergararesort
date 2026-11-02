@@ -45,20 +45,42 @@ class PaymentController extends Controller
             }
         }
 
+        $dbData = null;
         if (!$filePath) {
-            return response('Receipt file not found on the server.', 404);
+            try {
+                $pdo = get_db_connection();
+                cvr_ensure_proof_data_column($pdo);
+                $stmt = $pdo->prepare('SELECT file_data FROM payment_proofs WHERE file_path LIKE ? ORDER BY id DESC LIMIT 1');
+                $stmt->execute(['%/' . $file]);
+                $row = $stmt->fetch();
+                if ($row && $row['file_data'] !== null && $row['file_data'] !== '') {
+                    $dbData = $row['file_data'];
+                }
+            } catch (\Throwable $e) {
+                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) { throw $e; }
+                error_log('admin/payment-proof (db fallback): ' . $e->getMessage());
+            }
+            if ($dbData === null) {
+                return response('Receipt file not found on the server.', 404);
+            }
         }
 
-        $mimeType = (new finfo(FILEINFO_MIME_TYPE))->file($filePath) ?: 'application/octet-stream';
+        $mimeType = $dbData !== null
+            ? ((new finfo(FILEINFO_MIME_TYPE))->buffer($dbData) ?: 'application/octet-stream')
+            : ((new finfo(FILEINFO_MIME_TYPE))->file($filePath) ?: 'application/octet-stream');
         $isInlineImage = in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true);
         $isPdf = $mimeType === 'application/pdf';
 
-        return response()->file($filePath, [
+        $headers = [
             'Content-Type' => ($isInlineImage || $isPdf) ? $mimeType : 'application/octet-stream',
             'Content-Disposition' => (($isInlineImage || $isPdf) ? 'inline' : 'attachment') . '; filename="' . $file . '"',
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',
-        ]);
+        ];
+
+        return $dbData !== null
+            ? response($dbData, 200, $headers)
+            : response()->file($filePath, $headers);
     }
 
     /** Ported from api/admin/payments-delete.php */

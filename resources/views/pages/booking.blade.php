@@ -196,6 +196,12 @@
               <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
               <select id="eventBirthdayPackage" class="form-select"></select>
             </div>
+            <div class="col-12 d-none" id="eventSessionWrap">
+              <span class="form-label text-brand d-block" id="eventSessionLabel">Choose a session <span class="text-danger">*</span></span>
+              <input type="hidden" id="eventSession" value="">
+              <div class="row g-2 cvr-session-cards" id="eventSessionCards" role="radiogroup" aria-labelledby="eventSessionLabel"></div>
+              <div class="form-text" id="eventSessionHint"></div>
+            </div>
             <div class="col-12">
               <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
             </div>

@@ -60,7 +60,7 @@ class ReservationController extends Controller
         try {
             $rows = $pdo->query(
                 "SELECT id, booking_type, package_id, room_name, check_in, check_out, preferred_date,
-                        duration_type, scheduled_check_in, scheduled_check_out
+                        duration_type, scheduled_check_in, scheduled_check_out, payload_json
                  FROM reservations
                  WHERE reservation_status NOT LIKE '%cancel%'
                    AND reservation_status NOT LIKE '%declin%'"
@@ -73,6 +73,7 @@ class ReservationController extends Controller
         }
 
         $out = array_map(static function ($row) {
+            $payload = json_decode((string) ($row['payload_json'] ?? ''), true);
             return [
                 'id'                => $row['id'],
                 'bookingType'       => $row['booking_type'],
@@ -84,6 +85,8 @@ class ReservationController extends Controller
                 'durationKey'       => $row['duration_type'] ?? null,
                 'scheduledCheckIn'  => $row['scheduled_check_in'] ?? null,
                 'scheduledCheckOut' => $row['scheduled_check_out'] ?? null,
+                'packageOption'     => $row['package_id'],
+                'eventSession'      => is_array($payload) ? ($payload['eventSession'] ?? null) : null,
             ];
         }, $rows);
 

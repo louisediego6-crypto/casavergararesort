@@ -122,19 +122,12 @@
     return stayOverlaps(checkIn, checkOut, ranges);
   };
 
-  window.cvrEventOverlapsExisting = function (scheduledCheckIn, scheduledCheckOut, excludeReservationId) {
+  window.cvrEventOverlapsExisting = function (scheduledCheckIn, scheduledCheckOut, excludeReservationId, requestedSlots) {
     const dur = window.CVRDuration;
     if (!dur || !scheduledCheckIn || !scheduledCheckOut) return false;
     const newStartYmd = formatYMD(new Date(scheduledCheckIn));
-    for (const r of readReservations()) {
-      if (excludeReservationId && r.id === excludeReservationId) continue;
-      if (r.bookingType && r.bookingType !== "event") continue;
-      if (isReservationCanceled(r)) continue;
-      const eventStart = String(r.preferredDate || r.checkIn || "").slice(0, 10);
-      const eventEnd = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || eventStart).slice(0, 10);
-      if (eventStart && newStartYmd >= eventStart && newStartYmd <= eventEnd) return true;
-    }
-    return false;
+    const slots = Array.isArray(requestedSlots) && requestedSlots.length ? requestedSlots : ALL_SLOTS;
+    return isEventDateTaken(newStartYmd, excludeReservationId, slots);
   };
 
   window.initReservationAvailabilityCalendars = async function (opts) {
@@ -322,31 +315,60 @@
       : null;
   }
 
-  function isEventDateTaken(ymd, excludeReservationId) {
-    const requestedWindow = getEventWindowForDate(ymd);
-    const duration = window.CVRDuration;
+  // ---- Event sessions: Morning and Night can be booked separately on the same date ----
+  const PV_MORNING = "Private Venue – Morning (8:00 AM–5:00 PM)";
+  const PV_NIGHT = "Private Venue – Night (7:00 PM–5:00 AM)";
+  const PV_WHOLE = "Private Venue – Whole Day (2 Sessions)";
+  const ALL_SLOTS = ["morning", "night"];
+
+  function slotsForSession(sessionKey) {
+    if (sessionKey === "morning") return ["morning"];
+    if (sessionKey === "night") return ["night"];
+    if (sessionKey === "whole-day") return ALL_SLOTS.slice();
+    return null;
+  }
+
+  /** Which time slots (morning / night) a package + session occupies; null when not known yet. */
+  function eventSlotsFor(packageOption, sessionKey) {
+    const pkg = String(packageOption || "");
+    if (pkg === PV_MORNING) return ["morning"];
+    if (pkg === PV_NIGHT) return ["night"];
+    if (pkg === PV_WHOLE) return ALL_SLOTS.slice();
+    return slotsForSession(sessionKey);
+  }
+  window.cvrEventSlotsFor = eventSlotsFor;
+
+  function slotsOfReservation(r) {
+    return eventSlotsFor(r.packageOption || r.packageId, r.eventSession) || ALL_SLOTS.slice();
+  }
+
+  function takenSlotsOnDate(ymd, excludeReservationId) {
+    const taken = new Set();
     for (const r of readReservations()) {
       if (excludeReservationId && r.id === excludeReservationId) continue;
       if (r.bookingType && r.bookingType !== "event") continue;
       if (isReservationCanceled(r)) continue;
-      if (requestedWindow && duration) {
-        const eventStart = String(r.preferredDate || r.checkIn || "").slice(0, 10);
-        const eventEnd = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || eventStart).slice(0, 10);
-        const date = formatYMD(new Date(requestedWindow.scheduledCheckIn));
-        if (eventStart && date >= eventStart && date <= eventEnd) return true;
-        continue;
-      }
-      if (!r.preferredDate) continue;
-      const start = r.preferredDate;
-      const end = r.checkOutDateOnly || r.checkOut || start;
-      if (end === start) {
-        if (ymd === start) return true;
-      } else if (ymd >= start && ymd < end) {
-        return true;
-      }
+      const eventStart = String(r.preferredDate || r.checkIn || "").slice(0, 10);
+      if (!eventStart) continue;
+      const eventEnd = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || eventStart).slice(0, 10);
+      if (ymd >= eventStart && ymd <= eventEnd) slotsOfReservation(r).forEach((slot) => taken.add(slot));
     }
-    return false;
+    return taken;
   }
+
+  /**
+   * requestedSlots: the slots the guest wants (array). When null/empty (session not chosen yet),
+   * the date only counts as taken once both Morning and Night are booked.
+   */
+  function isEventDateTaken(ymd, excludeReservationId, requestedSlots) {
+    const taken = takenSlotsOnDate(ymd, excludeReservationId);
+    if (!taken.size) return false;
+    if (Array.isArray(requestedSlots) && requestedSlots.length) {
+      return requestedSlots.some((slot) => taken.has(slot));
+    }
+    return ALL_SLOTS.every((slot) => taken.has(slot));
+  }
+
 
   window.initEventPreferredDateCalendar = async function (opts = {}) {
     const excludeReservationId = opts.excludeReservationId || "";
@@ -363,15 +385,33 @@
     mount.innerHTML = "";
 
     const blocked = getBlockedYmdSet();
+    const getSlots = () => {
+      try {
+        const fn = typeof opts.getSlots === "function" ? opts.getSlots : window.cvrEventRequestedSlots;
+        const slots = typeof fn === "function" ? fn() : null;
+        return Array.isArray(slots) && slots.length ? slots : null;
+      } catch {
+        return null;
+      }
+    };
+    const slotLabel = (slot) => (slot === "morning" ? "Morning session" : "Night session");
 
     function styleEventDay(dayElem, d) {
       const ymd = formatYMD(d);
-      const isBooked = isEventDateTaken(ymd, excludeReservationId);
+      const isBooked = isEventDateTaken(ymd, excludeReservationId, getSlots());
+      const takenSlots = takenSlotsOnDate(ymd, excludeReservationId);
+      const isPartial = !isBooked && takenSlots.size > 0;
       const isBlocked = blocked.has(ymd);
       const isPast = ymd < todayYmd();
       if (isBooked) {
         dayElem.classList.add("cvr-cal-day-booked");
-        dayElem.setAttribute("title", "Already booked - not available");
+        dayElem.setAttribute("title", takenSlots.size && takenSlots.size < ALL_SLOTS.length
+          ? `${Array.from(takenSlots).map(slotLabel).join(" & ")} already booked - choose another session or date`
+          : "Already booked - not available");
+      } else if (isPartial) {
+        dayElem.classList.add("cvr-cal-day-partial");
+        const free = ALL_SLOTS.filter((slot) => !takenSlots.has(slot)).map(slotLabel).join(" & ");
+        dayElem.setAttribute("title", `${Array.from(takenSlots).map(slotLabel).join(" & ")} booked - ${free} still available`);
       }
       if (isBlocked) {
         dayElem.classList.add("cvr-cal-day-blocked");
@@ -395,7 +435,7 @@
           const ymd = formatYMD(date);
           if (ymd < todayYmd()) return true;
           if (blocked.has(ymd)) return true;
-          return isEventDateTaken(ymd, excludeReservationId);
+          return isEventDateTaken(ymd, excludeReservationId, getSlots());
         },
       ],
       onChange: function (selectedDates) {
@@ -409,8 +449,17 @@
         }
       },
     });
-    const refreshEventAvailability = () => eventDatePicker.redraw();
-    ["eventType", "eventBirthdayPackage"].forEach((id) => {
+    const refreshEventAvailability = () => {
+      // The chosen date may no longer be free for the newly chosen session.
+      if (hidden.value && (blocked.has(hidden.value) || isEventDateTaken(hidden.value, excludeReservationId, getSlots()))) {
+        eventDatePicker.clear();
+        hidden.value = "";
+        if (typeof opts.onChange === "function") opts.onChange();
+      }
+      eventDatePicker.redraw();
+    };
+    window.cvrRefreshEventAvailability = refreshEventAvailability;
+    ["eventType", "eventBirthdayPackage", "eventSession"].forEach((id) => {
       document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
     });
   };

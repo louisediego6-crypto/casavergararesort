@@ -1106,3 +1106,26 @@ html:not(.cvr-x):not(.cvr-y) body .booking-cal-pill { padding: 0.25rem 0.6rem; l
   html:not(.cvr-x):not(.cvr-y) body .booking-cal-cell { transition: none; }
   html:not(.cvr-x):not(.cvr-y) body .flatpickr-calendar.cvr-search-fp.flatpickr-calendar.open { animation: none; }
 }
+
+/* Event dates where only one session (morning or night) is taken */
+.flatpickr-calendar .flatpickr-day.cvr-cal-day-partial:not(.selected) {
+  background: rgba(245, 183, 49, 0.16);
+  border-color: rgba(245, 183, 49, 0.55);
+  box-shadow: inset 0 -3px 0 #f5b731;
+}
+
+/* Session picker cards (booking page) */
+.cvr-session-cards .cvr-session-card {
+  height: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  line-height: 1.25;
+  white-space: normal;
+}
+.cvr-session-cards .btn-check:checked + .cvr-session-card {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+.cvr-session-cards .btn-check:focus-visible + .cvr-session-card {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

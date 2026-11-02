@@ -11,9 +11,11 @@ function cvrEscapeHtml(value) {
 }
 
 let cvrLatestPaymentProofs = [];
+let cvrReceiptObjectUrl = null;
+let cvrReceiptRequestId = 0;
 
 /** Shows a payment receipt in a Bootstrap modal (image, PDF, or a download card for other files). */
-function cvrOpenReceiptModal(proof) {
+async function cvrOpenReceiptModal(proof) {
   if (!proof) return;
   let el = document.getElementById("cvrReceiptModal");
   if (!el) {
@@ -42,14 +44,18 @@ function cvrOpenReceiptModal(proof) {
         </div>
       </div>`;
     document.body.appendChild(el);
-    // stop PDFs / images from lingering after the modal is closed
     el.addEventListener("hidden.bs.modal", () => {
+      cvrReceiptRequestId++;
       const b = el.querySelector("#cvrReceiptModalBody");
       if (b) b.innerHTML = "";
+      if (cvrReceiptObjectUrl) {
+        URL.revokeObjectURL(cvrReceiptObjectUrl);
+        cvrReceiptObjectUrl = null;
+      }
     });
   }
 
-  const url = proof.fileUrl || "";
+  const requestId = ++cvrReceiptRequestId;
   const type = (proof.fileType || "").toLowerCase();
   const name = (proof.fileName || "").toLowerCase();
   const isImage = type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp)$/.test(name);
@@ -57,26 +63,66 @@ function cvrOpenReceiptModal(proof) {
 
   el.querySelector("#cvrReceiptModalSub").textContent = [proof.reservationId, proof.customerName].filter(Boolean).join(" · ");
   const body = el.querySelector("#cvrReceiptModalBody");
-  if (isImage) {
-    const image = document.createElement("img");
-    image.src = url;
-    image.alt = "Proof of payment";
-    image.style.cssText = "max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;";
-    image.addEventListener("error", () => {
-      body.innerHTML = `<div class="alert alert-danger m-3" role="alert">This receipt could not be loaded. Please refresh the submissions and try again.</div>`;
-    }, { once: true });
-    body.replaceChildren(image);
-  } else if (isPdf) {
-    body.innerHTML = `<iframe src="${cvrEscapeHtml(url)}" title="Proof of payment" style="width:100%;height:70vh;border:0;border-radius:8px;"></iframe>`;
-  } else {
-    body.innerHTML = `<div class="py-5"><i class="bi bi-file-earmark-text display-4 text-muted-brand"></i><p class="mt-3 mb-0 text-muted-brand">This file type can't be previewed here. Use Download to open it.</p></div>`;
+  const openButton = el.querySelector("#cvrReceiptModalOpen");
+  const downloadButton = el.querySelector("#cvrReceiptModalDownload");
+  if (cvrReceiptObjectUrl) {
+    URL.revokeObjectURL(cvrReceiptObjectUrl);
+    cvrReceiptObjectUrl = null;
   }
-  el.querySelector("#cvrReceiptModalOpen").href = url;
-  const dl = el.querySelector("#cvrReceiptModalDownload");
-  dl.href = url;
-  dl.setAttribute("download", proof.fileName || "receipt");
-
+  openButton.removeAttribute("href");
+  downloadButton.removeAttribute("href");
+  body.innerHTML = `<div class="py-5 text-muted-brand" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading receipt…</div>`;
   window.bootstrap?.Modal.getOrCreateInstance(el).show();
+
+  try {
+    const fileUrl = new URL(proof.fileUrl || "", window.location.href);
+    const fileMatch = fileUrl.pathname.match(/(?:^|\/)(proof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+)$/);
+    if (fileUrl.origin !== window.location.origin || !fileMatch) {
+      throw new Error("The receipt link is invalid. Refresh the submissions and try again.");
+    }
+
+    const endpoint = `${cvrApiBase()}/admin/payment-proof/${encodeURIComponent(fileMatch[1])}`;
+    const response = await fetch(endpoint, { credentials: "same-origin", cache: "no-store" });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Your staff session has expired or does not have permission to view this receipt. Sign in again.");
+      }
+      if (response.status === 404) {
+        throw new Error("This receipt file is no longer on the server (it was uploaded before receipts were saved to the database). Open the original receipt from the 'Proof of Payment' email sent to the admin, or ask the guest to re-upload it.");
+      }
+      throw new Error(`The receipt server returned an error (${response.status}). Please try again or contact support.`);
+    }
+
+    const blob = await response.blob();
+    if (requestId !== cvrReceiptRequestId || !el.classList.contains("show")) return;
+    if (!blob.size || blob.type.includes("json") || blob.type.includes("text/html")) {
+      throw new Error("The server did not return a receipt file. Refresh the submissions and try again.");
+    }
+
+    cvrReceiptObjectUrl = URL.createObjectURL(blob);
+    openButton.href = cvrReceiptObjectUrl;
+    downloadButton.href = cvrReceiptObjectUrl;
+    downloadButton.setAttribute("download", proof.fileName || "receipt");
+
+    if (isImage) {
+      const image = document.createElement("img");
+      image.src = cvrReceiptObjectUrl;
+      image.alt = "Proof of payment";
+      image.style.cssText = "max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;";
+      body.replaceChildren(image);
+    } else if (isPdf) {
+      const frame = document.createElement("iframe");
+      frame.src = cvrReceiptObjectUrl;
+      frame.title = "Proof of payment";
+      frame.style.cssText = "width:100%;height:70vh;border:0;border-radius:8px;";
+      body.replaceChildren(frame);
+    } else {
+      body.innerHTML = `<div class="py-5"><i class="bi bi-file-earmark-text display-4 text-muted-brand"></i><p class="mt-3 mb-0 text-muted-brand">This file type can't be previewed here. Use Download to open it.</p></div>`;
+    }
+  } catch (error) {
+    if (requestId !== cvrReceiptRequestId || !el.classList.contains("show")) return;
+    body.innerHTML = `<div class="alert alert-danger m-3" role="alert">${cvrEscapeHtml(error.message || "This receipt could not be loaded. Please try again.")}</div>`;
+  }
 }
 window.getAdminPaymentProofs = () => cvrLatestPaymentProofs;
 
