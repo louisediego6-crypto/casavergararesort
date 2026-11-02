@@ -34,7 +34,7 @@
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261105b" rel="stylesheet">
   <link href="../css/account-ui.css?v=20261031b" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
@@ -199,8 +199,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../js/booking-data.js?v=20261105a"></script>
-  <script src="../js/main.js?v=20261105a"></script>
+  <script src="../js/booking-data.js?v=20261105b"></script>
+  <script src="../js/main.js?v=20261105b"></script>
   <script>
     renderNavbar("");
     renderFooter();

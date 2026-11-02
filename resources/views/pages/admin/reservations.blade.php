@@ -24,7 +24,7 @@
   <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../../css/responsive-final.css?v=20261105b" rel="stylesheet">
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
@@ -134,9 +134,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="../../js/main.js?v=20261105a"></script>
+  <script src="../../js/main.js?v=20261105b"></script>
   <script src="../../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../../js/booking-data.js?v=20261105a"></script>
+  <script src="../../js/booking-data.js?v=20261105b"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin-reservations.js?v=20261025a"></script>
   <script>renderAdminSidebar("reservations"); initAdminReservationsPage();</script>

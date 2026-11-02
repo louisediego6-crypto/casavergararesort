@@ -297,7 +297,7 @@ function initAdminReservationsPage() {
             ${line.description ? `<small class="text-muted-brand d-block mt-1">${escapeHtml(line.description)}</small>` : ""}
           </td>
           <td><input type="number" min="0" step="0.01" class="form-control form-control-sm admin-quote-qty" value="${line.qty ?? 1}"></td>
-          <td>${line.type === "discount" ? `<input type="text" class="form-control form-control-sm admin-quote-unit" value="Voucher" readonly data-real-unit="${Number(line.unitPrice ?? line.amount ?? 0)}">` : unitInputHtml(line.unitPrice ?? line.amount ?? 0)}</td>
+          <td>${line.type === "discount" ? `<input type="text" class="form-control form-control-sm admin-quote-unit" value="Discount" readonly data-real-unit="${Number(line.unitPrice ?? line.amount ?? 0)}">` : unitInputHtml(line.unitPrice ?? line.amount ?? 0)}</td>
           <td class="admin-quote-amount fw-semibold">${line.type === "discount" ? "−" + fmtMoney(Math.abs(line.amount ?? 0), q.currency) : fmtMoney(line.amount ?? 0, q.currency)}</td>
           <td class="text-center">
             <input type="checkbox" class="form-check-input admin-quote-approved" ${line.approved !== false ? "checked" : ""}>
@@ -350,7 +350,7 @@ function initAdminReservationsPage() {
         <div class="d-flex justify-content-between small mb-1"><span>Package subtotal</span><strong id="adminQuotePackageTotal">${fmtMoney(q.subtotalPackage, q.currency)}</strong></div>
         <div class="d-flex justify-content-between small mb-1"><span>Add-ons</span><strong id="adminQuoteAddonTotal">${fmtMoney(q.subtotalAddOns, q.currency)}</strong></div>
         <div class="d-flex justify-content-between small mb-1"><span>Special / custom</span><strong id="adminQuoteSpecialTotal">${fmtMoney(q.subtotalSpecial, q.currency)}</strong></div>
-        <div class="d-flex justify-content-between small mb-1 text-success${q.subtotalDiscount > 0 ? "" : " d-none"}" id="adminQuoteDiscountRow"><span>Voucher / discount</span><strong id="adminQuoteDiscountTotal">−${fmtMoney(q.subtotalDiscount || 0, q.currency)}</strong></div>
+        <div class="d-flex justify-content-between small mb-1 text-success${q.subtotalDiscount > 0 ? "" : " d-none"}" id="adminQuoteDiscountRow"><span>Previously applied discount</span><strong id="adminQuoteDiscountTotal">−${fmtMoney(q.subtotalDiscount || 0, q.currency)}</strong></div>
         <hr class="my-2">
         <div class="d-flex justify-content-between"><span class="fw-bold text-brand">Quotation total</span><strong class="text-brand" id="adminQuoteGrandTotal">${isFullAdmin ? escapeHtml(r.totalAmount || fmtMoney(q.totalNumeric, q.currency)) : "—"}</strong></div>
         <div class="d-flex justify-content-between small mt-2 text-primary"><span>${(q.downpaymentPercent ?? 50) >= 100 ? "Full payment due (guest chose to pay in full)" : `Downpayment due (${q.downpaymentPercent ?? 50}%)`}</span><strong id="adminQuoteDownpayment">${fmtMoney(q.downpaymentAmount ?? 0, q.currency)}</strong></div>

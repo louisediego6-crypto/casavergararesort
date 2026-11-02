@@ -19,12 +19,11 @@
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
   <link href="../css/theme.css?v=20261024e" rel="stylesheet">
-  <link href="../css/vouchers.css?v=20261025a" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261105b" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
@@ -117,7 +116,6 @@
             <p class="small text-muted-brand">Payment must match the accepted quotation total below.</p>
             <div id="paymentQuotationBreakdown" class="mb-3"></div>
             <hr>
-            <div id="paymentVoucherBox" class="mb-3"></div>
             <div id="paymentPlanBox" class="mb-3"></div>
             <h5 class="text-brand">Payment summary</h5>
             <hr>
@@ -128,7 +126,7 @@
             <div class="d-flex justify-content-between small mb-1 d-none" id="payAddOnsRow"><span>Add-ons</span><span id="payAddOns">—</span></div>
             <div id="payDetailLines" class="small text-muted-brand mb-2"></div>
             <hr>
-            <div class="d-flex justify-content-between small mb-1 text-success d-none" id="payDiscountRow"><span><i class="bi bi-ticket-perforated me-1"></i>Voucher discount</span><span id="payDiscount">—</span></div>
+            <div class="d-flex justify-content-between small mb-1 text-success d-none" id="payDiscountRow"><span>Previously applied discount</span><span id="payDiscount">—</span></div>
             <div class="d-flex justify-content-between small mb-1"><span>Total package price</span><span id="payPackageTotal">—</span></div>
             <div class="d-flex justify-content-between small text-muted-brand mb-2"><span>Balance due later</span><span id="payBalanceDue">—</span></div>
             <div class="d-flex justify-content-between mb-2"><strong><span id="payNowLabel">Downpayment to Pay Now</span> (<span id="payDownpaymentPercent">50</span>%)</strong><strong class="text-brand" id="payTotal">—</strong></div>
@@ -150,8 +148,8 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../js/booking-data.js?v=20261105a"></script>
-  <script src="../js/main.js?v=20261105a"></script>
+  <script src="../js/booking-data.js?v=20261105b"></script>
+  <script src="../js/main.js?v=20261105b"></script>
   <script src="../js/legal-doc.js?v=20260830i"></script>
   <script>renderNavbar("booking"); renderFooter();</script>
 </body>

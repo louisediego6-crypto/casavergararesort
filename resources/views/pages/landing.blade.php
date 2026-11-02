@@ -35,7 +35,7 @@
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261105b" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
@@ -141,28 +141,28 @@
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Resort Entrance &amp; Pool">
                 <span class="d-none" data-site-text-key="landing_mosaic_1_title">Resort Entrance &amp; Pool</span>
-                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-1.png" alt="Resort entrance and pool" data-site-image-slot="landing_mosaic_1">
+                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-1.png" alt="Resort entrance and pool" loading="lazy" decoding="async" data-site-image-slot="landing_mosaic_1">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Poolside Setting">
                 <span class="d-none" data-site-text-key="landing_mosaic_2_title">Poolside Setting</span>
-                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-2.png" alt="Resort poolside setting" data-site-image-slot="landing_mosaic_2">
+                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-2.png" alt="Resort poolside setting" loading="lazy" decoding="async" data-site-image-slot="landing_mosaic_2">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Elegant Interior Lounge">
                 <span class="d-none" data-site-text-key="landing_mosaic_3_title">Elegant Interior Lounge</span>
-                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-3.png" alt="Elegant interior lounge" data-site-image-slot="landing_mosaic_3">
+                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-3.png" alt="Elegant interior lounge" loading="lazy" decoding="async" data-site-image-slot="landing_mosaic_3">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
             <div class="col-6">
               <figure class="mosaic-item mb-0" role="button" tabindex="0" data-title="Premium Guest Suite">
                 <span class="d-none" data-site-text-key="landing_mosaic_4_title">Premium Guest Suite</span>
-                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-4.png" alt="Premium guest suite interior" data-site-image-slot="landing_mosaic_4">
+                <img class="img-fluid rounded-4 shadow-sm mosaic-img" src="../images/booking-photo-4.png" alt="Premium guest suite interior" loading="lazy" decoding="async" data-site-image-slot="landing_mosaic_4">
                 <span class="mosaic-overlay"><i class="bi bi-zoom-in"></i></span>
               </figure>
             </div>
@@ -182,7 +182,7 @@
 
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-1.png" alt="Standard room interior" data-site-image-slot="landing_room_deluxe">
+            <img class="room-cover" src="../images/booking-photo-1.png" alt="Standard room interior" loading="lazy" decoding="async" data-site-image-slot="landing_room_deluxe">
             <div class="p-4 room-card-body">
               <h5 class="text-brand" data-site-text-key="landing_card1_title">Standard Room</h5>
               <p class="text-muted-brand small mb-2" data-site-text-key="landing_card1_sub">Good for 2 pax</p>
@@ -200,7 +200,7 @@
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-2.png" alt="Private venue with pool and function hall" data-site-image-slot="landing_room_single">
+            <img class="room-cover" src="../images/booking-photo-2.png" alt="Private venue with pool and function hall" loading="lazy" decoding="async" data-site-image-slot="landing_room_single">
             <div class="p-4 room-card-body">
               <h5 class="text-brand" data-site-text-key="landing_card2_title">Private Venue</h5>
               <p class="text-muted-brand small mb-2" data-site-text-key="landing_card2_sub">Includes 50 guests · +₱1,500 per additional 50 guests · maximum 200 guests</p>
@@ -218,7 +218,7 @@
         </div>
         <div class="col-md-4">
           <article class="soft-card overflow-hidden h-100 room-card">
-            <img class="room-cover" src="../images/booking-photo-3.png" alt="Wedding and debut venue setup" data-site-image-slot="landing_room_family">
+            <img class="room-cover" src="../images/booking-photo-3.png" alt="Wedding and debut venue setup" loading="lazy" decoding="async" data-site-image-slot="landing_room_family">
             <div class="p-4 room-card-body">
               <h5 class="text-brand" data-site-text-key="landing_card3_title">Weddings &amp; Debuts</h5>
               <p class="text-muted-brand small mb-2" data-site-text-key="landing_card3_sub">Includes 50 guests · +₱1,500 per additional 50 guests · maximum 200 guests · 10 hours + 3 hours preparation</p>
@@ -411,9 +411,9 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/booking-data.js?v=20261105a"></script>
+  <script src="../js/booking-data.js?v=20261105b"></script>
   <script src="../js/ph-locations.js?v=20260926b"></script>
-  <script src="../js/main.js?v=20261105a"></script>
+  <script src="../js/main.js?v=20261105b"></script>
   <script src="../js/reviews.js?v=20260926b"></script>
   <script src="../js/casa-refresh.js?v=20261018a"></script>
   <script>

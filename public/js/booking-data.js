@@ -1193,18 +1193,15 @@ function createQuotationLineId() {
   return `ql-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-/**
- * Amount (positive PHP) a voucher gives on a subtotal. Mirrors cvr_voucher_discount() in PHP.
- */
-function computeVoucherDiscount(voucher, subtotal) {
+function computeHistoricalDiscount(metadata, subtotal) {
   const base = Number(subtotal) || 0;
-  if (!voucher || base <= 0) return 0;
-  const value = Number(voucher.discountValue ?? voucher.voucherValue) || 0;
-  const type = voucher.discountType ?? voucher.voucherType;
+  if (!metadata || base <= 0) return 0;
+  const value = Number(metadata.discountValue ?? metadata.voucherValue) || 0;
+  const type = metadata.discountType ?? metadata.voucherType;
   let amount;
   if (type === "percent") {
     amount = (base * Math.min(100, value)) / 100;
-    const cap = Number(voucher.maxDiscount ?? voucher.voucherMax) || 0;
+    const cap = Number(metadata.maxDiscount ?? metadata.voucherMax) || 0;
     if (cap > 0) amount = Math.min(amount, cap);
   } else {
     amount = value;
@@ -1223,8 +1220,7 @@ function recalculateQuotationTotals(lines) {
     .reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
   const grossTotal = Math.round((packageTotal + addonTotal + specialTotal) * 100) / 100;
 
-  // Discount / voucher lines are stored as negative amounts. Voucher percentages are re-worked on the
-  // current gross so they stay right when an admin edits the quotation.
+  // Saved discounts remain in older quotations and are recalculated when staff revise them.
   let remaining = grossTotal;
   let discountTotal = 0;
   (lines || []).forEach((line) => {
@@ -1234,7 +1230,7 @@ function recalculateQuotationTotals(lines) {
     }
     let amount;
     if (line.voucherType) {
-      amount = computeVoucherDiscount(
+      amount = computeHistoricalDiscount(
         { discountType: line.voucherType, discountValue: line.voucherValue, maxDiscount: line.voucherMax },
         remaining
       );
@@ -1258,42 +1254,6 @@ function recalculateQuotationTotals(lines) {
     grossTotal,
     totalNumeric,
   };
-}
-
-/** The voucher line on a quotation, if any. */
-function getQuotationVoucherLine(quotation) {
-  return (quotation?.lines || []).find((line) => line.type === "discount" && line.voucherCode) || null;
-}
-
-/** Adds (or replaces) the voucher discount line. One voucher per reservation. */
-function addVoucherToQuotation(quotation, voucher) {
-  if (!quotation || !voucher) return quotation;
-  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
-  quotation.lines.push({
-    id: createQuotationLineId(),
-    type: "discount",
-    label: `Voucher ${voucher.code} — ${voucher.title}`,
-    description: voucher.discountType === "percent" ? `${Number(voucher.discountValue)}% off` : "",
-    qty: 1,
-    unitPrice: 0,
-    amount: 0,
-    approved: true,
-    source: "voucher",
-    voucherCode: voucher.code,
-    voucherTitle: voucher.title,
-    voucherType: voucher.discountType,
-    voucherValue: Number(voucher.discountValue) || 0,
-    voucherMax: voucher.maxDiscount != null ? Number(voucher.maxDiscount) : null,
-  });
-  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
-  return quotation;
-}
-
-function removeVoucherFromQuotation(quotation) {
-  if (!quotation) return quotation;
-  quotation.lines = (quotation.lines || []).filter((line) => !(line.type === "discount" && line.voucherCode));
-  Object.assign(quotation, recalculateQuotationTotals(quotation.lines));
-  return quotation;
 }
 
 function cvrScheduleDescription(reservation) {
@@ -1410,8 +1370,6 @@ function applyQuotationToReservation(reservation, quotation) {
   reservation.paymentPlan = plan;
   const dp = computeDownpayment(quotation.totalNumeric, paymentPlanPercent(plan));
   reservation.discountAmount = quotation.subtotalDiscount || 0;
-  const voucherLine = getQuotationVoucherLine(quotation);
-  reservation.voucherCode = voucherLine ? voucherLine.voucherCode : "";
   quotation.paymentPlan = plan;
   reservation.downpaymentPercent = dp.percent;
   reservation.downpaymentAmount = dp.downpayment;
@@ -1430,10 +1388,6 @@ window.CVRQuotation = {
   recalculateQuotationTotals,
   buildQuotationFromReservation,
   applyQuotationToReservation,
-  computeVoucherDiscount,
-  getQuotationVoucherLine,
-  addVoucherToQuotation,
-  removeVoucherFromQuotation,
 };
 
 window.CVRBookingCatalog = {

@@ -44,4 +44,15 @@ class PublicUploadTest extends TestCase
         $this->get('/uploads/payments/proof_test.png')->assertNotFound();
         $this->get('/uploads/chat/test-image.png')->assertNotFound();
     }
+
+    public function test_voucher_uploads_are_no_longer_public(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put(
+            'uploads/vouchers/voucher-logo.png',
+            file_get_contents(public_path('images/logo-email.png'))
+        );
+
+        $this->get('/uploads/vouchers/voucher-logo.png')->assertNotFound();
+    }
 }

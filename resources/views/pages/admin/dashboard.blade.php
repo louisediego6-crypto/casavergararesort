@@ -25,7 +25,7 @@
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
 
-  <link href="../../css/responsive-final.css?v=20261029a" rel="stylesheet">
+  <link href="../../css/responsive-final.css?v=20261105b" rel="stylesheet">
   <link href="../../css/admin-live-charts.css?v=20261027a" rel="stylesheet">
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
@@ -145,7 +145,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../../js/main.js?v=20261105a"></script>
+  <script src="../../js/main.js?v=20261105b"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin.js?v=20261024h"></script>
   <script src="../../js/admin-live-charts.js?v=20261027a"></script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="160x160" href="/images/logo-email.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
@@ -61,6 +61,7 @@
             display: block;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             border: 0;
             background: #f8fafc;
         }

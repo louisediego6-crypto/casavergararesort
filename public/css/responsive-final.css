@@ -163,3 +163,55 @@ table { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   html body .hero-stats, .landing-hero * { animation: none !important; }
 }
+
+/* A phone requesting a desktop site can report a wide layout viewport.
+   Keep the compact layout when the actual device or touch viewport is small. */
+@media (max-width: 767.98px), (max-device-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  body { min-width: 0; }
+  .container, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl,
+  .container-fluid {
+    width: 100%;
+    max-width: 100%;
+  }
+  .row > *, .admin-main, .admin-page, .soft-card, .modal-content { min-width: 0; }
+  .admin-main { padding-inline: max(0.75rem, env(safe-area-inset-left, 0px)); }
+  .admin-page-head > .d-flex,
+  .admin-page-head .d-flex.justify-content-between { align-items: flex-start; }
+  .admin-page-head .btn-toolbar,
+  .admin-page-head .btn-group,
+  .admin-page-head .d-flex.gap-2 { flex-wrap: wrap; }
+  .table-responsive, .admin-table-card { max-width: 100%; }
+  .modal-dialog { width: auto; max-width: calc(100% - 1rem); }
+  .modal-content { overflow-wrap: anywhere; }
+}
+
+@media (max-device-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .site-navbar .navbar-expand-lg > .container,
+  .site-navbar .navbar-expand-lg > .container-fluid {
+    flex-wrap: wrap;
+  }
+  .site-navbar .navbar-expand-lg .navbar-toggler { display: block; }
+  .site-navbar .navbar-expand-lg .navbar-collapse { flex-basis: 100%; }
+  .site-navbar .navbar-expand-lg .navbar-collapse:not(.show) { display: none; }
+  .site-navbar .navbar-expand-lg .navbar-collapse.show { display: block; }
+}
+
+@media (pointer: coarse) {
+  .hl-card, .room-card, .feature-card { animation: none; transition: none; }
+  .admin-wrap .admin-main > *,
+  .admin-wrap .admin-main > .admin-page-head,
+  .admin-wrap .admin-main > .row > [class*="col"] > .soft-card {
+    animation: none !important;
+  }
+  .admin-wrap .soft-card,
+  .admin-wrap .table tbody tr,
+  .admin-wrap .btn {
+    transition: none;
+  }
+  .admin-wrap .btn-brand:hover,
+  .admin-wrap .btn-primary:hover,
+  .admin-wrap .btn-outline-primary:hover,
+  .admin-wrap .nav-pills .nav-link:hover {
+    transform: none;
+  }
+}

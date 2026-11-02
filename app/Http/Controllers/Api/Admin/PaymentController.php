@@ -161,7 +161,7 @@ class PaymentController extends Controller
     /**
      * Compares the amount a guest declared on their receipt with the payment they chose at booking:
      * the 50% downpayment (default) or the full amount. The required figure comes from the reservation
-     * itself (downpaymentAmount in its saved payload, which already reflects any voucher discount), and
+     * itself (downpaymentAmount in its saved payload, which already reflects any saved discount), and
      * falls back to 50% of total_numeric. Returns null for "required" when the total is unknown.
      *
      * @return array{required: ?float, declared: ?float, verified: bool, plan: string, percent: int}
