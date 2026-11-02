@@ -8,7 +8,7 @@
   <meta charset="UTF-8" />
   <script src="../js/theme.js?v=20261102f"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <script src="../js/responsive-viewport.js?v=20261102a"></script>
+  <script src="../js/responsive-viewport.js?v=20261102b"></script>
   <title>Casa Vergara - My Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -35,7 +35,7 @@
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
   <link href="../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../css/responsive-final.css?v=20261102d" rel="stylesheet">
+  <link href="../css/responsive-final.css?v=20261102e" rel="stylesheet">
   <link href="../css/account-ui.css?v=20261031b" rel="stylesheet">
   <script src="../js/modal-responsive.js?v=20261027a" defer></script>
 </head>

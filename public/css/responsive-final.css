@@ -217,85 +217,121 @@ table { max-width: 100%; }
 }
 
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1024px) {
-  .landing-hero .container,
-  .landing-hero,
-  .landing-hero ~ .section-pad,
-  .landing-highlights-strip,
-  .landing-cta-panel-text {
+  .landing-hero .container { padding-inline: 1.1rem; }
+  .landing-hero .row { --bs-gutter-y: 1.25rem; }
+  .landing-hero .row > [class*="col-"] {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+  .landing-hero .hero-image-col { max-width: 34rem; margin-inline: auto; }
+  .landing-hero-visual { margin-inline: auto; }
+  .landing-hero .hero-pool-image { aspect-ratio: 16 / 10; }
+  .landing-hero-text {
+    margin-bottom: 0 !important;
     text-align: center;
   }
+  .landing-hero .hero-title {
+    max-width: 15ch;
+    margin-inline: auto;
+    font-size: clamp(2rem, 8vw, 2.8rem);
+    line-height: 1.08;
+  }
+  .landing-hero-text .hero-description { max-width: 34ch; margin-inline: auto; }
+  .landing-hero-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem !important;
+  }
+  .landing-hero-actions .btn { flex: 0 1 10rem; width: auto; padding-inline: 0.9rem !important; }
+  html body .hero-stats { max-width: 28rem; margin-inline: auto; }
 
-  .landing-hero .row,
-  .landing-hero-text,
-  .landing-cta-section-v2 .container {
+  .landing-highlights-strip {
+    padding: 3.25rem 1rem 4rem;
     text-align: center;
   }
+  .landing-highlights-strip .container { max-width: 38rem; }
+  body .landing-highlights-strip .landing-highlights-head { margin-bottom: 1.5rem !important; }
+  body .landing-highlights-strip .landing-highlights-head h2 { font-size: clamp(1.65rem, 6vw, 2.1rem); }
+  body .landing-highlights-strip .hl-lead { max-width: 34ch; margin-inline: auto; }
+  body .landing-highlights-strip .hl-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 28rem;
+    gap: 0.9rem;
+  }
+  body .landing-highlights-strip .hl-card {
+    display: flex;
+    min-height: 0;
+    align-items: center;
+    padding: 1.3rem 1.15rem 1.4rem;
+    text-align: center;
+  }
+  body .landing-highlights-strip .hl-icon { margin: 0 0 0.85rem; }
+  body .landing-highlights-strip .hl-card h3 { margin-bottom: 0.4rem; font-size: 1.2rem; }
+  body .landing-highlights-strip .hl-card p { max-width: 34ch; font-size: 0.95rem; }
 
-  .landing-hero .row > [class*="col-"],
+  .landing-highlights-strip + .section-pad > .container > .about-preview > .col-lg-6:first-child {
+    text-align: center;
+  }
+  .landing-highlights-strip + .section-pad .about-preview-cta {
+    justify-content: center;
+  }
+  .landing-highlights-strip + .section-pad .image-mosaic { margin-top: 1.5rem; }
+
+  .landing-cta-section-v2 { padding: 2rem 1rem !important; }
+  .landing-cta-section-v2 .container { padding-inline: 0; }
+  .landing-cta-panel { margin-inline: auto; }
   .landing-cta-panel > [class*="col-"] {
     flex: 0 0 100%;
     width: 100%;
     max-width: 100%;
   }
+  .landing-cta-panel-media { min-height: 13rem; }
+  .landing-cta-panel-text { align-items: center; text-align: center; }
+  .landing-cta-panel-text > * { max-width: 34rem; }
+  .landing-cta-kicker { align-self: center; }
+  .landing-cta-panel-text > .d-flex { justify-content: center; }
 
-  .landing-hero .hero-image-col,
-  .landing-hero-visual,
-  .landing-cta-panel {
-    margin-inline: auto;
-  }
-
-  .landing-hero .hero-image-col {
-    max-width: 40rem;
-  }
-
-  .landing-hero-text .hero-description {
-    margin-inline: auto;
-  }
-
-  .landing-cta-kicker,
-  .landing-cta-text-v2 {
-    align-self: center;
-    margin-inline: auto;
-  }
-
-  .landing-cta-panel-text,
-  .landing-cta-panel-text > .d-flex {
-    align-items: center;
-    justify-content: center;
-  }
-
+  .footer-main > .container.section-pad { padding: 2rem 1.1rem 1rem !important; }
   .footer-main .footer-top-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .footer-main .footer-top-grid,
-  .footer-main .footer-brand-stack,
-  .footer-main .footer-links-col,
-  .footer-main .footer-contact-col,
-  .footer-main .footer-bottom-inner,
-  .footer-main .footer-bottom-right,
-  .footer-main .footer-bottom-links {
-    justify-content: center;
-    justify-items: center;
+    gap: 1.75rem;
     text-align: center;
   }
-
+  .footer-main .footer-brand-stack {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    row-gap: 0.65rem;
+  }
+  .footer-main .footer-brand-logo,
+  .footer-main .footer-brand-heading,
+  .footer-main .footer-brand-text,
+  .footer-main .footer-brand-social {
+    grid-column: 1;
+    justify-self: center;
+  }
+  .footer-main .footer-brand-logo { grid-row: 1; }
+  .footer-main .footer-brand-heading { grid-row: 2; }
+  .footer-main .footer-brand-text { grid-row: 3; max-width: 34ch; }
+  .footer-main .footer-brand-social { grid-row: 4; justify-content: center; }
   .footer-main .footer-links-col,
   .footer-main .footer-contact-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    text-align: center;
   }
-
+  .footer-main .footer-title::after { left: 50%; transform: translateX(-50%); }
   .footer-main .footer-link-list,
   .footer-main .footer-contact-list {
-    width: auto;
-    max-width: 100%;
+    width: 100%;
+    max-width: 24rem;
     align-items: center;
-    padding-inline: 0;
+    padding: 0;
+    text-align: center;
   }
-
   .footer-main .footer-link,
   .footer-main .footer-contact-line,
   .footer-main .footer-contact-line.is-multiline {
@@ -303,68 +339,18 @@ table { max-width: 100%; }
     align-items: center;
     text-align: center;
   }
-
+  .footer-main .footer-contact-line span,
+  .footer-main .footer-contact-line a {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .footer-main .footer-bottom-inner {
     flex-direction: column;
+    justify-content: center;
+    gap: 0.85rem;
+    text-align: center;
   }
-
-  .footer-main .footer-bottom-right {
-    width: 100%;
-  }
-}
-
-html.cvr-small-touch-viewport body .landing-hero,
-html.cvr-small-touch-viewport body .landing-cta-section-v2,
-html.cvr-small-touch-viewport body .footer-main {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: auto;
-}
-
-html.cvr-small-touch-viewport body .landing-hero,
-html.cvr-small-touch-viewport body .landing-hero ~ .section-pad,
-html.cvr-small-touch-viewport body .landing-cta-panel-text {
-  text-align: center;
-}
-
-html.cvr-small-touch-viewport body .landing-cta-panel-text,
-html.cvr-small-touch-viewport body .landing-cta-panel-text > .d-flex {
-  align-items: center;
-  justify-content: center;
-}
-
-html.cvr-small-touch-viewport body .footer-main .footer-top-grid,
-html.cvr-small-touch-viewport body .footer-main .footer-brand-stack,
-html.cvr-small-touch-viewport body .footer-main .footer-links-col,
-html.cvr-small-touch-viewport body .footer-main .footer-contact-col,
-html.cvr-small-touch-viewport body .footer-main .footer-bottom-inner,
-html.cvr-small-touch-viewport body .footer-main .footer-bottom-right,
-html.cvr-small-touch-viewport body .footer-main .footer-bottom-links {
-  justify-content: center;
-  justify-items: center;
-  text-align: center;
-}
-
-html.cvr-small-touch-viewport body .footer-main .footer-links-col,
-html.cvr-small-touch-viewport body .footer-main .footer-contact-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-html.cvr-small-touch-viewport body .footer-main .footer-link-list,
-html.cvr-small-touch-viewport body .footer-main .footer-contact-list {
-  width: auto;
-  max-width: 100%;
-  align-items: center;
-  padding-inline: 0;
-}
-
-html.cvr-small-touch-viewport body .footer-main .footer-link,
-html.cvr-small-touch-viewport body .footer-main .footer-contact-line,
-html.cvr-small-touch-viewport body .footer-main .footer-contact-line.is-multiline {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  .footer-main .footer-bottom-right { width: 100%; justify-content: center; }
+  .footer-main .footer-bottom-links { justify-content: center; gap: 0.55rem 1rem; }
 }

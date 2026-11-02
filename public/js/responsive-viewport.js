@@ -10,13 +10,22 @@
   var isSmallTouchScreen = function () {
     var width = screenWidth();
     var height = Math.round(window.screen.height || 0);
-    return (navigator.maxTouchPoints > 0 || "ontouchstart" in window) && Math.min(width, height) > 0 && Math.min(width, height) <= 767;
+    var touchDevice = navigator.maxTouchPoints > 0 || "ontouchstart" in window;
+    var mobileUserAgent = /Android.*Mobile|iPhone|iPod|Mobile/i.test(navigator.userAgent || "");
+    var highDensityTouchScreen = touchDevice && window.devicePixelRatio >= 2.5;
+    return touchDevice && (
+      (Math.min(width, height) > 0 && Math.min(width, height) <= 767) ||
+      mobileUserAgent ||
+      highDensityTouchScreen
+    );
   };
-  var useCompactLayout = isSmallTouchScreen() && window.innerWidth > screenWidth() * 1.05;
+  var useCompactLayout = isSmallTouchScreen() && (window.innerWidth > 767 || screenWidth() > 767);
 
   function applyViewport() {
     if (useCompactLayout && isSmallTouchScreen()) {
-      viewport.content = originalContent.replace(/(^|,)\s*width\s*=\s*[^,]+/i, "$1 width=" + screenWidth());
+      var deviceWidth = Math.min(screenWidth(), Math.round(window.screen.height || screenWidth()));
+      var compactWidth = deviceWidth <= 767 ? deviceWidth : 390;
+      viewport.content = originalContent.replace(/(^|,)\s*width\s*=\s*[^,]+/i, "$1 width=" + compactWidth);
       root.classList.add("cvr-small-touch-viewport");
     } else {
       viewport.content = originalContent;

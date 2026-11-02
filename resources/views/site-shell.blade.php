@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <script src="/js/responsive-viewport.js?v=20261102a"></script>
+    <script src="/js/responsive-viewport.js?v=20261102b"></script>
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="160x160" href="/images/logo-email.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">

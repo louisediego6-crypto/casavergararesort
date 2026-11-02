@@ -7,12 +7,12 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <script src="../../js/responsive-viewport.js?v=20261102a"></script>
+  <script src="../../js/responsive-viewport.js?v=20261102b"></script>
   <meta http-equiv="refresh" content="0; url=live-chat.html" />
   <title>Live Chat - Casa Vergara Admin</title>
   <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../../css/modal-responsive.css?v=20261027a" rel="stylesheet">
-  <link href="../../css/responsive-final.css?v=20261102d" rel="stylesheet">
+  <link href="../../css/responsive-final.css?v=20261102e" rel="stylesheet">
   <script src="../../js/modal-responsive.js?v=20261027a" defer></script>
 </head>
 <body>
