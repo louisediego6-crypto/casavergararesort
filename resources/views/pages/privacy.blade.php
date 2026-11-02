@@ -6,8 +6,9 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <script src="../js/theme.js?v=20261102e"></script>
+  <script src="../js/theme.js?v=20261102f"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script src="../js/responsive-viewport.js?v=20261102a"></script>
   <title>Privacy Policy - Casa Vergara Resort</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -6,8 +6,9 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <script src="../js/theme.js?v=20261102e"></script>
+  <script src="../js/theme.js?v=20261102f"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script src="../js/responsive-viewport.js?v=20261102a"></script>
   <title>Casa Vergara Resort | Rooms, Events &amp; Pools in Biñan, Laguna</title>
   <meta name="description" content="Discover Casa Vergara Resort in Biñan, Laguna. Explore comfortable rooms, swimming pools, and event venues, and plan your next stay." />
   <link rel="canonical" href="https://casavergararesort.online/" />

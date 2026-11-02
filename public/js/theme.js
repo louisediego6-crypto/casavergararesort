@@ -5,30 +5,6 @@
   var PREFIX = "cvrTheme:";
   var root = document.documentElement;
 
-  function normalizeSmallTouchViewport() {
-    var viewport = document.querySelector('meta[name="viewport"]');
-    if (!viewport) return;
-
-    var originalContent = viewport.dataset.cvrOriginalContent || viewport.content;
-    viewport.dataset.cvrOriginalContent = originalContent;
-    var screenWidth = Math.min(window.screen.width || Infinity, window.screen.height || Infinity);
-    var isSmallTouchDevice = navigator.maxTouchPoints > 0 && screenWidth <= 767;
-    var desktopLayoutForced = isSmallTouchDevice && window.innerWidth > screenWidth * 1.35;
-
-    if (desktopLayoutForced) {
-      viewport.content = "width=device-width, initial-scale=1, viewport-fit=cover";
-      root.classList.add("cvr-small-touch-viewport");
-    } else {
-      viewport.content = originalContent;
-      root.classList.remove("cvr-small-touch-viewport");
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", normalizeSmallTouchViewport, { once: true });
-  window.addEventListener("orientationchange", function () {
-    window.setTimeout(normalizeSmallTouchViewport, 100);
-  });
-
   /* The choice is remembered per account (by login email) on this browser.
      Visitors who aren't logged in share a "guest" setting. */
   function key() {

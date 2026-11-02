@@ -7,6 +7,7 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <script src="../../js/responsive-viewport.js?v=20261102a"></script>
   <meta http-equiv="refresh" content="0; url=site-content.html?tab=faqs" />
   <title>FAQ Manager - Casa Vergara Admin</title>
   <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
