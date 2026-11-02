@@ -21,7 +21,7 @@
   <link href="../css/casa-refresh.css?v=20261018a" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
-  <link href="../css/theme.css?v=20261112a" rel="stylesheet">
+  <link href="../css/theme.css?v=20261102b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
@@ -63,7 +63,7 @@
 
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261105b"></script>
+  <script src="../js/main.js?v=20261102c"></script>
   <script src="../js/legal-doc.js?v=20261018b"></script>
   <script>
     renderNavbar("");

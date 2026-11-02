@@ -45,7 +45,10 @@ function cvr_chat_ensure_tables(PDO $pdo): void
     $statements = [
         "CREATE TABLE IF NOT EXISTS live_chat_conversations (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            customer_id INT NOT NULL,
+            customer_id INT DEFAULT NULL,
+            guest_token_hash CHAR(64) DEFAULT NULL,
+            guest_name VARCHAR(191) DEFAULT NULL,
+            guest_last_seen_at DATETIME DEFAULT NULL,
             reservation_id VARCHAR(40) DEFAULT NULL,
             topic VARCHAR(80) DEFAULT NULL,
             last_message_at DATETIME DEFAULT NULL,
@@ -57,12 +60,13 @@ function cvr_chat_ensure_tables(PDO $pdo): void
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             UNIQUE KEY uniq_chat_customer (customer_id),
+            UNIQUE KEY uniq_chat_guest_token (guest_token_hash),
             INDEX idx_chat_last (last_message_at)
         ) ENGINE=InnoDB",
         "CREATE TABLE IF NOT EXISTS live_chat_messages (
             id INT AUTO_INCREMENT PRIMARY KEY,
             conversation_id INT NOT NULL,
-            sender_id INT NOT NULL,
+            sender_id INT DEFAULT NULL,
             sender_role ENUM('customer', 'staff') NOT NULL,
             sender_label VARCHAR(191) NOT NULL DEFAULT '',
             body TEXT NOT NULL,
@@ -198,8 +202,10 @@ function cvr_chat_touch_customer_presence(PDO $pdo, int $userId, bool $available
 
 /** SQL fragment that adds the guest's presence to a query on live_chat_conversations c. */
 const CVR_CHAT_CUSTOMER_PRESENCE_SELECT =
-    ', p.is_available AS presence_available,
-       IF(p.last_seen_at IS NULL, NULL, TIMESTAMPDIFF(SECOND, p.last_seen_at, NOW())) AS presence_ago';
+    ', COALESCE(p.is_available, 1) AS presence_available,
+       IF(c.guest_last_seen_at IS NOT NULL,
+          TIMESTAMPDIFF(SECOND, c.guest_last_seen_at, NOW()),
+          IF(p.last_seen_at IS NULL, NULL, TIMESTAMPDIFF(SECOND, p.last_seen_at, NOW()))) AS presence_ago';
 const CVR_CHAT_CUSTOMER_PRESENCE_JOIN =
     ' LEFT JOIN live_chat_presence p ON p.user_id = c.customer_id';
 
@@ -228,6 +234,50 @@ function cvr_chat_get_or_create_conversation(PDO $pdo, int $customerId): array
     }
     $row = cvr_chat_find_conversation($pdo, $customerId);
     return $row ?: [];
+}
+
+function cvr_chat_guest_token(string $token): string
+{
+    $token = trim($token);
+    return preg_match('/^[a-f0-9]{64}$/i', $token) ? strtolower($token) : '';
+}
+
+function cvr_chat_find_guest_conversation(PDO $pdo, string $token): ?array
+{
+    if ($token === '') {
+        return null;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT * FROM live_chat_conversations WHERE guest_token_hash = ? AND customer_id IS NULL'
+    );
+    $stmt->execute([hash('sha256', $token)]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+function cvr_chat_guest_identity(array $conversation): array
+{
+    return [
+        'user_id' => 0,
+        'role' => 'customer',
+        'first_name' => (string) ($conversation['guest_name'] ?? 'Visitor'),
+        'last_name' => '',
+        'email' => '',
+    ];
+}
+
+function cvr_chat_touch_guest(PDO $pdo, int $conversationId): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE live_chat_conversations
+         SET guest_last_seen_at = IF(
+             guest_last_seen_at IS NULL OR guest_last_seen_at < (NOW() - INTERVAL 10 SECOND),
+             NOW(),
+             guest_last_seen_at
+         )
+         WHERE id = ? AND customer_id IS NULL'
+    );
+    $stmt->execute([$conversationId]);
 }
 
 function cvr_chat_format_message(array $row): array
@@ -303,6 +353,9 @@ function cvr_chat_format_conversation(array $row, ?array $customer = null): arra
     if ($customer) {
         $customerName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
     }
+    if ($customerName === '') {
+        $customerName = (string) ($row['guest_name'] ?? '');
+    }
 
     // Guest presence (only present when the query joined live_chat_presence)
     $seenAgo = isset($row['presence_ago']) && $row['presence_ago'] !== null ? max(0, (int) $row['presence_ago']) : null;
@@ -312,7 +365,7 @@ function cvr_chat_format_conversation(array $row, ?array $customer = null): arra
 
     return [
         'id' => (int) $row['id'],
-        'customerId' => (int) $row['customer_id'],
+        'customerId' => isset($row['customer_id']) ? (int) $row['customer_id'] : null,
         'customerName' => $customerName,
         'customerEmail' => $customer['email'] ?? null,
         'reservationId' => $row['reservation_id'] ?: null,
@@ -496,7 +549,7 @@ function cvr_chat_post_message(
 ): array {
     $type = (string) ($attachment['type'] ?? 'text');
     $senderRole = cvr_chat_is_staff_role($session['role'] ?? '') ? 'staff' : 'customer';
-    $senderId = (int) $session['user_id'];
+    $senderId = !empty($session['user_id']) ? (int) $session['user_id'] : null;
     $label = cvr_chat_sender_label($session);
     $preview = cvr_chat_preview_text($type, $body, (string) ($attachment['name'] ?? ''));
     $convId = (int) $conversation['id'];

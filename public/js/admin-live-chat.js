@@ -158,6 +158,7 @@ function initAdminLiveChatPage() {
     const p = profileState.cache[conv.id]?.data || null;
     const name = p?.name || conv.customerName || "Guest";
     const email = p?.email || conv.customerEmail || "";
+    const isVisitor = !!p && !p.userId;
     const online = !!conv.customerOnline;
     const presence = cvrChatGuestPresenceLabel(conv);
 
@@ -170,7 +171,7 @@ function initAdminLiveChatPage() {
         </span>
         <h3 class="lcp-name">${escapeHtml(name)}</h3>
         <div class="lcp-presence ${online ? "is-online" : ""}">${escapeHtml(presence)}</div>
-        ${p ? `<div class="lcp-chips">${chip(p.verified ? "Verified" : "Not verified", p.verified ? "ok" : "warn")}${chip(p.accountStatus === "suspended" ? "Suspended" : "Active account", p.accountStatus === "suspended" ? "bad" : "ok")}</div>` : ""}
+        ${p ? `<div class="lcp-chips">${isVisitor ? chip("Guest visitor") : `${chip(p.verified ? "Verified" : "Not verified", p.verified ? "ok" : "warn")}${chip(p.accountStatus === "suspended" ? "Suspended" : "Active account", p.accountStatus === "suspended" ? "bad" : "ok")}`}</div>` : ""}
       </div>`;
 
     if (!p) {
@@ -180,11 +181,10 @@ function initAdminLiveChatPage() {
     } else {
       html += `
       <section class="lcp-section">
-        <h4>Account</h4>
+        <h4>${isVisitor ? "Visitor" : "Account"}</h4>
         ${infoRow("bi-envelope", "Email", email ? `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>` : "")}
         ${infoRow("bi-telephone", "Phone", p.phone ? `<a href="tel:${escapeHtml(p.phone)}">${escapeHtml(p.phone)}</a>` : "")}
-        ${infoRow("bi-calendar-check", "Member since", escapeHtml(fmtDate(p.memberSince)))}
-        ${infoRow("bi-hash", "Account ID", escapeHtml(String(p.userId)))}
+        ${isVisitor ? `<p class="lcp-empty mb-0">This visitor started a chat without creating an account.</p>` : `${infoRow("bi-calendar-check", "Member since", escapeHtml(fmtDate(p.memberSince)))}${infoRow("bi-hash", "Account ID", escapeHtml(String(p.userId)))}`}
       </section>
       <section class="lcp-section">
         <h4>This chat</h4>
@@ -193,7 +193,7 @@ function initAdminLiveChatPage() {
         ${infoRow("bi-tag", "Topic", escapeHtml(cvrChatTopicLabel(p.chat.topic, state.topics) || ""))}
         ${infoRow("bi-bookmark", "Linked booking", escapeHtml(p.chat.reservationId || ""))}
       </section>
-      <section class="lcp-section">
+      ${!isVisitor ? `<section class="lcp-section">
         <h4>Bookings <span class="lcp-count">${p.reservationCount}</span></h4>
         ${
           p.reservations.length
@@ -216,7 +216,7 @@ function initAdminLiveChatPage() {
             : `<p class="lcp-empty">No bookings yet.</p>`
         }
         ${p.reservationCount > p.reservations.length ? `<a class="lcp-more" href="reservations.html">View all ${p.reservationCount} in Reservations <i class="bi bi-arrow-right"></i></a>` : ""}
-      </section>
+      </section>` : ""}
       ${email ? `<div class="lcp-actions"><a class="btn btn-sm btn-brand w-100" href="mailto:${escapeHtml(email)}"><i class="bi bi-envelope me-1"></i>Email guest</a></div>` : ""}`;
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use PDO;
 use PDOException;
 use Throwable;
@@ -12,6 +13,179 @@ use finfo;
 
 class ChatController extends Controller
 {
+    private function guestChatToken(Request $request): string
+    {
+        return cvr_chat_guest_token(
+            (string) ($request->bearerToken() ?: $request->header('X-CVR-Guest-Token', ''))
+        );
+    }
+
+    public function guestStart(Request $request)
+    {
+        if ($request->method() !== 'POST') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+
+        $rateKey = 'chat-guest-start:' . ($request->ip() ?: 'unknown');
+        if (RateLimiter::tooManyAttempts($rateKey, 5)) {
+            json_response(false, 'Please wait a few minutes before starting another chat.', [], 429);
+        }
+        RateLimiter::hit($rateKey, 300);
+
+        $body = get_json_body();
+        $name = trim((string) ($body['name'] ?? ''));
+        $messageText = trim((string) ($body['message'] ?? ''));
+        if ($name === '' || mb_strlen($name) > 120) {
+            json_response(false, 'Enter your name (up to 120 characters) to start the chat.', [], 422);
+        }
+        if ($messageText === '' || mb_strlen($messageText) > 2000) {
+            json_response(false, 'Enter an inquiry of up to 2,000 characters to start the chat.', [], 422);
+        }
+
+        $topic = (string) ($body['topic'] ?? 'other');
+        if (!array_key_exists($topic, CVR_CHAT_TOPICS)) {
+            $topic = 'other';
+        }
+
+        $pdo = get_db_connection();
+        cvr_chat_ensure_tables($pdo);
+        $token = bin2hex(random_bytes(32));
+        $stmt = $pdo->prepare(
+            'INSERT INTO live_chat_conversations
+                (customer_id, guest_token_hash, guest_name, guest_last_seen_at, topic, status)
+             VALUES (NULL, ?, ?, NOW(), ?, "open")'
+        );
+        $stmt->execute([hash('sha256', $token), mb_substr($name, 0, 120), $topic]);
+        $conversationId = (int) $pdo->lastInsertId();
+        $stmt = $pdo->prepare('SELECT * FROM live_chat_conversations WHERE id = ?');
+        $stmt->execute([$conversationId]);
+        $conversation = $stmt->fetch() ?: [];
+        $message = cvr_chat_post_message(
+            $pdo,
+            $conversation,
+            cvr_chat_guest_identity($conversation),
+            mb_substr($messageText, 0, 2000),
+            $topic,
+            null
+        );
+
+        json_response(true, 'Chat started.', [
+            'token' => $token,
+            'conversation' => cvr_chat_format_conversation($conversation),
+            'message' => $message,
+            'presence' => cvr_chat_presence_snapshot($pdo),
+        ]);
+    }
+
+    public function guestThread(Request $request)
+    {
+        if ($request->method() !== 'GET') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+        $token = $this->guestChatToken($request);
+        $pdo = get_db_connection();
+        cvr_chat_ensure_tables($pdo);
+        $conversation = cvr_chat_find_guest_conversation($pdo, $token);
+        if (!$conversation) {
+            json_response(false, 'This guest chat is no longer available. Start a new inquiry to continue.', [], 404);
+        }
+        cvr_chat_touch_guest($pdo, (int) $conversation['id']);
+        [$statuses, $sig] = cvr_chat_message_statuses($pdo, (int) $conversation['id'], 'customer');
+        $messages = cvr_chat_fetch_messages($pdo, (int) $conversation['id'], 0, 200, 'customer');
+        json_response(true, 'OK', [
+            'conversation' => cvr_chat_format_conversation($conversation),
+            'messages' => $messages,
+            'statuses' => $statuses,
+            'sig' => $sig,
+            'presence' => cvr_chat_presence_snapshot($pdo),
+        ]);
+    }
+
+    public function guestSend(Request $request)
+    {
+        if ($request->method() !== 'POST') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+        $rateKey = 'chat-guest-send:' . ($request->ip() ?: 'unknown');
+        if (RateLimiter::tooManyAttempts($rateKey, 40)) {
+            json_response(false, 'You are sending messages too quickly. Please wait a moment.', [], 429);
+        }
+        RateLimiter::hit($rateKey, 60);
+
+        $token = $this->guestChatToken($request);
+        $pdo = get_db_connection();
+        cvr_chat_ensure_tables($pdo);
+        $conversation = cvr_chat_find_guest_conversation($pdo, $token);
+        if (!$conversation) {
+            json_response(false, 'This guest chat is no longer available. Start a new inquiry to continue.', [], 404);
+        }
+        $body = get_json_body();
+        $messageText = trim((string) ($body['message'] ?? ''));
+        if ($messageText === '' || mb_strlen($messageText) > 2000) {
+            json_response(false, 'Messages must contain up to 2,000 characters.', [], 422);
+        }
+
+        cvr_chat_touch_guest($pdo, (int) $conversation['id']);
+        $message = cvr_chat_post_message(
+            $pdo,
+            $conversation,
+            cvr_chat_guest_identity($conversation),
+            $messageText,
+            null,
+            null
+        );
+        json_response(true, 'Sent.', [
+            'message' => $message,
+            'presence' => cvr_chat_presence_snapshot($pdo),
+        ]);
+    }
+
+    public function guestPoll(Request $request)
+    {
+        if ($request->method() !== 'GET') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+        $token = $this->guestChatToken($request);
+        $pdo = get_db_connection();
+        cvr_chat_ensure_tables($pdo);
+        $conversation = cvr_chat_find_guest_conversation($pdo, $token);
+        if (!$conversation) {
+            json_response(false, 'This guest chat is no longer available. Start a new inquiry to continue.', [], 404);
+        }
+        cvr_chat_touch_guest($pdo, (int) $conversation['id']);
+        $conversationId = (int) $conversation['id'];
+        $afterId = max(0, (int) $request->query('afterId', 0));
+        $messages = cvr_chat_fetch_messages($pdo, $conversationId, $afterId, 200, 'customer');
+        [$statuses, $sig] = cvr_chat_message_statuses($pdo, $conversationId, 'customer');
+        json_response(true, 'OK', [
+            'conversationId' => $conversationId,
+            'messages' => $messages,
+            'statuses' => $statuses,
+            'sig' => $sig,
+            'presence' => cvr_chat_presence_snapshot($pdo),
+            'unread' => (int) ($conversation['customer_unread'] ?? 0),
+        ]);
+    }
+
+    public function guestMarkRead(Request $request)
+    {
+        if ($request->method() !== 'POST') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+        $token = $this->guestChatToken($request);
+        $pdo = get_db_connection();
+        cvr_chat_ensure_tables($pdo);
+        $conversation = cvr_chat_find_guest_conversation($pdo, $token);
+        if (!$conversation) {
+            json_response(false, 'This guest chat is no longer available.', [], 404);
+        }
+        $conversationId = (int) $conversation['id'];
+        $pdo->prepare('UPDATE live_chat_conversations SET customer_unread = 0 WHERE id = ?')
+            ->execute([$conversationId]);
+        cvr_chat_mark_messages_seen($pdo, $conversationId, 'customer');
+        json_response(true, 'OK');
+    }
+
     /** Ported from api/chat/conversation.php */
     public function conversation(Request $request)
     {
@@ -259,7 +433,7 @@ class ChatController extends Controller
         $stmt = $pdo->query(
             "SELECT c.*, u.first_name, u.last_name, u.email, u.avatar_path" . CVR_CHAT_CUSTOMER_PRESENCE_SELECT . "
              FROM live_chat_conversations c
-             JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
+             LEFT JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
              ORDER BY COALESCE(c.last_message_at, c.created_at) DESC, c.id DESC"
         );
         $rows = $stmt->fetchAll();
@@ -438,18 +612,54 @@ class ChatController extends Controller
         cvr_chat_ensure_tables($pdo);
 
         $stmt = $pdo->prepare(
-            "SELECT c.id AS conversation_id, c.topic, c.reservation_id AS chat_reservation_id, c.created_at AS chat_started_at,
+            "SELECT c.id AS conversation_id, c.topic, c.guest_name, c.reservation_id AS chat_reservation_id, c.created_at AS chat_started_at,
                     u.id AS user_id, u.first_name, u.last_name, u.email, u.phone, u.avatar_path,
                     u.is_verified, u.status AS account_status, u.created_at AS member_since"
             . CVR_CHAT_CUSTOMER_PRESENCE_SELECT . "
              FROM live_chat_conversations c
-             JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
+             LEFT JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
              WHERE c.id = ?"
         );
         $stmt->execute([$conversationId]);
         $row = $stmt->fetch();
         if (!$row) {
             json_response(false, 'Conversation not found.', [], 404);
+        }
+
+        if (empty($row['user_id'])) {
+            $stats = $pdo->prepare(
+                "SELECT COUNT(*) AS total, SUM(sender_role = 'customer') AS from_guest, MIN(created_at) AS first_at
+                 FROM live_chat_messages WHERE conversation_id = ? AND deleted_for_all = 0"
+            );
+            $stats->execute([$conversationId]);
+            $chat = $stats->fetch() ?: [];
+            $seenAgo = $row['presence_ago'] !== null ? max(0, (int) $row['presence_ago']) : null;
+            json_response(true, 'OK', [
+                'profile' => [
+                    'conversationId' => (int) $row['conversation_id'],
+                    'userId' => null,
+                    'name' => (string) ($row['guest_name'] ?? 'Visitor'),
+                    'firstName' => (string) ($row['guest_name'] ?? 'Visitor'),
+                    'lastName' => '',
+                    'email' => '',
+                    'phone' => '',
+                    'avatarUrl' => null,
+                    'verified' => false,
+                    'accountStatus' => 'Visitor (no account)',
+                    'memberSince' => $row['chat_started_at'],
+                    'online' => $seenAgo !== null && $seenAgo <= CVR_CHAT_PRESENCE_SECONDS,
+                    'seenAgo' => $seenAgo,
+                    'chat' => [
+                        'startedAt' => $row['chat_started_at'],
+                        'topic' => $row['topic'],
+                        'reservationId' => null,
+                        'messages' => (int) ($chat['total'] ?? 0),
+                        'fromGuest' => (int) ($chat['from_guest'] ?? 0),
+                    ],
+                    'reservationCount' => 0,
+                    'reservations' => [],
+                ],
+            ]);
         }
 
         // Chat stats
@@ -648,7 +858,7 @@ class ChatController extends Controller
         $stmt = $pdo->prepare(
             "SELECT c.*, u.first_name, u.last_name, u.email, u.avatar_path" . CVR_CHAT_CUSTOMER_PRESENCE_SELECT . "
              FROM live_chat_conversations c
-             JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
+             LEFT JOIN users u ON u.id = c.customer_id" . CVR_CHAT_CUSTOMER_PRESENCE_JOIN . "
              WHERE c.id = ?"
         );
         $stmt->execute([$conversationId]);

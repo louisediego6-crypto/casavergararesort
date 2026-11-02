@@ -19,7 +19,7 @@
   <link href="../../css/admin-modern.css?v=20261102a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
-  <link href="../../css/theme.css?v=20261112a" rel="stylesheet">
+  <link href="../../css/theme.css?v=20261102b" rel="stylesheet">
   <link href="../../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
@@ -140,7 +140,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../../js/main.js?v=20261105b"></script>
+  <script src="../../js/main.js?v=20261102c"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin.js?v=20260830i"></script>
   <script src="../../js/admin-live-charts.js?v=20261027a"></script>

@@ -1788,6 +1788,11 @@ function renderNavbar(active = "") {
   const displayName = customerProfileDisplayName(session);
   const initials = customerProfileInitials(session);
   const shortName = escapeHtml((session?.firstName || displayName).split(" ")[0] || displayName);
+  const guestThemeToggle = `
+    <button type="button" class="cvr-theme-toggle nav-guest-theme-toggle" data-cvr-theme-toggle aria-pressed="false">
+      <i class="bi bi-moon-stars-fill cvr-theme-icon-moon" aria-hidden="true"></i>
+      <i class="bi bi-sun-fill cvr-theme-icon-sun" aria-hidden="true"></i>
+    </button>`;
   const photo = customerAvatarSrc(session);
   const navAvatarMarkup = photo
     ? `<img class="nav-profile-avatar nav-profile-avatar--photo" src="${photo}" alt="" loading="lazy" />`
@@ -1887,6 +1892,7 @@ function renderNavbar(active = "") {
           ${notifBellMarkup}
         `
     : `
+          ${guestThemeToggle}
           <a href="${pageUrl("login.html")}" class="nav-auth-link d-none d-lg-inline-flex" data-site-text-key="nav_login">Log in</a>
           <a class="btn btn-accent nav-book-btn px-4 d-none d-lg-inline-flex" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
@@ -1900,7 +1906,10 @@ function renderNavbar(active = "") {
           <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `
     : `
-          <a class="btn btn-outline-brand nav-auth-link-mobile w-100" href="${pageUrl("login.html")}" data-site-text-key="nav_login">Log in</a>
+          <div class="d-flex gap-2 align-items-center">
+            ${guestThemeToggle}
+            <a class="btn btn-outline-brand nav-auth-link-mobile flex-fill" href="${pageUrl("login.html")}" data-site-text-key="nav_login">Log in</a>
+          </div>
           <a class="btn btn-accent nav-book-btn w-100" href="${pageUrl("booking.html")}" data-site-text-key="nav_book_now">Book now</a>
         `;
 
@@ -1935,6 +1944,8 @@ function renderNavbar(active = "") {
     </header>
     <div class="site-header-spacer" id="siteHeaderSpacer" aria-hidden="true"></div>
   `;
+
+  window.cvrTheme?.refresh();
 
   nav.querySelector("#cvrNavLogoutBtn")?.addEventListener("click", () => {
     cvrConfirmLogout(pageUrl("login.html"));
@@ -2464,7 +2475,7 @@ function bootLiveChatWidget() {
   if (location.pathname.includes("/pages/admin/")) return;
   if (document.querySelector("script[data-cvr-live-chat]")) return;
   const script = document.createElement("script");
-  script.src = `${assetUrl("js/live-chat.js")}?v=20261024c`;
+  script.src = `${assetUrl("js/live-chat.js")}?v=20261102a`;
   script.dataset.cvrLiveChat = "1";
   document.body.appendChild(script);
 }

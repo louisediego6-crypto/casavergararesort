@@ -69,6 +69,13 @@ html[data-theme="dark"] .cvr-theme-toggle .cvr-theme-icon-moon { display: none; 
 .nav-mobile-actions .cvr-theme-toggle { width: 100%; height: 2.5rem; border-radius: 999px; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; }
 .nav-mobile-actions .cvr-theme-toggle .cvr-theme-label::after { content: "Dark mode"; }
 html[data-theme="dark"] .nav-mobile-actions .cvr-theme-toggle .cvr-theme-label::after { content: "Light mode"; }
+.nav-mobile-actions .nav-guest-theme-toggle { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; }
+@media (max-width: 430px) {
+  .nav-mobile-actions .nav-guest-theme-toggle { width: 36px; height: 36px; flex-basis: 36px; }
+}
+@media (max-width: 359.98px) {
+  .nav-mobile-actions .nav-guest-theme-toggle { width: 32px; height: 32px; flex-basis: 32px; }
+}
 
 /* =============================================================================
    DARK MODE

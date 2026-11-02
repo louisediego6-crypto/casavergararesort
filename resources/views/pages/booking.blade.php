@@ -20,7 +20,7 @@
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
-  <link href="../css/theme.css?v=20261112a" rel="stylesheet">
+  <link href="../css/theme.css?v=20261102b" rel="stylesheet">
   <link href="../css/calendars.css?v=20261026b" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/booking-ui.css?v=20261105b" rel="stylesheet">
@@ -378,7 +378,7 @@
   <button type="button" class="bk-float" id="bkFloat" aria-label="Change dates"><i class="bi bi-sliders"></i>Change dates</button>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/main.js?v=20261102b"></script>
+  <script src="../js/main.js?v=20261102c"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
   <script src="../js/booking-data.js?v=20261102b"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

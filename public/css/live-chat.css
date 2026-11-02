@@ -134,6 +134,19 @@
   text-align: center;
   background: var(--cvr-chat-surface);
 }
+.cvr-chat-guest-form {
+  max-width: 24rem;
+  margin: 0 auto;
+  text-align: left;
+}
+.cvr-chat-guest-form .form-control {
+  font-size: 0.9rem;
+}
+.cvr-cmp-text-only .cvr-cmp-row > .cvr-cmp-ico,
+.cvr-cmp-text-only [data-role="file-input"],
+.cvr-cmp-text-only [data-role="photo-input"] {
+  display: none !important;
+}
 
 /* ---------- Thread ---------- */
 /* The panel is a column: the thread takes the spare height and the composer stays visible. */

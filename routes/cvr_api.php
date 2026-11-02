@@ -115,6 +115,11 @@ Route::any('auth/verify-reset-code', [AuthController::class, 'verifyResetCode'])
 Route::any('chat/conversation', [ChatController::class, 'conversation']);
 Route::any('chat/delete', [ChatController::class, 'delete']);
 Route::any('chat/file', [ChatController::class, 'file']);
+Route::any('chat/guest/start', [ChatController::class, 'guestStart']);
+Route::any('chat/guest/thread', [ChatController::class, 'guestThread']);
+Route::any('chat/guest/send', [ChatController::class, 'guestSend']);
+Route::any('chat/guest/poll', [ChatController::class, 'guestPoll']);
+Route::any('chat/guest/mark-read', [ChatController::class, 'guestMarkRead']);
 Route::any('chat/heartbeat', [ChatController::class, 'heartbeat']);
 Route::any('chat/inbox', [ChatController::class, 'inbox']);
 Route::any('chat/leave', [ChatController::class, 'leave']);

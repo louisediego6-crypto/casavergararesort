@@ -17,7 +17,7 @@ const CVR_CHAT_GROUP_GAP_MS = 15 * 60 * 1000;
     if (!src || document.querySelector("link[data-cvr-chat-styles]")) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = new URL("../css/live-chat.css?v=20261105a", src).href;
+    link.href = new URL("../css/live-chat.css?v=20261102b", src).href;
     link.dataset.cvrChatStyles = "1";
     document.head.appendChild(link);
   } catch (_) {
@@ -214,6 +214,7 @@ function cvrChatBubbleInner(m, mine) {
  * Messenger-style thread: grouped bubbles, centered time separators, avatars.
  * opts.viewer: "customer" (guest widget) or "staff" (admin inbox)
  * opts.theirAvatar: initials shown beside the other person's messages
+ * opts.allowMessageActions: set false for capability-token visitor chats
  */
 function cvrChatRenderBubbles(messages, opts = {}) {
   const viewer = opts.viewer || "customer";
@@ -268,7 +269,7 @@ function cvrChatRenderBubbles(messages, opts = {}) {
         ? cvrChatAvatarMarkup(photo, viewer === "staff" ? theirAvatar : "CV")
         : `<span class="cvr-chat-avatar cvr-chat-avatar--gap"></span>`;
 
-    const menu = `<div class="cvr-msg-actions">
+    const menu = opts.allowMessageActions === false ? "" : `<div class="cvr-msg-actions">
         <button type="button" class="cvr-msg-more" data-msg-menu="${m.id}" data-mine="${mine ? 1 : 0}" data-deleted="${m.deleted ? 1 : 0}" aria-label="Message options" aria-haspopup="menu"><i class="bi bi-three-dots"></i></button>
       </div>`;
 
@@ -591,6 +592,7 @@ function cvrChatBuildComposer(mount, opts) {
   const emojiBtn = mount.querySelector('[data-act="emoji"]');
   const fileInput = mount.querySelector('[data-role="file-input"]');
   const photoInput = mount.querySelector('[data-role="photo-input"]');
+  if (opts.allowAttachments === false) mount.classList.add("cvr-cmp-text-only");
 
   const items = [];
   let uid = 0;
@@ -662,6 +664,7 @@ function cvrChatBuildComposer(mount, opts) {
   };
 
   const addFiles = (fileList) => {
+    if (opts.allowAttachments === false) return;
     const files = Array.from(fileList || []);
     let added = 0;
     for (const file of files) {
@@ -764,7 +767,7 @@ function cvrChatBuildComposer(mount, opts) {
   });
   ta.addEventListener("focus", () => setEmojiOpen(false));
   ta.addEventListener("paste", (e) => {
-    const files = e.clipboardData?.files;
+    const files = opts.allowAttachments === false ? null : e.clipboardData?.files;
     if (files && files.length) {
       e.preventDefault();
       addFiles(files);
@@ -779,8 +782,8 @@ function cvrChatBuildComposer(mount, opts) {
     }
 
     const act = e.target.closest("[data-act]")?.dataset.act;
-    if (act === "file") fileInput.click();
-    else if (act === "photo") photoInput.click();
+    if (act === "file" && opts.allowAttachments !== false) fileInput.click();
+    else if (act === "photo" && opts.allowAttachments !== false) photoInput.click();
     else if (act === "emoji") setEmojiOpen(!emojiOpen);
 
     const emoji = e.target.closest("[data-emoji]");
@@ -812,7 +815,7 @@ function cvrChatBuildComposer(mount, opts) {
 
   const dropEl = mount.closest(".cvr-chat-panel, .live-chat-main") || mount;
   dropEl.addEventListener("dragover", (e) => {
-    if (e.dataTransfer?.types?.includes("Files")) {
+    if (opts.allowAttachments !== false && e.dataTransfer?.types?.includes("Files")) {
       e.preventDefault();
       dropEl.classList.add("is-dragover");
     }
@@ -821,7 +824,7 @@ function cvrChatBuildComposer(mount, opts) {
     if (!dropEl.contains(e.relatedTarget)) dropEl.classList.remove("is-dragover");
   });
   dropEl.addEventListener("drop", (e) => {
-    if (e.dataTransfer?.files?.length) {
+    if (opts.allowAttachments !== false && e.dataTransfer?.files?.length) {
       e.preventDefault();
       dropEl.classList.remove("is-dragover");
       addFiles(e.dataTransfer.files);
@@ -862,8 +865,15 @@ function initLiveChatWidget() {
       </div>
       <div id="cvrLiveChatUnavailable" class="cvr-chat-unavailable d-none" role="status"></div>
       <div id="cvrLiveChatAuth" class="cvr-chat-auth-gate d-none">
-        <p class="small text-muted-brand mb-3">Sign in to send us a message for reservation inquiries and concerns. Our team will respond as soon as available.</p>
-        <a class="btn btn-brand w-100" id="cvrLiveChatLoginLink" href="#">Log in to chat</a>
+        <p class="small text-muted-brand mb-3">Ask our resort team a question without creating an account. Leave your name and first inquiry to begin.</p>
+        <form id="cvrLiveChatGuestStartForm" class="cvr-chat-guest-form">
+          <label class="form-label small fw-semibold mb-1" for="cvrLiveChatGuestName">Your name</label>
+          <input class="form-control mb-3" id="cvrLiveChatGuestName" name="name" maxlength="120" autocomplete="name" required>
+          <label class="form-label small fw-semibold mb-1" for="cvrLiveChatGuestMessage">How can we help?</label>
+          <textarea class="form-control mb-3" id="cvrLiveChatGuestMessage" name="message" rows="3" maxlength="2000" required placeholder="Ask us about rooms, events, or resort services"></textarea>
+          <div class="small text-danger mb-2 d-none" id="cvrLiveChatGuestError" role="alert"></div>
+          <button type="submit" class="btn btn-brand w-100" id="cvrLiveChatGuestStartBtn">Start chat</button>
+        </form>
       </div>
       <div id="cvrLiveChatThreadWrap" class="d-none flex-column">
         <div id="cvrLiveChatMessages" class="cvr-chat-messages"></div>
@@ -896,9 +906,15 @@ function initLiveChatWidget() {
     lastId: 0,
     sig: "",
     userId: session?.id || null,
+    guestToken: "",
     pollTimer: null,
     abort: null,
   };
+  try {
+    state.guestToken = localStorage.getItem("cvrGuestLiveChatToken") || "";
+  } catch {
+    state.guestToken = "";
+  }
 
   cvrChatBindMessageEvents(messagesEl, {
     onDelete: async (id, scope) => {
@@ -945,7 +961,10 @@ function initLiveChatWidget() {
   const renderMessages = (force = false) => {
     if (!messagesEl) return;
     scroller.beforeRender(force);
-    messagesEl.innerHTML = cvrChatRenderBubbles(state.messages, { viewer: "customer" });
+    messagesEl.innerHTML = cvrChatRenderBubbles(state.messages, {
+      viewer: "customer",
+      allowMessageActions: !!session,
+    });
     scroller.afterRender();
   };
 
@@ -962,14 +981,79 @@ function initLiveChatWidget() {
     return changed;
   };
 
+  const guestRequest = async (endpoint, method = "GET", payload = null, token = state.guestToken) => {
+    const headers = token
+      ? { Authorization: `Bearer ${token}`, "X-CVR-Guest-Token": token }
+      : {};
+    if (payload) headers["Content-Type"] = "application/json";
+    const res = await fetch(`${cvrApiBase()}/chat/guest/${endpoint}`, {
+      method,
+      headers,
+      credentials: "same-origin",
+      ...(payload ? { body: JSON.stringify(payload) } : {}),
+    });
+    let body;
+    try {
+      body = await res.json();
+    } catch {
+      body = { success: false, message: "Unexpected server response." };
+    }
+    return { ok: res.ok, status: res.status, body };
+  };
+
+  const resetGuestChat = (message = "") => {
+    state.guestToken = "";
+    state.messages = [];
+    state.lastId = 0;
+    state.sig = "";
+    try {
+      localStorage.removeItem("cvrGuestLiveChatToken");
+    } catch {
+      // The current page can still start a new chat without persistent storage.
+    }
+    authEl?.classList.remove("d-none");
+    threadWrap?.classList.add("d-none");
+    threadWrap?.classList.remove("d-flex");
+    const errorEl = document.getElementById("cvrLiveChatGuestError");
+    if (errorEl && message) {
+      errorEl.textContent = message;
+      errorEl.classList.remove("d-none");
+    }
+  };
+
   const loadConversation = async () => {
     const current = typeof getCustomerSession === "function" ? getCustomerSession() : null;
     if (!current) {
-      authEl?.classList.remove("d-none");
-      threadWrap?.classList.add("d-none");
-      threadWrap?.classList.remove("d-flex");
-      const { body } = await cvrApiGet("chat/presence");
-      if (body?.success) applyPresence(body.data);
+      if (!state.guestToken) {
+        authEl?.classList.remove("d-none");
+        threadWrap?.classList.add("d-none");
+        threadWrap?.classList.remove("d-flex");
+        const { body } = await cvrApiGet("chat/presence");
+        if (body?.success) applyPresence(body.data);
+        return;
+      }
+      const { body } = await guestRequest("thread");
+      if (!body?.success) {
+        if (body?.status === 404) {
+          resetGuestChat(body.message || "Start a new inquiry to chat with the resort team.");
+        } else if (typeof cvrToast === "function") {
+          cvrToast(body?.message || "Could not load live chat. Please try again.", "danger");
+        }
+        return;
+      }
+      authEl?.classList.add("d-none");
+      threadWrap?.classList.remove("d-none");
+      threadWrap?.classList.add("d-flex");
+      state.messages = body.data.messages || [];
+      state.lastId = state.messages.length ? state.messages[state.messages.length - 1].id : 0;
+      state.sig = body.data.sig || "";
+      applyPresence(body.data.presence);
+      setBadge(body.data.conversation?.customerUnread || 0);
+      renderMessages(true);
+      if (state.open) {
+        guestRequest("mark-read", "POST").catch(() => {});
+        setBadge(0);
+      }
       return;
     }
     authEl?.classList.add("d-none");
@@ -1004,6 +1088,29 @@ function initLiveChatWidget() {
   const pollOnce = async (wait) => {
     const current = typeof getCustomerSession === "function" ? getCustomerSession() : null;
     if (!current) {
+      if (state.guestToken) {
+        const qs = `afterId=${state.lastId || 0}`;
+        const { body } = await guestRequest(`poll?${qs}`);
+        if (!body?.success) {
+          if (body?.message?.includes("no longer available")) resetGuestChat(body.message);
+          return;
+        }
+        let changed = mergeMessages(body.data.messages || []);
+        const applied = cvrChatApplyStatuses(state.messages, body.data.statuses || []);
+        if (applied.changed) {
+          state.messages = applied.messages;
+          changed = true;
+        }
+        state.sig = body.data.sig || "";
+        applyPresence(body.data.presence);
+        if (changed) renderMessages();
+        if (!state.open) setBadge(body.data.unread || 0);
+        else if ((body.data.messages || []).length) {
+          guestRequest("mark-read", "POST").catch(() => {});
+          setBadge(0);
+        }
+        return;
+      }
       const { body } = await cvrApiGet("chat/presence");
       if (body?.success) applyPresence(body.data);
       return;
@@ -1034,7 +1141,7 @@ function initLiveChatWidget() {
     } catch {
       
     }
-    state.pollTimer = setTimeout(loopPoll, state.open ? 400 : 8000);
+    state.pollTimer = setTimeout(loopPoll, state.open ? (session ? 400 : 2500) : 8000);
   };
 
   const openPanel = async () => {
@@ -1044,7 +1151,9 @@ function initLiveChatWidget() {
     await loadConversation();
     if (authEl?.classList.contains("d-none")) {
       renderMessages(true);
-      composer.focus();
+      composer?.focus();
+    } else if (!session) {
+      document.getElementById("cvrLiveChatGuestName")?.focus();
     }
   };
 
@@ -1061,15 +1170,17 @@ function initLiveChatWidget() {
   closeBtn?.addEventListener("click", closePanel);
 
   const composer = cvrChatBuildComposer(composerMount, {
+    allowAttachments: !!session,
     send: async (payload) => {
-      const res =
-        payload.type === "file"
-          ? await (() => {
-              const fd = new FormData();
-              fd.append("file", payload.file);
-              return cvrApiPostForm("chat/send", fd);
-            })()
-          : await cvrApiPost("chat/send", payload);
+      const res = !session
+        ? await guestRequest("send", "POST", payload)
+        : payload.type === "file"
+        ? await (() => {
+            const fd = new FormData();
+            fd.append("file", payload.file);
+            return cvrApiPostForm("chat/send", fd);
+          })()
+        : await cvrApiPost("chat/send", payload);
       const body = res.body;
       if (!body?.success) {
         if (typeof cvrToast === "function") cvrToast(body?.message || "Could not send message.", "danger");
@@ -1081,6 +1192,52 @@ function initLiveChatWidget() {
       setBadge(0);
       return true;
     },
+  });
+
+  document.getElementById("cvrLiveChatGuestStartForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+    const errorEl = document.getElementById("cvrLiveChatGuestError");
+    const submitBtn = document.getElementById("cvrLiveChatGuestStartBtn");
+    if (errorEl) {
+      errorEl.textContent = "";
+      errorEl.classList.add("d-none");
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const { body } = await guestRequest("start", "POST", { name, message }, "");
+      if (!body?.success) {
+        if (errorEl) {
+          errorEl.textContent = body?.message || "Could not start your chat right now. Try again.";
+          errorEl.classList.remove("d-none");
+        }
+        return;
+      }
+      state.guestToken = body.data.token;
+      try {
+        localStorage.setItem("cvrGuestLiveChatToken", state.guestToken);
+      } catch {
+        // Keep this guest thread available for the current page session.
+      }
+      authEl?.classList.add("d-none");
+      state.messages = body.data.message ? [body.data.message] : [];
+      state.lastId = state.messages.length ? state.messages[state.messages.length - 1].id : 0;
+      applyPresence(body.data.presence);
+      threadWrap?.classList.remove("d-none");
+      threadWrap?.classList.add("d-flex");
+      renderMessages(true);
+      composer?.focus();
+    } catch {
+      if (errorEl) {
+        errorEl.textContent = "Could not connect to live chat. Please try again.";
+        errorEl.classList.remove("d-none");
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 
   document.addEventListener("cvr-open-live-chat", () => {
