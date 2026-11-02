@@ -196,6 +196,11 @@
               <label for="eventBirthdayPackage" class="form-label text-brand">Birthday Package (optional)</label>
               <select id="eventBirthdayPackage" class="form-select"></select>
             </div>
+            <div class="col-md-6 d-none" id="eventSessionWrap">
+              <label for="eventSession" class="form-label text-brand">Session <span class="text-danger">*</span></label>
+              <select id="eventSession" class="form-select"></select>
+              <div class="form-text" id="eventSessionHint"></div>
+            </div>
             <div class="col-12">
               <div id="eventPackageDetails" class="booking-event-package-details d-none"></div>
             </div>

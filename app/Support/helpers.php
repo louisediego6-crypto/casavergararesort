@@ -56,6 +56,24 @@ function cvr_private_payment_proof_path(string $fileName): string
     return storage_path('app/private/uploads/payments/' . $fileName);
 }
 
+/** Makes sure payment_proofs can keep the receipt bytes (Railway's disk is wiped on every deploy). */
+function cvr_ensure_proof_data_column(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    try {
+        $exists = $pdo->query("SHOW COLUMNS FROM payment_proofs LIKE 'file_data'")->fetch();
+        if (!$exists) {
+            $pdo->exec('ALTER TABLE payment_proofs ADD COLUMN file_data LONGBLOB NULL');
+        }
+        $done = true;
+    } catch (\Throwable $e) {
+        error_log('cvr_ensure_proof_data_column: ' . $e->getMessage());
+    }
+}
+
 function cvr_private_payment_proof_url(string $fileName): string
 {
     if (!preg_match('/\Aproof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+\z/', $fileName)) {

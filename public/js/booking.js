@@ -478,6 +478,35 @@ function initBookingPage() {
     const otherSpecifyWrapEl = document.getElementById("eventOtherSpecifyWrap");
     const otherSpecifyEl = document.getElementById("eventOtherSpecify");
     const detailsEl = document.getElementById("eventPackageDetails");
+    const sessionWrapEl = document.getElementById("eventSessionWrap");
+    const sessionEl = document.getElementById("eventSession");
+    const sessionHintEl = document.getElementById("eventSessionHint");
+
+    // Session picker (Morning / Night / Whole day) for events that are not Private Venue packages.
+    const syncSessionOptions = (packageKey) => {
+      if (!sessionWrapEl || !sessionEl) return [];
+      const options = packageKey && cat.getEventSessionOptions ? cat.getEventSessionOptions(packageKey) : [];
+      if (!options.length) {
+        sessionWrapEl.classList.add("d-none");
+        sessionEl.innerHTML = "";
+        sessionEl.dataset.pkg = "";
+        if (sessionHintEl) sessionHintEl.textContent = "";
+        return [];
+      }
+      sessionWrapEl.classList.remove("d-none");
+      if (sessionEl.dataset.pkg !== packageKey) {
+        const previous = sessionEl.value;
+        sessionEl.innerHTML = `<option value="">Select session</option>` + options.map((o) => {
+          const price = cat.formatMoney(cat.getEventSessionRate(packageKey, o.key), "PHP");
+          return `<option value="${escapeHtml(o.key)}">${escapeHtml(o.name)} · ${escapeHtml(o.label)} — ${escapeHtml(price)}</option>`;
+        }).join("");
+        sessionEl.dataset.pkg = packageKey;
+        if (options.some((o) => o.key === previous)) sessionEl.value = previous;
+      }
+      const chosen = cat.getEventSession?.(sessionEl.value);
+      if (sessionHintEl) sessionHintEl.textContent = chosen ? `${chosen.name}: ${chosen.label}` : "Choose the time slot for your event.";
+      return options;
+    };
 
     const syncOtherSpecifyVisibility = () => {
       if (!otherSpecifyWrapEl) return;
@@ -526,6 +555,8 @@ function initBookingPage() {
       if (!detailsEl) return;
       const key = getSelectedPackageKey();
       const pkg = cat.getEventPackageCatalog(key);
+      const sessionOptions = syncSessionOptions(key);
+      const selectedSession = sessionOptions.length ? (cat.getEventSession?.(sessionEl?.value) || null) : null;
       const motifWrap = document.getElementById("eventMotifBookingWrap");
       const motifSelect = document.getElementById("eventMotifSelect");
       if (motifWrap && motifSelect && cat.getEventMotifs) {
@@ -547,8 +578,10 @@ function initBookingPage() {
       }
 
       const fixedSchedule = key ? getFixedSchedule(key) : null;
-      const durationKey = fixedSchedule?.durationKey || "12hr";
-      const durationRate = pkg.flatRate
+      const durationKey = fixedSchedule?.durationKey || selectedSession?.durationKey || "12hr";
+      const durationRate = selectedSession
+        ? cat.getEventSessionRate(key, selectedSession.key)
+        : pkg.flatRate
         ? Math.max(0, Number(pkg.price) || 0)
         : pkg.doubleRateOn24hr && durationKey === "24hr"
         ? (cat.cvrWholeDayRate ? cat.cvrWholeDayRate(pkg) : Math.max(0, Number(pkg.price) || 0) * 2)
@@ -564,6 +597,10 @@ function initBookingPage() {
         : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1500).toLocaleString()} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band`;
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
+        : selectedSession
+        ? `package price · ${selectedSession.name} (${selectedSession.label})`
+        : sessionOptions.length
+        ? "starting price · choose a session above"
         : pkg.flatRate
         ? "flat package price · single-day event"
         : pkg.isCustom
@@ -706,6 +743,13 @@ function initBookingPage() {
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
+    sessionEl?.addEventListener("change", () => renderPackageDetails());
+    // The event calendar asks which slots (morning / night) the selected package + session needs.
+    window.cvrEventRequestedSlots = () => {
+      const key = getSelectedPackageKey();
+      const sessionKey = cat.getEventSessionOptions?.(key)?.length ? (sessionEl?.value || "") : "";
+      return window.cvrEventSlotsFor ? window.cvrEventSlotsFor(key, sessionKey) : null;
+    };
     // Total guests, adults and kids are linked:
     //   - editing Adults or Kids updates the Total
     //   - editing the Total keeps the Kids count and adjusts Adults (at least 1 adult),
@@ -798,9 +842,12 @@ function initBookingPage() {
       const otherSpecifyVal = (otherSpecifyEl?.value || "").trim();
       const packageOption = getSelectedPackageKey();
       const fixedSchedule = getFixedSchedule(packageOption);
+      const sessionOptions = cat.getEventSessionOptions ? cat.getEventSessionOptions(packageOption) : [];
+      const sessionKey = sessionOptions.length ? (sessionEl?.value || "") : "";
+      const chosenSession = sessionKey ? cat.getEventSession?.(sessionKey) : null;
       const eventGuests = document.getElementById("eventGuests")?.value || "";
       const eventDateVal = document.getElementById("eventDate")?.value || "";
-      const durationKey = fixedSchedule?.durationKey || "12hr";
+      const durationKey = fixedSchedule?.durationKey || chosenSession?.durationKey || "12hr";
       const additionalNotes = document.getElementById("eventNotes")?.value || "";
 
       const eventType = rawEventType === "Others" && otherSpecifyVal ? `Others - ${otherSpecifyVal}` : rawEventType;
@@ -833,6 +880,10 @@ function initBookingPage() {
         showMessage(`The maximum occupancy for the resort is ${maxEventGuests} guests per event.`, true);
         return;
       }
+      if (sessionOptions.length && !chosenSession) {
+        showMessage("Please select a session (morning, night, or whole day) for your event.", true);
+        return;
+      }
       if (!eventDateVal) {
         showMessage("Please choose a preferred date.", true);
         return;
@@ -847,11 +898,11 @@ function initBookingPage() {
         showMessage("Please select a valid event date.", true);
         return;
       }
-      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "")) {
-        showMessage("Sorry, that event date is already booked or unavailable. Please choose another date.", true);
+      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "", window.cvrEventSlotsFor?.(packageOption, sessionKey))) {
+        showMessage(sessionKey || fixedSchedule ? "Sorry, that session is already booked on this date. Please choose another session or date." : "Sorry, that event date is already booked or unavailable. Please choose another date.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], null, null, null, Number(eventGuests), null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], null, null, null, Number(eventGuests), sessionKey || null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -864,8 +915,8 @@ function initBookingPage() {
         adults: eventAdults,
         children: eventChildren,
         preferredDate: win.checkInDateOnly,
-        durationKey,
-        durationLabel: "Single-day event",
+        durationKey: totals?.durationKey || durationKey,
+        durationLabel: totals?.durationLabel || "Single-day event",
         extendedNights: null,
         scheduledCheckIn: win.scheduledCheckIn,
         scheduledCheckOut: win.scheduledCheckOut,
@@ -874,13 +925,13 @@ function initBookingPage() {
         checkOutDate: eventDateVal,
         customCheckInTime: null,
         customCheckOutTime: null,
-        eventTime: "",
+        eventTime: totals?.eventTime || "",
         packageOption,
-        eventSession: null,
+        eventSession: chosenSession ? chosenSession.key : null,
         additionalNotes,
         motif,
         ...totals,
-        durationLabel: "Single-day event",
+        durationLabel: totals?.durationLabel || "Single-day event",
         extendedNights: null,
         scheduledCheckIn: win.scheduledCheckIn,
         scheduledCheckOut: win.scheduledCheckOut,
@@ -889,8 +940,8 @@ function initBookingPage() {
         checkOutDate: eventDateVal,
         customCheckInTime: null,
         customCheckOutTime: null,
-        eventTime: "",
-        eventSession: null,
+        eventTime: totals?.eventTime || "",
+        eventSession: chosenSession ? chosenSession.key : null,
         currency: "PHP",
         createdAt: new Date().toISOString(),
       });
