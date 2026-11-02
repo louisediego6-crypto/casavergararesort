@@ -376,6 +376,14 @@ footer a:hover {
   z-index: 1;
 }
 
+.footer-main > .container.section-pad {
+  padding-block: 2.75rem 2rem;
+}
+
+.landing-cta-section-v2.section-pad {
+  padding-bottom: 1.75rem;
+}
+
 .footer-top-grid {
   gap: 2.5rem;
 }
@@ -578,6 +586,10 @@ footer a:hover {
 }
 
 @media (max-width: 767.98px) {
+  .footer-main > .container.section-pad {
+    padding-block: 2.25rem 1.75rem;
+  }
+
   .footer-top-grid {
     gap: 2rem;
     text-align: center;

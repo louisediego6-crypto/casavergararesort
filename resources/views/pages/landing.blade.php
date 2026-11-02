@@ -23,7 +23,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="../css/style.css?v=20261004f" rel="stylesheet">
-  <link href="../css/polish.css?v=20260830i" rel="stylesheet">
+  <link href="../css/polish.css?v=20261102a" rel="stylesheet">
   <link href="../css/modern.css?v=20261018a" rel="stylesheet">
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/casa-refresh.css?v=20261018a" rel="stylesheet">
