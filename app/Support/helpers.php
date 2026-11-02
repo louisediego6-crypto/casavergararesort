@@ -62,7 +62,7 @@ function cvr_private_payment_proof_url(string $fileName): string
         throw new InvalidArgumentException('Invalid payment receipt filename.');
     }
 
-    return '/uploads/payments/' . rawurlencode($fileName);
+    return '/api/admin/payment-proof/' . rawurlencode($fileName);
 }
 
 function get_json_body(): array

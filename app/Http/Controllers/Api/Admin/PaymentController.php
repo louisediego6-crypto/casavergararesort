@@ -12,6 +12,55 @@ use finfo;
 
 class PaymentController extends Controller
 {
+    public function proofFile(Request $request, string $file)
+    {
+        if ($request->method() !== 'GET') {
+            json_response(false, 'Invalid request method.', [], 405);
+        }
+
+        require_role(['admin', 'event_manager']);
+
+        if (!preg_match('/\Aproof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+\z/', $file)) {
+            return response('Not found.', 404);
+        }
+
+        $filePath = null;
+        $receiptDirectories = [
+            storage_path('app/private/uploads/payments'),
+            storage_path('app/public/uploads/payments'),
+            public_path('uploads/payments'),
+        ];
+
+        foreach ($receiptDirectories as $receiptDirectory) {
+            $dir = realpath($receiptDirectory);
+            $candidate = realpath($receiptDirectory . DIRECTORY_SEPARATOR . $file);
+            if (
+                $dir
+                && $candidate
+                && str_starts_with($candidate, $dir . DIRECTORY_SEPARATOR)
+                && is_file($candidate)
+            ) {
+                $filePath = $candidate;
+                break;
+            }
+        }
+
+        if (!$filePath) {
+            return response('Receipt file not found on the server.', 404);
+        }
+
+        $mimeType = (new finfo(FILEINFO_MIME_TYPE))->file($filePath) ?: 'application/octet-stream';
+        $isInlineImage = in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true);
+        $isPdf = $mimeType === 'application/pdf';
+
+        return response()->file($filePath, [
+            'Content-Type' => ($isInlineImage || $isPdf) ? $mimeType : 'application/octet-stream',
+            'Content-Disposition' => (($isInlineImage || $isPdf) ? 'inline' : 'attachment') . '; filename="' . $file . '"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
     /** Ported from api/admin/payments-delete.php */
     public function delete(Request $request)
     {

@@ -64,6 +64,8 @@ Route::any('admin/packages-reorder', [AdminPackageController::class, 'reorder'])
 Route::any('admin/packages-save', [AdminPackageController::class, 'save']);
 Route::any('admin/payment-qr-delete', [AdminPaymentQrController::class, 'delete']);
 Route::any('admin/payment-qr-upload', [AdminPaymentQrController::class, 'upload']);
+Route::any('admin/payment-proof/{file}', [AdminPaymentController::class, 'proofFile'])
+    ->where('file', 'proof_[A-Za-z0-9_-]+\.[A-Za-z0-9]+');
 Route::any('admin/payments-delete', [AdminPaymentController::class, 'delete']);
 Route::any('admin/payments-list', [AdminPaymentController::class, 'index']);
 Route::any('admin/payments-update', [AdminPaymentController::class, 'update']);

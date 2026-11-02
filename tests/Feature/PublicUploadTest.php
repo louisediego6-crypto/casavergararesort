@@ -10,7 +10,7 @@ class PublicUploadTest extends TestCase
     public function test_private_payment_proof_urls_use_the_current_site_origin(): void
     {
         $this->assertSame(
-            '/uploads/payments/proof_CVR-123_20261102.png',
+            '/api/admin/payment-proof/proof_CVR-123_20261102.png',
             cvr_private_payment_proof_url('proof_CVR-123_20261102.png')
         );
     }
