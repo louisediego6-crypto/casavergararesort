@@ -70,11 +70,6 @@ html[data-theme="dark"] .cvr-theme-toggle .cvr-theme-icon-moon { display: none; 
 .nav-mobile-actions .cvr-theme-toggle .cvr-theme-label::after { content: "Dark mode"; }
 html[data-theme="dark"] .nav-mobile-actions .cvr-theme-toggle .cvr-theme-label::after { content: "Light mode"; }
 
-/* smooth colour change when toggling (only while the user clicks) */
-html.cvr-theme-anim, html.cvr-theme-anim body, html.cvr-theme-anim body * {
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease !important;
-}
-
 /* =============================================================================
    DARK MODE
    ========================================================================== */

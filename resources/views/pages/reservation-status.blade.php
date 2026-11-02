@@ -6,7 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <script src="../js/theme.js?v=20261024f"></script>
+  <script src="../js/theme.js?v=20261112a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Casa Vergara - Reservation Payment Status</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
   <link href="../css/laravel-ui.css?v=20261018b" rel="stylesheet">
   <link href="../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
-  <link href="../css/theme.css?v=20261024e" rel="stylesheet">
+  <link href="../css/theme.css?v=20261112a" rel="stylesheet">
   <link href="../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../css/dark-fixes.css?v=20261026b" rel="stylesheet">
@@ -115,7 +115,7 @@
             </ul>
             <div id="reservationReceiptWrap" class="d-none mt-3">
               <button type="button" id="downloadReceiptBtn" class="btn btn-brand w-100">
-                <i class="bi bi-receipt me-2"></i>Preview / Download Receipt
+                <i class="bi bi-receipt me-2"></i>Preview / Print receipt
               </button>
               <small class="text-muted-brand d-block mt-2">Receipt becomes available after payment approval.</small>
             </div>
@@ -139,7 +139,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
   <script src="../js/booking-data.js?v=20261105b"></script>
-  <script src="../js/main.js?v=20261105b"></script>
+  <script src="../js/main.js?v=20261112a"></script>
+  <script src="../js/admin-export.js?v=20261112a"></script>
   <script>renderNavbar(""); renderFooter();</script>
 </body>
 </html>

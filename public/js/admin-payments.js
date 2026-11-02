@@ -58,7 +58,14 @@ function cvrOpenReceiptModal(proof) {
   el.querySelector("#cvrReceiptModalSub").textContent = [proof.reservationId, proof.customerName].filter(Boolean).join(" · ");
   const body = el.querySelector("#cvrReceiptModalBody");
   if (isImage) {
-    body.innerHTML = `<img src="${cvrEscapeHtml(url)}" alt="Proof of payment" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;">`;
+    const image = document.createElement("img");
+    image.src = url;
+    image.alt = "Proof of payment";
+    image.style.cssText = "max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;";
+    image.addEventListener("error", () => {
+      body.innerHTML = `<div class="alert alert-danger m-3" role="alert">This receipt could not be loaded. Please refresh the submissions and try again.</div>`;
+    }, { once: true });
+    body.replaceChildren(image);
   } else if (isPdf) {
     body.innerHTML = `<iframe src="${cvrEscapeHtml(url)}" title="Proof of payment" style="width:100%;height:70vh;border:0;border-radius:8px;"></iframe>`;
   } else {
@@ -132,7 +139,7 @@ async function initAdminSubmittedProofs() {
 
         let thumb;
         if (isImage) {
-          thumb = `<img src="${cvrEscapeHtml(proof.fileUrl)}" alt="Proof of payment" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">`;
+          thumb = `<img src="${cvrEscapeHtml(proof.fileUrl)}" alt="Proof of payment" loading="lazy" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">`;
         } else if (isPdf) {
           thumb = `<i class="bi bi-file-earmark-pdf fs-4 text-danger"></i>`;
         } else if (isWord) {

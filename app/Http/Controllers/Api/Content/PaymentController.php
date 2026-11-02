@@ -90,7 +90,7 @@ class PaymentController extends Controller
         }
 
         $relativePath = 'uploads/payments/' . $fileName;
-        $fileUrl = config('cvr.site_url') . '/uploads/payments/' . rawurlencode($fileName);
+        $fileUrl = cvr_private_payment_proof_url($fileName);
 
         $proofId = null;
         $pdo = null;

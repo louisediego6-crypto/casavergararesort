@@ -3045,7 +3045,7 @@ function createOrUpdateReceiptRecord(reservation, paymentId = "") {
     check_out_time: reservation.checkOutLabel || reservation.checkOutTime || "",
     event_date: reservation.preferredDate || "",
     number_of_guests: reservation.guestsLabel || reservation.guests || reservation.eventGuests || "2",
-    total_amount_paid: reservation.totalAmount || "",
+    total_amount_paid: reservation.proofOfPayment?.amountFormatted || reservation.downpaymentAmountFormatted || reservation.totalAmount || "",
     payment_method: reservation.paymentMethod || "QR / GCash",
     payment_date: reservation.paymentApprovedAt || reservation.paymentVerifiedAt || reservation.proofOfPayment?.uploadedAt || nowIso,
     payment_status: "Paid",
@@ -3063,6 +3063,84 @@ function canCurrentUserDownloadReceipt(reservation) {
   const ownerSession = localStorage.getItem("cvrOwnerSessionKey");
   const ownerMatches = reservation.ownerSessionKey ? ownerSession === reservation.ownerSessionKey : true;
   return activeReservationId === reservation.id && ownerMatches;
+}
+
+function buildCustomerReceiptExportDataset(receipt) {
+  const columns = [
+    ["label", "Receipt details"],
+    ["value", "Information"],
+  ];
+  const rows = [
+    ["Receipt number", receipt.receipt_id],
+    ["Reservation number", receipt.reservation_id],
+    ["Guest name", receipt.guest_name],
+    ["Room / event", receipt.room_or_event_name],
+    ["Check-in date", receipt.check_in_date || "—"],
+    ["Check-out / event date", receipt.check_out_date || receipt.event_date || "—"],
+    ["Check-out time", receipt.check_out_time || "—"],
+    ["Number of guests", receipt.number_of_guests || "—"],
+    ["Payment method", receipt.payment_method || "QR / GCash"],
+    ["Payment date", formatDateReserved(receipt.payment_date)],
+    ["Payment status", receipt.payment_status || "Paid"],
+    ["Total amount paid", receipt.total_amount_paid || "—"],
+  ].map(([label, value]) => ({ label, value }));
+  return { columns, rows, recordLabel: "Receipt details" };
+}
+
+function buildCustomerQuotationExportDataset(record) {
+  const quotation = ensureReservationQuotation(record);
+  if (!quotation) return null;
+  const formatMoney = (value) => window.CVRBookingCatalog?.formatMoney(value, quotation.currency || record.currency || "PHP") ?? String(value ?? "—");
+  const columns = [
+    ["item", "Item"],
+    ["details", "Details"],
+    ["quantity", "Qty"],
+    ["unitPrice", "Unit price"],
+    ["amount", "Amount"],
+  ];
+  const rows = [
+    { item: "Reservation number", details: record.id },
+    { item: "Guest", details: record.customerName || "Guest" },
+    { item: "Package", details: record.roomName || record.packageOption || "Reservation" },
+    { item: "Schedule", details: `${record.durationLabel ? `${record.durationLabel} · ` : ""}${formatDateReserved(record.checkIn || record.preferredDate)}${record.checkInLabel ? ` at ${record.checkInLabel}` : ""}${record.checkOut ? ` to ${formatDateReserved(record.checkOut)}` : ""}${record.checkOutLabel ? ` at ${record.checkOutLabel}` : ""}` },
+    { item: "Quotation status", details: quotation.status || "—" },
+    ...(quotation.lines || []).map((line) => ({
+      item: line.label || line.type || "Service",
+      details: [line.type, line.description, line.approved === false ? "Pending review" : ""].filter(Boolean).join(" · "),
+      quantity: line.qty ?? 1,
+      unitPrice: line.approved === false && !line.unitPrice ? "—" : formatMoney(line.unitPrice ?? line.amount),
+      amount: line.approved === false && !(Number(line.amount) || 0) ? "Pending review" : formatMoney(line.amount),
+    })),
+    { item: "Package subtotal", amount: formatMoney(quotation.subtotalPackage) },
+    { item: "Add-ons", amount: formatMoney(quotation.subtotalAddOns) },
+    { item: "Special / custom services", amount: formatMoney(quotation.subtotalSpecial) },
+    ...(Number(quotation.subtotalDiscount) > 0 ? [{ item: "Previously applied discount", amount: `−${formatMoney(quotation.subtotalDiscount)}` }] : []),
+    { item: "Total", amount: formatMoney(quotation.totalNumeric) },
+    { item: Number(quotation.downpaymentPercent || record.downpaymentPercent || 50) >= 100 ? "Full payment due now" : "Downpayment due now", details: `${quotation.downpaymentPercent ?? record.downpaymentPercent ?? 50}%`, amount: formatMoney(quotation.downpaymentAmount ?? record.downpaymentAmount) },
+    { item: "Balance due later", amount: formatMoney(quotation.balanceAmount ?? record.balanceAmount) },
+  ];
+  return { columns, rows, recordLabel: "Quotation details" };
+}
+
+function previewCustomerExport(kind, record) {
+  if (!window.CVRAdminExport?.previewCustomerDocument) {
+    window.alert("The preview and export tools are unavailable right now. Please refresh the page and try again.");
+    return;
+  }
+  const isReceipt = kind === "receipt";
+  const dataset = isReceipt
+    ? buildCustomerReceiptExportDataset(record)
+    : buildCustomerQuotationExportDataset(record);
+  if (!dataset) {
+    window.alert("This document is not available right now.");
+    return;
+  }
+  const id = String(isReceipt ? record.reservation_id : record.id).replace(/[^\w-]/g, "_");
+  window.CVRAdminExport.previewCustomerDocument(
+    dataset,
+    isReceipt ? "Payment receipt" : "Reservation quotation",
+    `CasaVergara-${isReceipt ? "Receipt" : "Quotation"}-${id}`,
+  );
 }
 
 let cachedReceiptLogoDataUrl = null;
@@ -5205,6 +5283,7 @@ function initQuotationReviewPage() {
   };
   paintQuotationAmounts();
   cvrMountPaymentPlanPicker(document.getElementById("quotationPaymentPlanBox"), record, paintQuotationAmounts);
+  document.getElementById("quotationExportBtn")?.addEventListener("click", () => previewCustomerExport("quotation", record));
 
   const versionEl = document.getElementById("quotationVersion");
   if (versionEl) versionEl.textContent = `Version ${q.version || 1}`;
@@ -5856,6 +5935,12 @@ async function initReservationStatusView() {
       <a href="${pageUrl(`quotation.html?res=${encodeURIComponent(target.id)}`)}" class="btn btn-outline-primary w-100">View quotation</a>
       <a href="${pageUrl("booking.html")}" class="btn btn-outline-primary w-100">Book another stay</a>
       ${session ? `<a href="${pageUrl("customer-dashboard.html")}" class="btn btn-outline-secondary w-100">My dashboard</a>` : `<a href="${pageUrl("login.html")}" class="btn btn-outline-secondary w-100">Sign in</a>`}`;
+    const quotationExportBtn = document.createElement("button");
+    quotationExportBtn.type = "button";
+    quotationExportBtn.className = "btn btn-outline-primary w-100";
+    quotationExportBtn.innerHTML = '<i class="bi bi-printer me-2"></i>Preview / Print quotation';
+    quotationExportBtn.addEventListener("click", () => previewCustomerExport("quotation", target));
+    quickNav.insertBefore(quotationExportBtn, quickNav.children[1] || null);
   }
 
   const paymentApproved = ["Approved", "Verified"].includes(target.paymentStatus);
@@ -5865,7 +5950,7 @@ async function initReservationStatusView() {
   if (receiptWrap && downloadReceiptBtn) {
     receiptWrap.classList.toggle("d-none", !canDownload);
     if (canDownload) {
-      downloadReceiptBtn.onclick = () => downloadReceiptPdf(receipt);
+      downloadReceiptBtn.onclick = () => previewCustomerExport("receipt", receipt);
     }
   }
 }
@@ -8418,5 +8503,5 @@ document.addEventListener("click", (ev) => {
   ev.preventDefault();
   ev.stopPropagation();
   const next = btn.getAttribute("data-cvr-menu-theme") === "dark" ? "dark" : "light";
-  if (window.cvrTheme && window.cvrTheme.get() !== next) window.cvrTheme.set(next, true);
+  if (window.cvrTheme && window.cvrTheme.get() !== next) window.cvrTheme.set(next);
 }, true);

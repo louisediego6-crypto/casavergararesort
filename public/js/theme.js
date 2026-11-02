@@ -40,12 +40,8 @@
     if (meta) meta.setAttribute("content", dark ? "#0e161e" : "#ffffff");
   }
 
-  function set(theme, animate) {
+  function set(theme) {
     try { localStorage.setItem(key(), theme); } catch (e) {}
-    if (animate) {
-      root.classList.add("cvr-theme-anim");
-      setTimeout(function () { root.classList.remove("cvr-theme-anim"); }, 400);
-    }
     apply(theme);
   }
 
@@ -54,7 +50,7 @@
   window.cvrTheme = {
     get: function () { return root.getAttribute("data-theme") || "light"; },
     set: set,
-    toggle: function () { set(this.get() === "dark" ? "light" : "dark", true); },
+    toggle: function () { set(this.get() === "dark" ? "light" : "dark"); },
     refresh: function () { apply(this.get()); },
   };
 

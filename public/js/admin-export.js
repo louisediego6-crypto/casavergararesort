@@ -291,7 +291,7 @@
     }"/><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p></w:tc>`;
   }
 
-  function exportDocx(dataset, title, baseName) {
+  function exportDocx(dataset, title, baseName, preview = true) {
     const totalWidth = 14400;
     const colWidth = Math.floor(totalWidth / Math.max(dataset.columns.length, 1));
     const headerRow = `<w:tr>${dataset.columns
@@ -319,7 +319,7 @@
 ${logoParagraph}
 ${docxParagraph("Casa Vergara Resort", { bold: true, size: 32, color: "0C3B5D" })}
 ${docxParagraph(title, { bold: true, size: 24, color: "0C3B5D" })}
-${docxParagraph(`Generated ${new Date().toLocaleString()} \u2014 ${dataset.rows.length} record(s)`, {
+${docxParagraph(`Generated ${new Date().toLocaleString()} \u2014 ${dataset.recordLabel || `${dataset.rows.length} record(s)`}`, {
   size: 18,
   color: "5A5A5A",
 })}
@@ -328,7 +328,7 @@ ${docxParagraph(`Generated ${new Date().toLocaleString()} \u2014 ${dataset.rows.
 <w:bottom w:val="single" w:sz="4" w:color="C9D8E6"/><w:right w:val="single" w:sz="4" w:color="C9D8E6"/>
 <w:insideH w:val="single" w:sz="4" w:color="C9D8E6"/><w:insideV w:val="single" w:sz="4" w:color="C9D8E6"/>
 </w:tblBorders></w:tblPr>${headerRow}${bodyRows}${emptyRow}</w:tbl>
-${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { size: 16, color: "8A8A8A", italic: true })}
+${docxParagraph("Generated automatically by the Casa Vergara Resort booking system.", { size: 16, color: "8A8A8A", italic: true })}
 <w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr>
 </w:body></w:document>`;
 
@@ -356,11 +356,15 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
         : []),
     ]);
 
-    window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.docx`, "docx", buildPrintableHtml(dataset, title), title);
+    if (preview) {
+      window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.docx`, "docx", buildPrintableHtml(dataset, title), title);
+    } else {
+      downloadBlob(blob, `${baseName}-${safeStamp()}.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    }
     return true;
   }
 
-  function exportPdf(dataset, title, baseName) {
+  function exportPdf(dataset, title, baseName, preview = true) {
     const jsPdfLib = window.jspdf?.jsPDF;
     if (!jsPdfLib) {
       window.alert("PDF export isn't available on this page right now. Please try again in a moment.");
@@ -376,7 +380,6 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
     const bottomLimit = doc.internal.pageSize.getHeight() - 50;
     const usableWidth = pageWidth - marginLeft * 2;
     const colWidth = usableWidth / dataset.columns.length;
-    const rowHeight = 20;
     let y = 50;
 
     doc.setFillColor(12, 59, 93);
@@ -410,36 +413,41 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
       doc.setTextColor(12, 59, 93);
       doc.setDrawColor(220, 230, 240);
       doc.line(marginLeft, y, pageWidth - marginLeft, y);
-      y += 14;
-      dataset.columns.forEach(([, label], i) => doc.text(String(label), marginLeft + i * colWidth, y));
-      y += 8;
+      y += 12;
+      const headerCells = dataset.columns.map(([, label]) => doc.splitTextToSize(String(label), colWidth - 8));
+      const headerHeight = Math.max(16, ...headerCells.map((lines) => lines.length * 10 + 4));
+      headerCells.forEach((lines, i) => doc.text(lines, marginLeft + i * colWidth + 4, y));
+      y += headerHeight;
       doc.line(marginLeft, y, pageWidth - marginLeft, y);
-      y += 14;
+      y += 10;
       doc.setFont("helvetica", "normal");
       doc.setTextColor(50, 50, 50);
     }
 
     drawHeader();
     dataset.rows.forEach((row) => {
-      if (y > bottomLimit) {
+      const cells = dataset.columns.map(([key]) => doc.splitTextToSize(String(row[key] ?? ""), colWidth - 8));
+      const rowHeight = Math.max(18, ...cells.map((lines) => lines.length * 10 + 6));
+      if (y + rowHeight > bottomLimit) {
         doc.addPage();
         y = 50;
         drawHeader();
       }
-      dataset.columns.forEach(([key], i) => {
-        const text = String(row[key] ?? "");
-        doc.text(text.length > 30 ? text.slice(0, 29) + "\u2026" : text, marginLeft + i * colWidth, y);
-      });
+      cells.forEach((lines, i) => doc.text(lines, marginLeft + i * colWidth + 4, y));
       y += rowHeight;
     });
 
     if (!dataset.rows.length) {
       doc.setFont("helvetica", "italic");
-      doc.text("No records match the selected filters.", marginLeft, y);
+      doc.text(doc.splitTextToSize("No records match the selected filters.", usableWidth), marginLeft, y);
     }
 
     const blob = doc.output("blob");
-    window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.pdf`, "pdf", "", title);
+    if (preview) {
+      window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.pdf`, "pdf", "", title);
+    } else {
+      downloadBlob(blob, `${baseName}-${safeStamp()}.pdf`, "application/pdf");
+    }
     return true;
   }
 
@@ -476,7 +484,7 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
     rowsXml.push(`<row r="1"${rowAttr(1, 26)}>${xlsxCell(tc + "1", "Casa Vergara Resort", 1)}</row>`);
     rowsXml.push(`<row r="2"${rowAttr(2, 20)}>${xlsxCell(tc + "2", title, 2)}</row>`);
     rowsXml.push(
-      `<row r="3"${rowAttr(3, 18)}>${xlsxCell(tc + "3", `Generated ${new Date().toLocaleString()} \u2014 ${dataset.rows.length} record(s)`, 4)}</row>`,
+      `<row r="3"${rowAttr(3, 18)}>${xlsxCell(tc + "3", `Generated ${new Date().toLocaleString()} \u2014 ${dataset.recordLabel || `${dataset.rows.length} record(s)`}`, 4)}</row>`,
     );
     rowsXml.push(`<row r="5">${cols.map(([, label], i) => xlsxCell(colLetter(i) + "5", label, 3)).join("")}</row>`);
     dataset.rows.forEach((row, ri) => {
@@ -557,16 +565,13 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
     );
   }
 
-  function exportXlsx(dataset, title, baseName) {
+  function exportXlsx(dataset, title, baseName, preview = false) {
     const blob = buildXlsxBlob(dataset, title);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${baseName}-${safeStamp()}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    if (preview) {
+      window.cvrOpenReportPreview(blob, `${baseName}-${safeStamp()}.xlsx`, "xlsx", buildPrintableHtml(dataset, title), title);
+    } else {
+      downloadBlob(blob, `${baseName}-${safeStamp()}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    }
     return true;
   }
 
@@ -595,7 +600,7 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
   .empty { text-align: center; color: #777; padding: 18px; font-style: italic; }
 </style></head><body>
 <div class="brand">${logoSrc ? `<img class="logo" src="${xmlEscape(logoSrc)}" alt="Casa Vergara">` : ""}<div><h1>Casa Vergara Resort</h1><h2>${xmlEscape(title)}</h2>
-<div class="meta">Generated ${xmlEscape(new Date().toLocaleString())} &mdash; ${dataset.rows.length} record(s)</div>${dataset.subtitle ? `<div class="meta">${xmlEscape(dataset.subtitle)}</div>` : ""}</div></div>
+<div class="meta">Generated ${xmlEscape(new Date().toLocaleString())} &mdash; ${xmlEscape(dataset.recordLabel || `${dataset.rows.length} record(s)`)}</div>${dataset.subtitle ? `<div class="meta">${xmlEscape(dataset.subtitle)}</div>` : ""}</div></div>
 <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></body></html>`;
   }
 
@@ -1227,5 +1232,59 @@ ${docxParagraph("Generated automatically by the Casa Vergara admin portal.", { s
   }
   window.initDashboardReportDownloads = initDashboardReportDownloads;
 
-  window.CVRAdminExport = { downloadReservationPageExport, buildDataset, exportCsv, exportDocx, exportPdf, exportXlsx, showReportSheet, createSheet, printDataset, loadLogo, setLogo };
+  function previewCustomerDocument(dataset, title, baseName) {
+    loadLogo().then(() => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "cvr-report-preview-dialog cvr-customer-export-dialog";
+      dialog.setAttribute("aria-label", `${title} preview`);
+      dialog.innerHTML = `
+        <div class="cvr-report-preview-head">
+          <div>
+            <strong>${xmlEscape(title)} preview</strong>
+            <div class="cvr-report-preview-hint">Review your document, then print it or choose a download format.</div>
+          </div>
+          <div class="cvr-report-preview-actions">
+            <button type="button" class="btn btn-outline-secondary" data-customer-export="print"><i class="bi bi-printer me-1"></i>Print</button>
+            <button type="button" class="btn btn-outline-danger" data-customer-export="pdf">PDF</button>
+            <button type="button" class="btn btn-outline-primary" data-customer-export="docx">DOCX</button>
+            <button type="button" class="btn btn-outline-success" data-customer-export="xlsx">Excel</button>
+            <button type="button" class="btn btn-outline-secondary cvr-report-preview-close" aria-label="Close preview">Close</button>
+          </div>
+        </div>
+        <iframe class="cvr-report-preview-frame" title="${xmlEscape(title)} preview"></iframe>`;
+      const style = document.createElement("style");
+      style.textContent = `
+        .cvr-customer-export-dialog { width: min(96vw, 1200px); height: min(92vh, 960px); max-width: none; max-height: none; padding: 0; border: 0; border-radius: 14px; color: #1c2733; box-shadow: 0 24px 80px rgba(0,0,0,.35); overflow: hidden; }
+        .cvr-customer-export-dialog::backdrop { background: rgba(5,18,30,.72); }
+        .cvr-customer-export-dialog .cvr-report-preview-head { min-height: 76px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border-bottom: 1px solid #dbe3eb; }
+        .cvr-customer-export-dialog .cvr-report-preview-hint { color: #657587; font-size: .82rem; margin-top: 3px; }
+        .cvr-customer-export-dialog .cvr-report-preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .cvr-customer-export-dialog .cvr-report-preview-frame { display: block; width: 100%; height: calc(100% - 76px); border: 0; background: #f2f5f8; }
+        @media (max-width: 760px) { .cvr-customer-export-dialog .cvr-report-preview-head { align-items: flex-start; flex-direction: column; } .cvr-customer-export-dialog .cvr-report-preview-actions { width: 100%; } .cvr-customer-export-dialog .cvr-report-preview-actions .btn { flex: 1 1 28%; } .cvr-customer-export-dialog .cvr-report-preview-frame { height: calc(100% - 132px); } }
+      `;
+      document.head.appendChild(style);
+      document.body.appendChild(dialog);
+      dialog.querySelector(".cvr-report-preview-frame").srcdoc = buildPrintableHtml(dataset, title);
+      dialog.querySelector(".cvr-report-preview-actions").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-customer-export]");
+        if (!button) return;
+        const action = button.dataset.customerExport;
+        if (action === "print") printDataset(dataset, title);
+        else if (action === "pdf") exportPdf(dataset, title, baseName, false);
+        else if (action === "docx") exportDocx(dataset, title, baseName, false);
+        else if (action === "xlsx") exportXlsx(dataset, title, baseName, false);
+      });
+      dialog.querySelector(".cvr-report-preview-close").addEventListener("click", () => dialog.close());
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+      dialog.addEventListener("close", () => {
+        style.remove();
+        dialog.remove();
+      }, { once: true });
+      dialog.showModal();
+    });
+  }
+
+  window.CVRAdminExport = { downloadReservationPageExport, buildDataset, exportCsv, exportDocx, exportPdf, exportXlsx, previewCustomerDocument, showReportSheet, createSheet, printDataset, loadLogo, setLogo };
 })();

@@ -124,7 +124,7 @@ class PaymentController extends Controller
                 'packageName' => $row['package_name'],
                 'amount' => $row['amount'],
                 'paymentMethod' => $row['payment_method'],
-                'fileUrl' => config('cvr.site_url') . '/uploads/payments/' . rawurlencode(basename((string) $row['file_path'])),
+                'fileUrl' => cvr_private_payment_proof_url(basename((string) $row['file_path'])),
                 'fileName' => $row['file_name'],
                 'fileType' => $row['file_type'],
                 'fileSize' => (int) $row['file_size'],

@@ -6,7 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <meta charset="UTF-8" />
-  <script src="../../js/theme.js?v=20261024f"></script>
+  <script src="../../js/theme.js?v=20261112a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <title>Admin Payment Verification - Casa Vergara</title>
@@ -19,7 +19,7 @@
   <link href="../../css/admin-modern.css?v=20261103a" rel="stylesheet">
   <link href="../../css/cvr-responsive.css?v=20261020a" rel="stylesheet">
   <link href="../../css/theme-auto.css?v=20261024e" rel="stylesheet">
-  <link href="../../css/theme.css?v=20261024g" rel="stylesheet">
+  <link href="../../css/theme.css?v=20261112a" rel="stylesheet">
   <link href="../../css/modals.css?v=20261025a" rel="stylesheet">
   <link href="../../css/mobile-polish.css?v=20261105a" rel="stylesheet">
   <link href="../../css/dark-fixes.css?v=20261026b" rel="stylesheet">
@@ -121,7 +121,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="../../js/main.js?v=20261105b"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
-  <script src="../../js/admin-payments.js?v=20261101a"></script>
+  <script src="../../js/admin-payments.js?v=20261102a"></script>
   <script src="../../js/admin.js?v=20261024h"></script>
   <script>
     renderAdminSidebar("payments");
