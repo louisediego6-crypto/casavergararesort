@@ -377,11 +377,12 @@ footer a:hover {
 }
 
 .footer-main > .container.section-pad {
-  padding-block: 2.75rem 2rem;
+  padding-top: 1.65rem !important;
+  padding-bottom: 0.85rem !important;
 }
 
 .landing-cta-section-v2.section-pad {
-  padding-bottom: 1.75rem;
+  padding-bottom: 0.85rem;
 }
 
 .footer-top-grid {
@@ -587,7 +588,8 @@ footer a:hover {
 
 @media (max-width: 767.98px) {
   .footer-main > .container.section-pad {
-    padding-block: 2.25rem 1.75rem;
+    padding-top: 1.4rem !important;
+    padding-bottom: 0.75rem !important;
   }
 
   .footer-top-grid {
@@ -658,6 +660,16 @@ footer a:hover {
   .footer-bottom-links {
     justify-content: center;
   }
+}
+
+.footer-main > .footer-bottom {
+  padding-block: 0.65rem !important;
+}
+
+#site-footer,
+#site-footer > .footer-main {
+  margin-block: 0;
+  padding-bottom: 0;
 }
 
 .admin-wrap {
