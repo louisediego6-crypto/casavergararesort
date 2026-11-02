@@ -68,9 +68,28 @@ class PublicUploadController extends Controller
             return response('Not found.', 404);
         }
 
-        $dir = realpath(storage_path('app/private/uploads/payments'));
-        $filePath = realpath(cvr_private_payment_proof_path($file));
-        if (!$dir || !$filePath || !str_starts_with($filePath, $dir . DIRECTORY_SEPARATOR) || !is_file($filePath)) {
+        $filePath = null;
+        $receiptDirectories = [
+            storage_path('app/private/uploads/payments'),
+            storage_path('app/public/uploads/payments'),
+            public_path('uploads/payments'),
+        ];
+
+        foreach ($receiptDirectories as $receiptDirectory) {
+            $dir = realpath($receiptDirectory);
+            $candidate = realpath($receiptDirectory . DIRECTORY_SEPARATOR . $file);
+            if (
+                $dir
+                && $candidate
+                && str_starts_with($candidate, $dir . DIRECTORY_SEPARATOR)
+                && is_file($candidate)
+            ) {
+                $filePath = $candidate;
+                break;
+            }
+        }
+
+        if (!$filePath) {
             return response('Receipt file not found on the server.', 404);
         }
 
