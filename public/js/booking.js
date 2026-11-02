@@ -488,14 +488,29 @@ function initBookingPage() {
       const options = packageKey && cat.getEventSessionOptions ? cat.getEventSessionOptions(packageKey) : [];
       if (!options.length) {
         sessionWrapEl.classList.add("d-none");
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
         sessionEl.value = "";
         sessionEl.dataset.pkg = "";
         const clearCards = document.getElementById("eventSessionCards");
         if (clearCards) clearCards.innerHTML = "";
+<<<<<<< HEAD
+=======
+=======
+        sessionEl.innerHTML = "";
+        sessionEl.dataset.pkg = "";
+>>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
+>>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
         if (sessionHintEl) sessionHintEl.textContent = "";
         return [];
       }
       sessionWrapEl.classList.remove("d-none");
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
       const cardsEl = document.getElementById("eventSessionCards");
       if (sessionEl.dataset.pkg !== packageKey && cardsEl) {
         const previous = sessionEl.value;
@@ -520,6 +535,19 @@ function initBookingPage() {
             sessionEl.dispatchEvent(new Event("change", { bubbles: true }));
           });
         });
+<<<<<<< HEAD
+=======
+=======
+      if (sessionEl.dataset.pkg !== packageKey) {
+        const previous = sessionEl.value;
+        sessionEl.innerHTML = `<option value="">Select session</option>` + options.map((o) => {
+          const price = cat.formatMoney(cat.getEventSessionRate(packageKey, o.key), "PHP");
+          return `<option value="${escapeHtml(o.key)}">${escapeHtml(o.name)} · ${escapeHtml(o.label)} — ${escapeHtml(price)}</option>`;
+        }).join("");
+        sessionEl.dataset.pkg = packageKey;
+        if (options.some((o) => o.key === previous)) sessionEl.value = previous;
+>>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
+>>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
       }
       const chosen = cat.getEventSession?.(sessionEl.value);
       if (sessionHintEl) sessionHintEl.textContent = chosen ? `${chosen.name}: ${chosen.label}` : "Choose the time slot for your event.";
