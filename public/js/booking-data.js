@@ -174,13 +174,19 @@ function getEventSessionOptions(packageOption) {
   if (!packageOption || getFixedEventSchedule(packageOption)) return [];
   const pkg = getEventPackageCatalog(packageOption);
   if (!pkg) return [];
+<<<<<<< HEAD
   return ["morning", "night", "whole-day"].map((key) => CVR_EVENT_SESSIONS[key]);
+=======
+  const keys = pkg.doubleRateOn24hr ? ["morning", "night", "whole-day"] : ["morning", "night"];
+  return keys.map((key) => CVR_EVENT_SESSIONS[key]);
+>>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
 }
 
 /** Package price for a session. Open-venue events follow the Private Venue session prices; fixed packages keep their price. */
 function getEventSessionRate(packageOption, sessionKey) {
   const pkg = getEventPackageCatalog(packageOption);
   const base = Math.max(0, Number(pkg?.price) || 0);
+<<<<<<< HEAD
   if (!pkg || !CVR_EVENT_SESSIONS[sessionKey]) return base;
   if (!pkg.doubleRateOn24hr) {
     // Birthday / Wedding / Debut: Morning and Night keep the package price; Whole Day adds the
@@ -192,6 +198,9 @@ function getEventSessionRate(packageOption, sessionKey) {
     }
     return base;
   }
+=======
+  if (!pkg || !CVR_EVENT_SESSIONS[sessionKey] || !pkg.doubleRateOn24hr) return base;
+>>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
   if (sessionKey === "whole-day") return cvrWholeDayRate(pkg);
   if (sessionKey === "night") {
     const morning = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS.morning.privateKey)?.price);
