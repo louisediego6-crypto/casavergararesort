@@ -123,44 +123,14 @@ const PRIVATE_VENUE_FIXED_SCHEDULES = {
   },
 };
 
-/* Event bookings use the same fixed session windows as the Private Venue. */
 const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
-const EVENT_SESSION_SCHEDULES = {
-  morning: {
-    key: "morning",
-    name: "Morning session",
-    checkInTime: "08:00",
-    checkOutTime: "17:00",
-    label: "8:00 AM – 5:00 PM",
-    durationKey: "12hr",
-  },
-  night: {
-    key: "night",
-    name: "Night session",
-    checkInTime: "19:00",
-    checkOutTime: "05:00",
-    label: "7:00 PM – 5:00 AM (next day)",
-    durationKey: "12hr",
-  },
-  "whole-day": {
-    key: "whole-day",
-    name: "Whole day (2 sessions)",
-    checkInTime: "08:00",
-    checkOutTime: "05:00",
-    label: "8:00 AM – 5:00 AM (next day, 2 sessions)",
-    durationKey: "24hr",
-  },
-};
-const BIRTHDAY_DEFAULT_SESSION = "morning";
-const BIRTHDAY_SESSION_SCHEDULES = EVENT_SESSION_SCHEDULES;
 
 function isBirthdayPackage(packageOption) {
   return BIRTHDAY_PACKAGE_KEYS.includes(packageOption);
 }
 
-function getFixedEventSchedule(packageOption, sessionKey) {
-  if (PRIVATE_VENUE_FIXED_SCHEDULES[packageOption]) return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption];
-  return EVENT_SESSION_SCHEDULES[sessionKey] || EVENT_SESSION_SCHEDULES[BIRTHDAY_DEFAULT_SESSION];
+function getFixedEventSchedule(packageOption) {
+  return PRIVATE_VENUE_FIXED_SCHEDULES[packageOption] || null;
 }
 
 const EVENT_PACKAGE_CATALOG = {
@@ -891,19 +861,20 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
-  const fixedSchedule = durationKey === "extended" ? null : getFixedEventSchedule(packageOption, sessionKey);
+  const fixedSchedule = getFixedEventSchedule(packageOption);
+  const effectiveDurationKey = fixedSchedule?.durationKey || "12hr";
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
-    : dur.buildWindow(dateStr, durationKey, nights, customCheckInTime, customCheckOutTime);
+    : dur.buildFixedWindow(dateStr, "00:00", "00:00", "Single-day event");
   if (!window_) return null;
   const pkg = getEventPackageCatalog(packageOption);
   const basePrice = pkg?.price ?? 0;
 
   const rate = pkg?.flatRate
     ? Math.max(0, Number(basePrice) || 0)
-    : pkg?.doubleRateOn24hr && durationKey === "24hr"
+    : pkg?.doubleRateOn24hr && effectiveDurationKey === "24hr"
     ? cvrWholeDayRate(pkg)
-    : dur.eventRate(basePrice, durationKey, nights);
+    : dur.eventRate(basePrice, effectiveDurationKey, null);
   const addOns = sumSelectedAddOns(getPackageAddOns("event", packageOption), selectedAddOnIds, guestCount);
   const paxSurcharge = calculatePaxSurcharge(guestCount, packageOption, eventType);
   if (paxSurcharge) {
@@ -913,10 +884,12 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const subRounded = Math.round(rate * 100) / 100;
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
-    durationKey,
-    durationLabel: fixedSchedule ? `${fixedSchedule.name} · ${fixedSchedule.label}` : dur.get(durationKey).label,
-    eventSession: fixedSchedule?.key || null,
+    durationKey: effectiveDurationKey,
+    durationLabel: "Single-day event",
+    eventSession: null,
     ...window_,
+    checkInLabel: "",
+    checkOutLabel: "",
     roomSubtotal: subRounded,
     addOnsTotal: addOns.total,
     addOnLines: addOns.lines,
@@ -1258,6 +1231,7 @@ function recalculateQuotationTotals(lines) {
 
 function cvrScheduleDescription(reservation) {
   if (!reservation) return "";
+  if (reservation.bookingType === "event") return "";
   const inLabel = reservation.checkInLabel || "";
   const outLabel = reservation.checkOutLabel || "";
   const durLabel = reservation.durationLabel || window.CVRDuration?.get(reservation.durationKey)?.label || "";
@@ -1402,8 +1376,6 @@ window.CVRBookingCatalog = {
   getEventPackageCatalog,
   getFixedEventSchedule,
   isBirthdayPackage,
-  EVENT_SESSION_SCHEDULES,
-  BIRTHDAY_SESSION_SCHEDULES,
   getEventMotifs,
   getPackageAddOns,
   sumSelectedAddOns,

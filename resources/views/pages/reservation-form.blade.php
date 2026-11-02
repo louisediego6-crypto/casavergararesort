@@ -119,7 +119,7 @@
               </div>
               <div class="col-12 d-none" id="eventDateRescheduleWrap">
                 <label class="form-label">Event date <span class="text-danger">*</span></label>
-                <p class="small text-muted-brand mb-2">Select a new date with your fixed event session available.</p>
+                <p class="small text-muted-brand mb-2">Select an available date for your single-day event.</p>
                 <input type="hidden" id="resEventDate" value="">
                 <div id="cvrEventRescheduleMount" class="cvr-fp-mount rounded-3 border bg-white"></div>
               </div>
@@ -233,11 +233,11 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../js/booking-data.js?v=20261105b"></script>
+  <script src="../js/booking-data.js?v=20261102b"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="../js/ph-holidays.js?v=20260830i"></script>
-  <script src="../js/reservation-calendar.js?v=20261105a"></script>
-  <script src="../js/main.js?v=20261105b"></script>
+  <script src="../js/reservation-calendar.js?v=20261102b"></script>
+  <script src="../js/main.js?v=20261102b"></script>
   <script>
     (async () => {
 

@@ -136,7 +136,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="../../js/main.js?v=20261105b"></script>
   <script src="../../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../../js/booking-data.js?v=20261105b"></script>
+  <script src="../../js/booking-data.js?v=20261102b"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin-reservations.js?v=20261025a"></script>
   <script>renderAdminSidebar("reservations"); initAdminReservationsPage();</script>

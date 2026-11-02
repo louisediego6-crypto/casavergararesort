@@ -55,9 +55,9 @@
           <div class="soft-card p-4 reservation-status-panel">
             <h5 class="text-brand mb-3">Stay &amp; event details</h5>
             <div class="row g-3">
-              <div class="col-md-6"><strong>Check-in / event date:</strong> <span id="statusCheckIn">—</span></div>
-              <div class="col-md-6"><strong>Check-out:</strong> <span id="statusCheckOut">—</span></div>
-              <div class="col-md-6"><strong>Event time:</strong> <span id="statusEventTime">—</span></div>
+              <div class="col-md-6" id="statusCheckInRow"><strong>Check-in / event date:</strong> <span id="statusCheckIn">—</span></div>
+              <div class="col-md-6" id="statusCheckOutRow"><strong>Check-out:</strong> <span id="statusCheckOut">—</span></div>
+              <div class="col-md-6" id="statusEventTimeRow"><strong>Event time:</strong> <span id="statusEventTime">—</span></div>
               <div class="col-md-6 d-none" id="statusSessionRow"><strong>Session:</strong> <span id="statusSession" class="acct-session-chip">—</span></div>
               <div class="col-md-6"><strong>Guests:</strong> <span id="statusGuests">—</span></div>
               <div class="col-md-6"><strong>Duration:</strong> <span id="statusNights">—</span></div>
@@ -138,7 +138,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../js/booking-data.js?v=20261105b"></script>
+  <script src="../js/booking-data.js?v=20261102b"></script>
   <script src="../js/main.js?v=20261112a"></script>
   <script src="../js/admin-export.js?v=20261112a"></script>
   <script>renderNavbar(""); renderFooter();</script>

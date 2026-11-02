@@ -410,22 +410,6 @@ function initBookingPage() {
     }
   };
 
-  const getSelectedEventDuration = () => document.getElementById("eventDuration")?.value || "12hr";
-
-  const getSelectedEventNights = () => window.CVRDuration?.clampExtendedNights(document.getElementById("eventNights")?.value || 2) ?? 2;
-
-  const getEventCheckInTimeSelection = () => readTimeTriplet("eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem");
-  const getEventCheckOutTimeSelection = () => readTimeTriplet("eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem");
-
-  const syncEventDurationVisibility = () => {
-    const isExtended = getSelectedEventDuration() === "extended";
-    document.getElementById("eventNightsWrap")?.classList.toggle("d-none", !isExtended);
-    document.getElementById("eventCheckOutTimeWrap")?.classList.toggle("d-none", !isExtended);
-    playSwitchAnim(eventForm);
-  };
-  document.getElementById("eventDuration")?.addEventListener("change", syncEventDurationVisibility);
-  syncEventDurationVisibility();
-
   bookingTypeSelect.addEventListener("change", () => {
     toggleSections();
     syncCheckOutVisibility();
@@ -482,24 +466,15 @@ function initBookingPage() {
     ];
     const BIRTHDAY_PACKAGE_KEYS = ["Ayesha Package", "Anica Package", "Amarah Package", "Custom Package"];
 
-    const sessionRadios = () => Array.from(document.querySelectorAll('input[name="eventSession"]'));
-    const getSelectedEventSession = () => sessionRadios().find((r) => r.checked)?.value || "";
-    const getFixedSchedule = (key) => {
-      if (!eventTypeEl?.value) return null;
-      if (PRIVATE_VENUE_PACKAGE_KEYS.includes(eventTypeEl.value)) {
-        return cat.getFixedEventSchedule?.(key, "") || null;
-      }
-      if (document.getElementById("eventDuration")?.value !== "fixed") return null;
-      const session = getSelectedEventSession();
-      return session ? cat.getFixedEventSchedule?.(key, session) || null : null;
-    };
+    const getFixedSchedule = (key) => PRIVATE_VENUE_PACKAGE_KEYS.includes(key)
+      ? cat.getFixedEventSchedule?.(key, "") || null
+      : null;
     const isBirthdayKey = (key) => Boolean(cat.isBirthdayPackage?.(key));
 
     const eventTypeEl = document.getElementById("eventType");
     const venueGroupEl = document.getElementById("eventTypeVenueGroup");
     const birthdayWrapEl = document.getElementById("eventBirthdayPackageWrap");
     const birthdayEl = document.getElementById("eventBirthdayPackage");
-    const eventSessionWrapEl = document.getElementById("eventSessionWrap");
     const otherSpecifyWrapEl = document.getElementById("eventOtherSpecifyWrap");
     const otherSpecifyEl = document.getElementById("eventOtherSpecify");
     const detailsEl = document.getElementById("eventPackageDetails");
@@ -509,11 +484,6 @@ function initBookingPage() {
       const isOthers = eventTypeEl?.value === "Others";
       otherSpecifyWrapEl.classList.toggle("d-none", !isOthers);
       if (!isOthers && otherSpecifyEl) otherSpecifyEl.value = "";
-    };
-
-    const syncDurationOptionsAvailability = () => {
-      const durationEl = document.getElementById("eventDuration");
-      if (durationEl && !eventTypeEl?.value) durationEl.value = "";
     };
 
     if (cat.getEventPackageKeys) {
@@ -552,33 +522,6 @@ function initBookingPage() {
       if (!isBirthday && birthdayEl) birthdayEl.value = "";
     };
 
-    const durationWrapEl = document.getElementById("eventDurationWrap");
-    const checkInTimeWrapEl = document.getElementById("eventCheckInTimeWrap");
-    const fixedNoteEl = document.getElementById("eventFixedScheduleNote");
-    const fixedNoteTextEl = document.getElementById("eventFixedScheduleText");
-
-    const syncFixedScheduleVisibility = () => {
-      const selectedKey = getSelectedPackageKey();
-      const schedule = getFixedSchedule(selectedKey);
-      const selectedEventType = eventTypeEl?.value || "";
-      const venuePackageHasSchedule = PRIVATE_VENUE_PACKAGE_KEYS.includes(selectedEventType);
-      const durationEl = document.getElementById("eventDuration");
-      const isExtended = !venuePackageHasSchedule && durationEl?.value === "extended";
-      if (durationEl) durationEl.required = Boolean(selectedEventType && !venuePackageHasSchedule);
-      eventSessionWrapEl?.classList.toggle("d-none", !selectedEventType || venuePackageHasSchedule || isExtended);
-      durationWrapEl?.classList.toggle("d-none", !selectedEventType || venuePackageHasSchedule);
-      checkInTimeWrapEl?.classList.toggle("d-none", !isExtended);
-      document.getElementById("eventNightsWrap")?.classList.toggle("d-none", !isExtended);
-      document.getElementById("eventCheckOutTimeWrap")?.classList.toggle("d-none", !isExtended);
-      fixedNoteEl?.classList.toggle("d-none", !selectedEventType || isExtended);
-      if (fixedNoteTextEl) {
-        fixedNoteTextEl.textContent = schedule
-          ? `${schedule.name}: ${schedule.label}.`
-          : "Choose one of the three fixed sessions above to see the schedule.";
-      }
-      document.getElementById("eventDurationHint")?.classList.toggle("d-none", Boolean(schedule) || isExtended || !selectedEventType);
-    };
-
     const renderPackageDetails = () => {
       if (!detailsEl) return;
       const key = getSelectedPackageKey();
@@ -603,16 +546,14 @@ function initBookingPage() {
         return;
       }
 
-      const durationMode = document.getElementById("eventDuration")?.value || "";
       const fixedSchedule = key ? getFixedSchedule(key) : null;
-      const durationKey = fixedSchedule?.durationKey || (durationMode === "extended" ? "extended" : "12hr");
-      const eventNights = durationKey === "extended" ? getSelectedEventNights() : null;
+      const durationKey = fixedSchedule?.durationKey || "12hr";
       const durationRate = pkg.flatRate
         ? Math.max(0, Number(pkg.price) || 0)
         : pkg.doubleRateOn24hr && durationKey === "24hr"
         ? (cat.cvrWholeDayRate ? cat.cvrWholeDayRate(pkg) : Math.max(0, Number(pkg.price) || 0) * 2)
         : window.CVRDuration
-        ? window.CVRDuration.eventRate(pkg.price, durationKey, eventNights)
+        ? window.CVRDuration.eventRate(pkg.price, durationKey)
         : pkg.price;
       const guestCountVal = Number(document.getElementById("eventGuests")?.value) || 0;
       const paxSurcharge = cat.calculatePaxSurcharge ? cat.calculatePaxSurcharge(guestCountVal, key, eventTypeEl?.value || "") : null;
@@ -624,10 +565,10 @@ function initBookingPage() {
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
         : pkg.flatRate
-        ? "flat package price — same regardless of duration selected"
+        ? "flat package price · single-day event"
         : pkg.isCustom
-        ? `starting price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`
-        : `package price · ${window.CVRDuration?.get(durationKey)?.label || ""}${eventNights ? ` (${eventNights} nights)` : ""}`;
+        ? "starting price · single-day event"
+        : "package price · single-day event";
       const addOnCount = cat.getPackageAddOns("event", key).length;
       detailsEl.classList.remove("d-none");
       const mediaKind = pkg.image && window.CVRPackageMedia ? window.CVRPackageMedia.kindOf(pkg.image) : "image";
@@ -644,7 +585,7 @@ function initBookingPage() {
             <div class="room-cover-overlay"><span class="room-cover-overlay-pill"><i class="bi bi-zoom-in me-1"></i>View package details</span></div>
           </div>`
         : window.CVRPackageMedia.render(pkg.image, key, { themed: isBirthdayKey(key), dark: pkg.imageDark });
-      lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, eventNights, guestCountVal, paxSurcharge };
+      lastEventView = { key, pkg, money, paxLabel, priceLabel, durationKey, guestCountVal, paxSurcharge };
       detailsEl.innerHTML = `
         <div class="soft-card overflow-hidden border bk-event-pkg">
           ${photo}
@@ -716,13 +657,12 @@ function initBookingPage() {
           : "";
       }
 
-      const schedule = getFixedSchedule(key);
       const facts = [
         isBirthdayKey(key)
           ? `Birthday package: no additional guest surcharge · maximum ${cat.EVENT_MAX_GUESTS || 200} guests`
           : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · +${cat.formatMoney(cat.EVENT_EXTRA_GUEST_RATE || 1500, "PHP")} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band · maximum ${cat.EVENT_MAX_GUESTS || 200}`,
-        schedule ? (isBirthdayKey(key) ? `Schedule: ${schedule.name} · ${schedule.label}` : `Schedule: ${schedule.label}`) : "Events follow a fixed session schedule",
-        pkg.flatRate ? "Flat package price, same regardless of duration" : "",
+        "Single-day event booking",
+          pkg.flatRate ? "Flat package price" : "",
       ].filter(Boolean);
       q("#eventDetailsFacts").innerHTML = facts.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
       q("#eventDetailsInclusions").innerHTML = (pkg.inclusions || []).map((i) => `<li>${escapeHtml(i)}</li>`).join("");
@@ -759,27 +699,13 @@ function initBookingPage() {
     eventTypeEl?.addEventListener("change", () => {
       syncBirthdayPackageVisibility();
       syncOtherSpecifyVisibility();
-      syncDurationOptionsAvailability();
-      syncFixedScheduleVisibility();
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
     birthdayEl?.addEventListener("change", () => {
-      syncFixedScheduleVisibility();
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
-    sessionRadios().forEach((r) => r.addEventListener("change", () => {
-      syncFixedScheduleVisibility();
-      renderPackageDetails();
-    }));
-    document.getElementById("eventDuration")?.addEventListener("change", () => {
-      syncFixedScheduleVisibility();
-      renderPackageDetails();
-      ensureEventPreferredCalendar();
-    });
-    document.getElementById("eventNights")?.addEventListener("change", renderPackageDetails);
-    document.getElementById("eventNights")?.addEventListener("input", renderPackageDetails);
     // Total guests, adults and kids are linked:
     //   - editing Adults or Kids updates the Total
     //   - editing the Total keeps the Kids count and adjusts Adults (at least 1 adult),
@@ -849,8 +775,6 @@ function initBookingPage() {
     });
     syncBirthdayPackageVisibility();
     syncOtherSpecifyVisibility();
-    syncDurationOptionsAvailability();
-    syncFixedScheduleVisibility();
     syncEventGuestTotal("parts");
 
     // Deep link from the homepage, e.g. booking.html?type=event&event=Wedding%20Package
@@ -874,15 +798,10 @@ function initBookingPage() {
       const otherSpecifyVal = (otherSpecifyEl?.value || "").trim();
       const packageOption = getSelectedPackageKey();
       const fixedSchedule = getFixedSchedule(packageOption);
-      const durationMode = document.getElementById("eventDuration")?.value || "";
       const eventGuests = document.getElementById("eventGuests")?.value || "";
       const eventDateVal = document.getElementById("eventDate")?.value || "";
-      const durationKey = fixedSchedule ? fixedSchedule.durationKey : durationMode === "extended" ? "extended" : "";
+      const durationKey = fixedSchedule?.durationKey || "12hr";
       const additionalNotes = document.getElementById("eventNotes")?.value || "";
-      const isExtended = durationKey === "extended";
-      const eventNights = isExtended ? getSelectedEventNights() : null;
-      const checkInSelection = fixedSchedule ? { time: fixedSchedule.checkInTime, incomplete: false, outOfRange: false } : getEventCheckInTimeSelection();
-      const checkOutSelection = isExtended ? getEventCheckOutTimeSelection() : { time: null, incomplete: false, outOfRange: false };
 
       const eventType = rawEventType === "Others" && otherSpecifyVal ? `Others - ${otherSpecifyVal}` : rawEventType;
 
@@ -918,56 +837,21 @@ function initBookingPage() {
         showMessage("Please choose a preferred date.", true);
         return;
       }
-      if (!fixedSchedule && durationMode !== "extended") {
-        showMessage("Please choose a fixed session or Multi-Day event duration.", true);
-        return;
-      }
       if (!window.CVRDuration?.get(durationKey)) {
-        showMessage("Please select an event duration.", true);
-        return;
-      }
-      if (isExtended) {
-        const rawNights = Number(document.getElementById("eventNights")?.value);
-        const extOpt = window.CVRDuration.get("extended");
-        if (!Number.isFinite(rawNights) || rawNights < extOpt.minNights || rawNights > extOpt.maxNights) {
-          showMessage(`Multi-Day / Extended Event must be between ${extOpt.minNights} and ${extOpt.maxNights} nights.`, true);
-          return;
-        }
-      }
-
-      if (durationMode === "fixed" && !fixedSchedule) {
-        showMessage("Choose one of the three fixed event sessions.", true);
-        return;
-      }
-      if (isExtended && checkInSelection.incomplete) {
-        showMessage("Choose hour, minutes, and AM/PM for your arrival time, or clear all three to use the standard time.", true);
-        return;
-      }
-      if (isExtended && checkInSelection.outOfRange) {
-        showMessage("Please choose a valid arrival time.", true);
-        return;
-      }
-      if (isExtended && checkOutSelection.incomplete) {
-        showMessage("Choose hour, minutes, and AM/PM for your departure time, or clear all three to use the standard time.", true);
-        return;
-      }
-      if (isExtended && checkOutSelection.outOfRange) {
-        showMessage("Please choose a valid departure time.", true);
+        showMessage("The selected event package is not available.", true);
         return;
       }
 
-      const win = fixedSchedule
-        ? window.CVRDuration.buildFixedWindow(eventDateVal, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
-        : window.CVRDuration.buildWindow(eventDateVal, durationKey, eventNights, checkInSelection.time, checkOutSelection.time);
+      const win = window.CVRDuration.buildFixedWindow(eventDateVal, "00:00", "00:00", "Single-day event");
       if (!win) {
-        showMessage("Please select a valid event date and duration.", true);
+        showMessage("Please select a valid event date.", true);
         return;
       }
       if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "")) {
-        showMessage("Sorry, that date range overlaps an existing event booking. Please choose a different date or session.", true);
+        showMessage("Sorry, that event date is already booked or unavailable. Please choose another date.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], checkInSelection.time, eventNights, checkOutSelection.time, Number(eventGuests), fixedSchedule?.key || null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], null, null, null, Number(eventGuests), null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -981,20 +865,32 @@ function initBookingPage() {
         children: eventChildren,
         preferredDate: win.checkInDateOnly,
         durationKey,
-        extendedNights: isExtended ? eventNights : null,
+        durationLabel: "Single-day event",
+        extendedNights: null,
         scheduledCheckIn: win.scheduledCheckIn,
         scheduledCheckOut: win.scheduledCheckOut,
-        checkInLabel: win.checkInLabel,
-        checkOutLabel: win.checkOutLabel,
-        checkOutDate: win.checkOutDateOnly,
-        customCheckInTime: win.customCheckInTime,
-        customCheckOutTime: win.customCheckOutTime,
-        eventTime: win.checkInLabel,
+        checkInLabel: "",
+        checkOutLabel: "",
+        checkOutDate: eventDateVal,
+        customCheckInTime: null,
+        customCheckOutTime: null,
+        eventTime: "",
         packageOption,
-        eventSession: fixedSchedule?.key || null,
+        eventSession: null,
         additionalNotes,
         motif,
         ...totals,
+        durationLabel: "Single-day event",
+        extendedNights: null,
+        scheduledCheckIn: win.scheduledCheckIn,
+        scheduledCheckOut: win.scheduledCheckOut,
+        checkInLabel: "",
+        checkOutLabel: "",
+        checkOutDate: eventDateVal,
+        customCheckInTime: null,
+        customCheckOutTime: null,
+        eventTime: "",
+        eventSession: null,
         currency: "PHP",
         createdAt: new Date().toISOString(),
       });

@@ -3091,6 +3091,9 @@ function buildCustomerQuotationExportDataset(record) {
   const quotation = ensureReservationQuotation(record);
   if (!quotation) return null;
   const formatMoney = (value) => window.CVRBookingCatalog?.formatMoney(value, quotation.currency || record.currency || "PHP") ?? String(value ?? "—");
+  const eventSchedule = record.bookingType === "event"
+    ? `Single-day event · ${formatDateReserved(record.preferredDate || record.checkIn)}`
+    : `${record.durationLabel ? `${record.durationLabel} · ` : ""}${formatDateReserved(record.checkIn || record.preferredDate)}${record.checkInLabel ? ` at ${record.checkInLabel}` : ""}${record.checkOut ? ` to ${formatDateReserved(record.checkOut)}` : ""}${record.checkOutLabel ? ` at ${record.checkOutLabel}` : ""}`;
   const columns = [
     ["item", "Item"],
     ["details", "Details"],
@@ -3102,7 +3105,7 @@ function buildCustomerQuotationExportDataset(record) {
     { item: "Reservation number", details: record.id },
     { item: "Guest", details: record.customerName || "Guest" },
     { item: "Package", details: record.roomName || record.packageOption || "Reservation" },
-    { item: "Schedule", details: `${record.durationLabel ? `${record.durationLabel} · ` : ""}${formatDateReserved(record.checkIn || record.preferredDate)}${record.checkInLabel ? ` at ${record.checkInLabel}` : ""}${record.checkOut ? ` to ${formatDateReserved(record.checkOut)}` : ""}${record.checkOutLabel ? ` at ${record.checkOutLabel}` : ""}` },
+    { item: record.bookingType === "event" ? "Event date" : "Schedule", details: eventSchedule },
     { item: "Quotation status", details: quotation.status || "—" },
     ...(quotation.lines || []).map((line) => ({
       item: line.label || line.type || "Service",
@@ -4004,14 +4007,12 @@ function renderQuotationBreakdownHtml(record, cat) {
     .join("");
 
   const isEvent = record.bookingType === "event";
-  const isPremiumOvertime = record.packageOption === "Wedding Package" || record.packageOption === "Debut Package";
-  const overtimeRate = isPremiumOvertime ? "1,500" : "1,000";
   const policyHtml = isEvent
     ? `
     <div class="alert alert-warning small mt-3 mb-0">
       <div class="fw-semibold mb-1"><i class="bi bi-info-circle me-1"></i>Event Booking Policy</div>
       <ul class="mb-0 ps-3">
-        <li>Extended stay: PHP ${overtimeRate} per additional hour</li>
+        <li>Event bookings cover one date only. Book overnight or multi-day stays as a room reservation.</li>
         <li>First come, first served — no down payment, no reservation without payment</li>
         <li>Non-refundable once paid</li>
         <li>PHP 1,000-2,000 refundable damage/loss deposit required</li>
@@ -4119,7 +4120,7 @@ function reservationToPending(record) {
     checkInLabel: record.checkInLabel || "",
     checkOutLabel: record.checkOutLabel || "",
     packageOption: record.packageOption,
-    eventSession: record.eventSession || (/^8:00 AM/.test(record.eventTime || "") ? "morning" : /^7:00 PM/.test(record.eventTime || "") ? "night" : null),
+    eventSession: null,
     additionalNotes: record.eventNotes || "",
     motif: record.motif || null,
     selectedAddOns: record.selectedAddOns || [],
@@ -4388,25 +4389,23 @@ function updateEventFormSummary(cat, pending) {
   pending.children = split.children;
 
   const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
-  const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "morning");
-  const durationKey = fixedSchedule?.durationKey || (pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr");
+  const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
+  const durationKey = fixedSchedule?.durationKey || "12hr";
   pending.preferredDate = eventDate;
   pending.durationKey = durationKey;
-  pending.eventSession = fixedSchedule?.key || pending.eventSession || null;
+  pending.eventSession = null;
+  pending.durationLabel = "Single-day event";
 
   const selectedAddOns = getSelectedAddOnIds();
-  const customCheckInTime = syncPendingCheckInTime(pending, durationKey);
-  const eventNights = durationKey === "extended" ? window.CVRDuration?.clampExtendedNights(pending.extendedNights) : null;
-  const customCheckOutTime = durationKey === "extended" ? (pending.customCheckOutTime || null) : null;
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, customCheckInTime, eventNights, customCheckOutTime, guests, pending.eventSession || null, pending.eventType || "")
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, null, null, null, guests, null, pending.eventType || "")
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
 
   if (!totals) {
-    if (durLabelEl) durLabelEl.textContent = window.CVRDuration?.get(durationKey)?.label || "—";
-    if (scheduleEl) scheduleEl.textContent = "Select an event date to see your exact check-in / check-out schedule.";
+    if (durLabelEl) durLabelEl.textContent = "Single-day event";
+    if (scheduleEl) scheduleEl.textContent = "Select the date for your single-day event.";
     document.getElementById("summarySidebarDates").textContent = "Select an event date";
     document.getElementById("summaryLineRoom").textContent = "—";
     document.getElementById("summaryLineTotal").textContent = "—";
@@ -4415,15 +4414,16 @@ function updateEventFormSummary(cat, pending) {
     return;
   }
 
-  pending.eventTime = totals.checkInLabel;
-  pending.scheduledCheckIn = totals.scheduledCheckIn;
-  pending.scheduledCheckOut = totals.scheduledCheckOut;
-  pending.checkInLabel = totals.checkInLabel;
-  pending.checkOutLabel = totals.checkOutLabel;
-  pending.checkOutDate = totals.checkOutDateOnly;
-  pending.customCheckInTime = totals.customCheckInTime || null;
-  pending.customCheckOutTime = totals.customCheckOutTime || null;
-  pending.extendedNights = durationKey === "extended" ? totals.nights : null;
+  const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
+  pending.eventTime = "";
+  pending.scheduledCheckIn = allDayWindow?.scheduledCheckIn || totals.scheduledCheckIn;
+  pending.scheduledCheckOut = allDayWindow?.scheduledCheckOut || totals.scheduledCheckOut;
+  pending.checkInLabel = "";
+  pending.checkOutLabel = "";
+  pending.checkOutDate = eventDate;
+  pending.customCheckInTime = null;
+  pending.customCheckOutTime = null;
+  pending.extendedNights = null;
   pending.selectedAddOns = selectedAddOns;
   pending.roomSubtotal = totals.roomSubtotal;
   pending.addOnsTotal = totals.addOnsTotal;
@@ -4434,27 +4434,18 @@ function updateEventFormSummary(cat, pending) {
 
   const list = document.getElementById("eventSummaryList");
   if (list) {
-    const spansDays = pending.checkOutDate && pending.checkOutDate !== pending.preferredDate;
-    const session = cat.EVENT_SESSION_SCHEDULES?.[pending.eventSession];
     list.innerHTML = `
       <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
       <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
-      ${session ? `<li><strong>Session:</strong> ${escapeHtml(session.name)} · ${escapeHtml(session.label)}</li>` : ""}
-      <li><strong>${spansDays ? "Start date" : "Date"}:</strong> ${formatDateReserved(pending.preferredDate)}</li>
-      ${spansDays ? `<li><strong>End date:</strong> ${formatDateReserved(pending.checkOutDate)}</li>` : ""}
-      ${pending.durationKey === "extended" && pending.extendedNights ? `<li><strong>Nights:</strong> ${escapeHtml(String(pending.extendedNights))}</li>` : ""}
-      ${pending.eventTime ? `<li><strong>Time:</strong> ${escapeHtml(pending.eventTime)}</li>` : ""}
+      <li><strong>Event date:</strong> ${formatDateReserved(pending.preferredDate)}</li>
     `;
   }
 
-  if (durLabelEl) durLabelEl.textContent = totals.durationLabel;
-  if (scheduleEl) scheduleEl.textContent = `Check-in: ${formatDateReserved(totals.checkInDateOnly)} at ${totals.checkInLabel}  →  Check-out: ${formatDateReserved(totals.checkOutDateOnly)} at ${totals.checkOutLabel}`;
+  if (durLabelEl) durLabelEl.textContent = "Single-day event";
+  if (scheduleEl) scheduleEl.textContent = `Event date: ${formatDateReserved(eventDate)}`;
 
   document.getElementById("summarySidebarTitle").textContent = `Event: ${pending.eventType}`;
-  const sameDay = totals.checkInDateOnly === totals.checkOutDateOnly;
-  document.getElementById("summarySidebarDates").textContent = sameDay
-    ? `${formatDateReserved(eventDate)} · ${guests} guests · ${totals.checkInLabel} – ${totals.checkOutLabel}`
-    : `${formatDateReserved(totals.checkInDateOnly)} ${totals.checkInLabel} → ${formatDateReserved(totals.checkOutDateOnly)} ${totals.checkOutLabel} · ${guests} guest${guests !== 1 ? "s" : ""}`;
+  document.getElementById("summarySidebarDates").textContent = `${formatDateReserved(eventDate)} · ${guests} guest${guests !== 1 ? "s" : ""}`;
   document.getElementById("summaryLineRoom").textContent = fmt(totals.roomSubtotal);
   document.getElementById("summaryLineTotal").textContent = fmt(totals.total);
   renderSummaryAddOnLines(cat, totals.addOnLines, pending.currency || "PHP");
@@ -4654,10 +4645,8 @@ function buildReservationFromForm(cat, pending, flow) {
     });
   } else {
     const eventDate = document.getElementById("resEventDate")?.value || pending.preferredDate;
-    const durationKey = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
-    const extendedNights = durationKey === "extended"
-      ? window.CVRDuration?.clampExtendedNights(pending.extendedNights)
-      : null;
+    const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
+    const eventDuration = fixedSchedule?.durationKey || "12hr";
     if (pending.packageOption && cat.isEventPackageActive && !cat.isEventPackageActive(pending.packageOption)) {
       return { error: "This package is no longer available for booking. Please choose another." };
     }
@@ -4665,50 +4654,45 @@ function buildReservationFromForm(cat, pending, flow) {
 
     if (!eventDate) return { error: "Please select an event date." };
 
-    const fixedSchedule = durationKey === "extended"
-      ? null
-      : cat.getFixedEventSchedule?.(pending.packageOption || "", pending.eventSession || "");
-    const eventSession = fixedSchedule?.key || (durationKey === "extended" ? null : pending.eventSession || null);
-    const eventDuration = fixedSchedule?.durationKey || durationKey;
-    const customCheckInTime = durationKey === "extended" ? pending.customCheckInTime || null : null;
-    const customCheckOutTime = durationKey === "extended" ? pending.customCheckOutTime || null : null;
     const totals = cat.calculateDurationEventTotal(
       eventDate,
       eventDuration,
       pending.packageOption || "",
       selectedAddOns,
-      customCheckInTime,
-      extendedNights,
-      customCheckOutTime,
+      null,
+      null,
+      null,
       guestsNum,
-      eventSession,
+      null,
       pending.eventType || ""
     );
     if (!totals) return { error: "Invalid event duration." };
-    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(totals.scheduledCheckIn, totals.scheduledCheckOut, excludeId)) {
-      return { error: "Sorry, that date range overlaps an existing event booking. Please choose a different date or session." };
+    const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
+    if (!allDayWindow) return { error: "Please choose a valid event date." };
+    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(allDayWindow.scheduledCheckIn, allDayWindow.scheduledCheckOut, excludeId)) {
+      return { error: "Sorry, that event date is already booked or unavailable. Please choose another date." };
     }
     const maxGuests = cat.EVENT_MAX_GUESTS || 200;
 
     if (guestsNum < 1) return { error: "Enter a valid number of guests." };
     if (guestsNum > maxGuests) return { error: `Guest count cannot exceed ${maxGuests} for an event.` };
 
-    reservation.checkIn = totals.checkInDateOnly;
-    reservation.checkOut = totals.checkOutDateOnly;
+    reservation.checkIn = eventDate;
+    reservation.checkOut = eventDate;
     reservation.eventType = pending.eventType;
-    reservation.preferredDate = totals.checkInDateOnly;
-    reservation.eventTime = totals.checkInLabel;
+    reservation.preferredDate = eventDate;
+    reservation.eventTime = "";
     reservation.durationKey = eventDuration;
-    reservation.durationLabel = totals.durationLabel;
-    reservation.extendedNights = extendedNights;
-    reservation.scheduledCheckIn = totals.scheduledCheckIn;
-    reservation.scheduledCheckOut = totals.scheduledCheckOut;
-    reservation.checkInLabel = totals.checkInLabel;
-    reservation.checkOutLabel = totals.checkOutLabel;
-    reservation.customCheckInTime = totals.customCheckInTime || null;
-    reservation.customCheckOutTime = totals.customCheckOutTime || null;
+    reservation.durationLabel = "Single-day event";
+    reservation.extendedNights = null;
+    reservation.scheduledCheckIn = allDayWindow.scheduledCheckIn;
+    reservation.scheduledCheckOut = allDayWindow.scheduledCheckOut;
+    reservation.checkInLabel = "";
+    reservation.checkOutLabel = "";
+    reservation.customCheckInTime = null;
+    reservation.customCheckOutTime = null;
     reservation.packageOption = pending.packageOption;
-    reservation.eventSession = totals.eventSession || null;
+    reservation.eventSession = null;
     reservation.eventNotes = pending.additionalNotes || specialRequests;
     reservation.motif = motif;
     reservation.roomName = `Event — ${pending.eventType}`;
@@ -4736,8 +4720,10 @@ function buildChangeSummary(existing, next) {
   };
   add("Check-in / event date", existing.checkIn || existing.preferredDate, next.checkIn || next.preferredDate);
   add("Duration", existing.durationLabel, next.durationLabel);
-  add("Check-in time", existing.checkInLabel, next.checkInLabel);
-  add("Check-out time", existing.checkOutLabel, next.checkOutLabel);
+  if (next.bookingType !== "event") {
+    add("Check-in time", existing.checkInLabel, next.checkInLabel);
+    add("Check-out time", existing.checkOutLabel, next.checkOutLabel);
+  }
   add("Guests", existing.guests, next.guests);
   add("Motif", existing.motif?.label, next.motif?.label);
   add("Total amount", existing.totalAmount, next.totalAmount);
@@ -4747,17 +4733,18 @@ function buildChangeSummary(existing, next) {
 
 function renderConfirmSummaryHtml(r, cat) {
   const fmt = (n, cur) => cat.formatMoney(n, cur || r.currency || "PHP");
+  const isEvent = r.bookingType === "event";
   const rows = [
     ["Reservation ID", r.id],
     ["Guest", r.customerName],
     ["Email", r.email],
     ["Phone", r.phone],
-    ["Type", r.bookingType === "event" ? "Event" : "Room stay"],
+    ["Type", isEvent ? "Event" : "Room stay"],
     ["Package", r.roomName || r.packageOption || "—"],
-    ["Check-in / event date", formatDateReserved(r.checkIn || r.preferredDate)],
+    [isEvent ? "Event date" : "Check-in date", formatDateReserved(r.checkIn || r.preferredDate)],
+    ...(isEvent ? [] : [["Check-out date", formatDateReserved(r.checkOut)]]),
     ["Duration", r.durationLabel || "—"],
-    ["Check-in time", r.checkInLabel || "—"],
-    ["Check-out time (strict)", r.checkOutLabel || "—"],
+    ...(isEvent ? [] : [["Check-in time", r.checkInLabel || "—"], ["Check-out time (strict)", r.checkOutLabel || "—"]]),
     ["Guests", r.guestsLabel || r.guests],
     ["Motif / theme", r.motif?.label ? `${r.motif.label} (${r.motif.colors || ""})` : "—"],
     ["Package subtotal", r.roomSubtotal != null ? fmt(r.roomSubtotal, r.currency) : "—"],
@@ -5099,27 +5086,23 @@ function initReservationFormPage() {
 
     const list = document.getElementById("eventSummaryList");
     if (list) {
-      const spansDays = pending.checkOutDate && pending.checkOutDate !== pending.preferredDate;
-      const session = cat.EVENT_SESSION_SCHEDULES?.[pending.eventSession];
       list.innerHTML = `
         <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
         <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
-        ${session ? `<li><strong>Session:</strong> ${escapeHtml(session.name)} · ${escapeHtml(session.label)}</li>` : ""}
-        <li><strong>${spansDays ? "Start date" : "Date"}:</strong> ${formatDateReserved(pending.preferredDate)}</li>
-        ${spansDays ? `<li><strong>End date:</strong> ${formatDateReserved(pending.checkOutDate)}</li>` : ""}
-        ${pending.durationKey === "extended" && pending.extendedNights ? `<li><strong>Nights:</strong> ${escapeHtml(String(pending.extendedNights))}</li>` : ""}
-        ${pending.eventTime ? `<li><strong>Time:</strong> ${escapeHtml(pending.eventTime)}</li>` : ""}
+        <li><strong>Event date:</strong> ${formatDateReserved(pending.preferredDate)}</li>
       `;
     }
 
     renderPackageAddOnsUI(cat, "event", pending.packageOption || "", pending.selectedAddOns || editRecord?.selectedAddOns || []);
 
-    const timeEl = document.getElementById("resEventTime");
-    // Duration is fixed by the selected package (set on the booking page), so no selector here.
-    const initialDuration = pending.durationKey && window.CVRDuration?.get(pending.durationKey) ? pending.durationKey : "12hr";
-    pending.durationKey = initialDuration;
+    pending.durationKey = cat.getFixedEventSchedule?.(pending.packageOption || "")?.durationKey || "12hr";
+    pending.durationLabel = "Single-day event";
+    pending.eventSession = null;
+    pending.eventTime = "";
+    pending.extendedNights = null;
 
     checkInTimeWrap?.classList.add("d-none");
+    document.getElementById("resCheckOutTimeWrap")?.classList.add("d-none");
     setResCheckInTimeSelection("");
 
     populateResGuestSplit(editRecord || pending);
@@ -5149,9 +5132,8 @@ function initReservationFormPage() {
     }
 
     const stayH = document.querySelector("#stayDetailsPanel h4");
-    if (stayH) stayH.textContent = "Event schedule & guests";
+    if (stayH) stayH.textContent = "Event date & guests";
 
-    timeEl?.addEventListener("change", recalc);
     recalc();
   }
 }
@@ -5779,11 +5761,22 @@ async function initReservationStatusView() {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   };
-  setIf("statusCheckIn", target.checkInLabel ? `${formatDateReserved(target.checkIn || target.preferredDate)} at ${target.checkInLabel}` : formatDateReserved(target.checkIn || target.preferredDate));
+  const isEventBooking = target.bookingType === "event";
+  setIf("statusCheckIn", isEventBooking
+    ? formatDateReserved(target.checkIn || target.preferredDate)
+    : target.checkInLabel
+      ? `${formatDateReserved(target.checkIn || target.preferredDate)} at ${target.checkInLabel}`
+      : formatDateReserved(target.checkIn || target.preferredDate));
+  const checkInLabel = document.getElementById("statusCheckInRow")?.querySelector("strong");
+  if (checkInLabel) checkInLabel.textContent = isEventBooking ? "Event date:" : "Check-in / event date:";
+  document.getElementById("statusCheckOutRow")?.classList.toggle("d-none", isEventBooking);
+  document.getElementById("statusEventTimeRow")?.classList.toggle("d-none", isEventBooking);
   setIf(
     "statusCheckOut",
     target.checkedOutAt
       ? `Checked out ${formatMemberSince(target.checkedOutAt)}${target.penaltyAmount > 0 ? ` — overtime penalty applied` : ""}`
+      : isEventBooking
+        ? "Single-day event"
       : target.checkOutLabel
         ? `${formatDateReserved(target.checkOut)} at ${target.checkOutLabel} (strict)`
         : target.bookingType === "room"
@@ -5791,21 +5784,7 @@ async function initReservationStatusView() {
           : "Same day (event)"
   );
   setIf("statusEventTime", target.eventTime || "—");
-  {
-    const bcat = window.CVRBookingCatalog;
-    const sessionRow = document.getElementById("statusSessionRow");
-    const sessionEl = document.getElementById("statusSession");
-    const sched = target.bookingType === "event" && target.eventSession
-      ? bcat.EVENT_SESSION_SCHEDULES?.[target.eventSession]
-      : null;
-    if (sessionRow && sessionEl) {
-      sessionRow.classList.toggle("d-none", !sched);
-      if (sched) {
-        sessionEl.className = `acct-session-chip is-${sched.key}`;
-        sessionEl.innerHTML = `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ${escapeHtml(sched.name)} · ${escapeHtml(sched.label)}`;
-      }
-    }
-  }
+  document.getElementById("statusSessionRow")?.classList.add("d-none");
   setIf("statusDurationType", target.durationLabel || "—");
   setIf("statusGuests", String(target.guestsLabel || target.guests || "—"));
   setIf("statusNights", target.durationLabel || (target.nights != null ? formatStayLength(target.nights) : "—"));
@@ -7182,16 +7161,15 @@ function cvrRenderDashNextStay(list) {
   const { r, d } = upcoming;
   const days = Math.round((d - today) / 86400000);
   const when = days === 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days} days`;
-  const cat = window.CVRBookingCatalog;
-  const sched = r.bookingType === "event" && r.eventSession
-    ? cat.EVENT_SESSION_SCHEDULES?.[r.eventSession] : null;
-  const timeText = sched ? `${sched.name} · ${sched.label}` : (r.checkInLabel ? `Check-in ${r.checkInLabel}` : (r.eventTime || ""));
+  const timeText = r.bookingType === "event"
+    ? "Single-day event"
+    : r.checkInLabel ? `Check-in ${r.checkInLabel}` : "";
   el.innerHTML = `
     <div class="acct-next-count"><strong>${escapeHtml(when)}</strong><span>${escapeHtml(formatDateReserved(r.checkIn || r.preferredDate))}</span></div>
     <div class="acct-next-body">
       <p class="acct-eyebrow mb-1">Your next stay</p>
       <h3 class="acct-next-title">${escapeHtml(r.roomName || r.eventType || "Reservation")}</h3>
-      <p class="acct-next-meta">${sched ? `<i class="bi ${sched.key === "night" ? "bi-moon-stars-fill" : "bi-sun-fill"}" aria-hidden="true"></i> ` : ""}${escapeHtml(timeText)}${timeText && r.id ? " · " : ""}${escapeHtml(r.id || "")}</p>
+      <p class="acct-next-meta">${escapeHtml(timeText)}${timeText && r.id ? " · " : ""}${escapeHtml(r.id || "")}</p>
     </div>
     <a class="btn btn-sm acct-next-btn" href="reservation-status.html?id=${encodeURIComponent(r.id)}">View status <i class="bi bi-arrow-right" aria-hidden="true"></i></a>`;
   el.classList.remove("d-none");

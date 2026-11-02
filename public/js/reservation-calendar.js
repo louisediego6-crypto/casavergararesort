@@ -130,11 +130,9 @@
       if (excludeReservationId && r.id === excludeReservationId) continue;
       if (r.bookingType && r.bookingType !== "event") continue;
       if (isReservationCanceled(r)) continue;
-      if (r.scheduledCheckIn && r.scheduledCheckOut) {
-        if (dur.windowsOverlap(scheduledCheckIn, scheduledCheckOut, r.scheduledCheckIn, r.scheduledCheckOut)) return true;
-      } else if (r.preferredDate) {
-        if (r.preferredDate === newStartYmd) return true;
-      }
+      const eventStart = String(r.preferredDate || r.checkIn || "").slice(0, 10);
+      const eventEnd = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || eventStart).slice(0, 10);
+      if (eventStart && newStartYmd >= eventStart && newStartYmd <= eventEnd) return true;
     }
     return false;
   };
@@ -318,45 +316,10 @@
   };
 
   function getEventWindowForDate(ymd) {
-    const catalog = window.CVRBookingCatalog;
     const duration = window.CVRDuration;
-    if (!catalog?.getFixedEventSchedule || !duration?.buildFixedWindow) return null;
-
-    const pending = window.__cvrReservationFlow?.type === "event"
-      ? window.__cvrReservationFlow.pending
+    return duration?.buildFixedWindow
+      ? duration.buildFixedWindow(ymd, "00:00", "00:00", "Single-day event")
       : null;
-    const durationKey = pending?.durationKey || document.getElementById("eventDuration")?.value || "";
-    if (durationKey === "extended") {
-      const readTime = (hourId, minuteId, meridiemId) => {
-        const hour = document.getElementById(hourId)?.value || "";
-        const minute = document.getElementById(minuteId)?.value || "";
-        const meridiem = document.getElementById(meridiemId)?.value || "";
-        return hour && minute !== "" && meridiem
-          ? duration.parse12HourTime?.(hour, minute, meridiem) || null
-          : null;
-      };
-      return duration.buildWindow(
-        ymd,
-        "extended",
-        pending?.extendedNights || document.getElementById("eventNights")?.value || 2,
-        pending?.customCheckInTime || readTime("eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem"),
-        pending?.customCheckOutTime || readTime("eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem")
-      );
-    }
-
-    const eventType = document.getElementById("eventType")?.value || "";
-    const packageOption = pending?.packageOption
-      || (catalog.getEventPackageCatalog(eventType)
-        ? eventType
-        : eventType === "Birthday"
-          ? document.getElementById("eventBirthdayPackage")?.value || ""
-          : "");
-    const sessionKey = pending?.eventSession || document.querySelector('input[name="eventSession"]:checked')?.value;
-    if (!pending && !sessionKey && !String(packageOption).startsWith("Private Venue –")) return null;
-    const schedule = catalog.getFixedEventSchedule(packageOption, sessionKey);
-    if (!schedule) return null;
-
-    return duration.buildFixedWindow(ymd, schedule.checkInTime, schedule.checkOutTime);
   }
 
   function isEventDateTaken(ymd, excludeReservationId) {
@@ -366,13 +329,11 @@
       if (excludeReservationId && r.id === excludeReservationId) continue;
       if (r.bookingType && r.bookingType !== "event") continue;
       if (isReservationCanceled(r)) continue;
-      if (requestedWindow && duration && r.scheduledCheckIn && r.scheduledCheckOut) {
-        if (duration.windowsOverlap(
-          requestedWindow.scheduledCheckIn,
-          requestedWindow.scheduledCheckOut,
-          r.scheduledCheckIn,
-          r.scheduledCheckOut
-        )) return true;
+      if (requestedWindow && duration) {
+        const eventStart = String(r.preferredDate || r.checkIn || "").slice(0, 10);
+        const eventEnd = String(r.checkOutDate || r.checkOutDateOnly || r.checkOut || eventStart).slice(0, 10);
+        const date = formatYMD(new Date(requestedWindow.scheduledCheckIn));
+        if (eventStart && date >= eventStart && date <= eventEnd) return true;
         continue;
       }
       if (!r.preferredDate) continue;
@@ -451,12 +412,6 @@
     const refreshEventAvailability = () => eventDatePicker.redraw();
     ["eventType", "eventBirthdayPackage"].forEach((id) => {
       document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
-    });
-    ["eventDuration", "eventNights", "eventCheckInHour", "eventCheckInMinute", "eventCheckInMeridiem", "eventCheckOutHour", "eventCheckOutMinute", "eventCheckOutMeridiem"].forEach((id) => {
-      document.getElementById(id)?.addEventListener("change", refreshEventAvailability);
-    });
-    document.querySelectorAll('input[name="eventSession"]').forEach((radio) => {
-      radio.addEventListener("change", refreshEventAvailability);
     });
   };
 })();

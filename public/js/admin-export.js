@@ -1270,8 +1270,8 @@ ${docxParagraph("Generated automatically by the Casa Vergara Resort booking syst
         if (!button) return;
         const action = button.dataset.customerExport;
         if (action === "print") printDataset(dataset, title);
-        else if (action === "pdf") exportPdf(dataset, title, baseName, false);
-        else if (action === "docx") exportDocx(dataset, title, baseName, false);
+        else if (action === "pdf") exportPdf(dataset, title, baseName);
+        else if (action === "docx") exportDocx(dataset, title, baseName);
         else if (action === "xlsx") exportXlsx(dataset, title, baseName, false);
       });
       dialog.querySelector(".cvr-report-preview-close").addEventListener("click", () => dialog.close());

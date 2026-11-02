@@ -199,7 +199,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../js/booking-data.js?v=20261105b"></script>
+  <script src="../js/booking-data.js?v=20261102b"></script>
   <script src="../js/main.js?v=20261105b"></script>
   <script>
     renderNavbar("");
