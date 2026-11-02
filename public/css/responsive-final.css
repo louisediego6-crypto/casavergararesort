@@ -128,7 +128,7 @@ html[data-theme="dark"] body .hero-stats .hero-stat-item + .hero-stat-item { bor
 
 /* Footer columns stack cleanly */
 @media (max-width: 767.98px) {
-  footer .row > [class*="col"] { flex: 0 0 100%; max-width: 100%; text-align: left; }
+  footer .row > [class*="col"] { flex: 0 0 100%; max-width: 100%; text-align: center; }
 }
 
 /* ---- 5. Forms, tables and widgets (every page) -------------------------- */
@@ -214,4 +214,157 @@ table { max-width: 100%; }
   .admin-wrap .nav-pills .nav-link:hover {
     transform: none;
   }
+}
+
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1024px) {
+  .landing-hero .container,
+  .landing-hero,
+  .landing-hero ~ .section-pad,
+  .landing-highlights-strip,
+  .landing-cta-panel-text {
+    text-align: center;
+  }
+
+  .landing-hero .row,
+  .landing-hero-text,
+  .landing-cta-section-v2 .container {
+    text-align: center;
+  }
+
+  .landing-hero .row > [class*="col-"],
+  .landing-cta-panel > [class*="col-"] {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .landing-hero .hero-image-col,
+  .landing-hero-visual,
+  .landing-cta-panel {
+    margin-inline: auto;
+  }
+
+  .landing-hero .hero-image-col {
+    max-width: 40rem;
+  }
+
+  .landing-hero-text .hero-description {
+    margin-inline: auto;
+  }
+
+  .landing-cta-kicker,
+  .landing-cta-text-v2 {
+    align-self: center;
+    margin-inline: auto;
+  }
+
+  .landing-cta-panel-text,
+  .landing-cta-panel-text > .d-flex {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .footer-main .footer-top-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .footer-main .footer-top-grid,
+  .footer-main .footer-brand-stack,
+  .footer-main .footer-links-col,
+  .footer-main .footer-contact-col,
+  .footer-main .footer-bottom-inner,
+  .footer-main .footer-bottom-right,
+  .footer-main .footer-bottom-links {
+    justify-content: center;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .footer-main .footer-links-col,
+  .footer-main .footer-contact-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .footer-main .footer-link-list,
+  .footer-main .footer-contact-list {
+    width: auto;
+    max-width: 100%;
+    align-items: center;
+    padding-inline: 0;
+  }
+
+  .footer-main .footer-link,
+  .footer-main .footer-contact-line,
+  .footer-main .footer-contact-line.is-multiline {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-main .footer-bottom-inner {
+    flex-direction: column;
+  }
+
+  .footer-main .footer-bottom-right {
+    width: 100%;
+  }
+}
+
+html.cvr-small-touch-viewport body .landing-hero,
+html.cvr-small-touch-viewport body .landing-cta-section-v2,
+html.cvr-small-touch-viewport body .footer-main {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+html.cvr-small-touch-viewport body .landing-hero,
+html.cvr-small-touch-viewport body .landing-hero ~ .section-pad,
+html.cvr-small-touch-viewport body .landing-cta-panel-text {
+  text-align: center;
+}
+
+html.cvr-small-touch-viewport body .landing-cta-panel-text,
+html.cvr-small-touch-viewport body .landing-cta-panel-text > .d-flex {
+  align-items: center;
+  justify-content: center;
+}
+
+html.cvr-small-touch-viewport body .footer-main .footer-top-grid,
+html.cvr-small-touch-viewport body .footer-main .footer-brand-stack,
+html.cvr-small-touch-viewport body .footer-main .footer-links-col,
+html.cvr-small-touch-viewport body .footer-main .footer-contact-col,
+html.cvr-small-touch-viewport body .footer-main .footer-bottom-inner,
+html.cvr-small-touch-viewport body .footer-main .footer-bottom-right,
+html.cvr-small-touch-viewport body .footer-main .footer-bottom-links {
+  justify-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+html.cvr-small-touch-viewport body .footer-main .footer-links-col,
+html.cvr-small-touch-viewport body .footer-main .footer-contact-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+html.cvr-small-touch-viewport body .footer-main .footer-link-list,
+html.cvr-small-touch-viewport body .footer-main .footer-contact-list {
+  width: auto;
+  max-width: 100%;
+  align-items: center;
+  padding-inline: 0;
+}
+
+html.cvr-small-touch-viewport body .footer-main .footer-link,
+html.cvr-small-touch-viewport body .footer-main .footer-contact-line,
+html.cvr-small-touch-viewport body .footer-main .footer-contact-line.is-multiline {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
