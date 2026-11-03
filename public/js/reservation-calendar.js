@@ -1,5 +1,3 @@
-
-
 (function () {
 
   let serverOccupiedCache = null;

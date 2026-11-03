@@ -1,5 +1,3 @@
-
-
 const CV_BOOKING_STORAGE_KEY = "cv_bookings_v1";
 const CVR_PENDING_RESERVATION_KEY = "cvr_pending_reservation";
 const CVR_EVENT_INCLUDED_GUESTS = 50;
@@ -165,19 +163,11 @@ const CVR_EVENT_SESSIONS = {
   },
 };
 
-<<<<<<< HEAD
 // Optional multi-day stay (offered for the "Others" and "Team Building" events only). Check-in and check-out follow the
 // resort's session times and are fixed: in at the start of the Morning session on the first day,
 // out at the end of the Night session (5:00 AM) after the last day. Guests only choose the start date
 // and how many days; they cannot change the times. Edit these constants to change the schedule.
 const CVR_MULTI_DAY_PACKAGES = ["Others", "Team Building"];
-=======
-// Optional multi-day stay (offered for the "Others" event only). Check-in and check-out follow the
-// resort's session times and are fixed: in at the start of the Morning session on the first day,
-// out at the end of the Night session (5:00 AM) after the last day. Guests only choose the start date
-// and how many days; they cannot change the times. Edit these constants to change the schedule.
-const CVR_MULTI_DAY_PACKAGES = ["Others"];
->>>>>>> 0747235791934c884030b10c9dc2b4dc889a5d17
 const CVR_MULTI_DAY_LIMITS = { min: 2, max: 7 };
 CVR_EVENT_SESSIONS["multi-day"] = {
   key: "multi-day",

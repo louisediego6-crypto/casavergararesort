@@ -26,6 +26,14 @@
       .sitemap-branches::before { left: 16.66%; right: 16.66%; }
       .sitemap-branches > div:nth-child(n+4) .sitemap-branch-stem { display: none; }
     }
+    /* Popular-pages chips */
+    .sitemap-quick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; margin: 1rem auto 0; max-width: 60rem; }
+    .sitemap-quick > span { font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); }
+    .sitemap-quick a { display: inline-flex; align-items: center; gap: .4rem; padding: .38rem .85rem; border-radius: 999px; font-size: .85rem; font-weight: 500; text-decoration: none; color: var(--primary); background: rgba(50,139,195,.09); border: 1px solid rgba(50,139,195,.22); transition: background .15s, border-color .15s, transform .15s; }
+    .sitemap-quick a:hover { background: rgba(217,179,18,.16); border-color: var(--accent); transform: translateY(-1px); }
+    .sitemap-quick a i { color: var(--secondary); }
+    .sitemap-updated { margin: .9rem 0 0; font-size: .78rem; color: #6b7a90; }
+    html[data-theme="dark"] .sitemap-quick a { color: #e6eef6; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); }
     .sitemap-intro a { font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--accent); }
   </style>
   <link href="../css/theme-auto.css?v=20261024e" rel="stylesheet">
@@ -71,7 +79,7 @@
         <div class="sitemap-stats" id="sitemapStats" aria-hidden="true">
           <span class="sitemap-stat"><i class="bi bi-diagram-3"></i><b>6</b> sections</span>
           <span class="sitemap-stat-sep">&middot;</span>
-          <span class="sitemap-stat"><i class="bi bi-file-earmark-text"></i><b id="sitemapTotalCount">42</b> pages</span>
+          <span class="sitemap-stat"><i class="bi bi-file-earmark-text"></i><b id="sitemapTotalCount">46</b> pages</span>
         </div>
 
         <div class="sitemap-search-wrap">
@@ -81,6 +89,15 @@
             <i class="bi bi-x-lg" aria-hidden="true"></i>
           </button>
         </div>
+
+        <div class="sitemap-quick" aria-label="Popular pages">
+          <span>Popular</span>
+          <a href="booking.html"><i class="bi bi-door-open" aria-hidden="true"></i>Book a stay or event</a>
+          <a href="user-manual.html#sessions"><i class="bi bi-calendar-range" aria-hidden="true"></i>Event sessions &amp; multi-day stay</a>
+          <a href="payment.html"><i class="bi bi-credit-card" aria-hidden="true"></i>Pay</a>
+          <a href="reservation-status.html"><i class="bi bi-activity" aria-hidden="true"></i>Track my booking</a>
+        </div>
+        <p class="sitemap-updated">Updated November 2026</p>
       </div>
 
       <div class="sitemap-root-wrap">
@@ -107,7 +124,7 @@
             <p class="small text-muted-brand mb-3">Browse the resort &mdash; open to every visitor</p>
             <ul class="sitemap-link-list">
               <li><a href="landing.html"><i class="bi bi-house"></i><span>Home</span></a></li>
-              <li><a href="booking.html"><i class="bi bi-door-open"></i><span>Rooms &amp; Events</span></a></li>
+              <li><a href="booking.html"><i class="bi bi-door-open"></i><span>Rooms &amp; Events <em>(room stays, event sessions &amp; multi-day stay)</em></span></a></li>
               <li><a href="about.html"><i class="bi bi-info-circle"></i><span>About Us</span></a></li>
               <li><a href="contact.html"><i class="bi bi-envelope"></i><span>Contact</span></a></li>
             </ul>
@@ -126,7 +143,8 @@
             </div>
             <p class="small text-muted-brand mb-3">Guides, answers and policies &mdash; open to everyone</p>
             <ul class="sitemap-link-list">
-              <li><a href="user-manual.html"><i class="bi bi-book"></i><span>User Manual <em>(new)</em></span></a></li>
+              <li><a href="user-manual.html"><i class="bi bi-book"></i><span>User Manual <em>(guides for guests, staff &amp; admin)</em></span></a></li>
+              <li><a href="user-manual.html#sessions"><i class="bi bi-calendar-range"></i><span>Event Sessions &amp; Multi-day Stay <em>(guide)</em></span></a></li>
               <li><a href="faq.html"><i class="bi bi-question-circle"></i><span>FAQs</span></a></li>
               <li><a href="privacy.html"><i class="bi bi-shield-check"></i><span>Privacy Policy</span></a></li>
               <li><a href="terms.html"><i class="bi bi-file-earmark-text"></i><span>Terms &amp; Conditions</span></a></li>
@@ -170,8 +188,8 @@
               <li><a href="customer-dashboard.html"><i class="bi bi-speedometer2"></i><span>My Dashboard</span></a></li>
               <li><a href="customer-settings.html"><i class="bi bi-gear"></i><span>Account Settings <em>(profile photo, password)</em></span></a></li>
               <li><a href="reservation-form.html"><i class="bi bi-journal-check"></i><span>Reservation Details</span></a></li>
-              <li><a href="quotation.html"><i class="bi bi-receipt"></i><span>Quotation</span></a></li>
-              <li><a href="payment.html"><i class="bi bi-credit-card"></i><span>Payment</span></a></li>
+              <li><a href="quotation.html"><i class="bi bi-receipt"></i><span>Quotation <em>(pay 50% or in full)</em></span></a></li>
+              <li><a href="payment.html"><i class="bi bi-credit-card"></i><span>Payment <em>(scan QR &amp; upload receipt)</em></span></a></li>
               <li><a href="reservation-status.html"><i class="bi bi-activity"></i><span>Reservation Status</span></a></li>
               <li><a href="customer-dashboard.html#live-chat"><i class="bi bi-chat-dots"></i><span>Live Chat <em>(Casa Vergara Resort)</em></span></a></li>
               <li><a href="customer-dashboard.html#reviews"><i class="bi bi-star-half"></i><span>My Reviews</span></a></li>
@@ -192,8 +210,8 @@
             <p class="small text-muted-brand mb-3">Full management access &mdash; admin accounts only</p>
             <ul class="sitemap-link-list">
               <li><a href="admin/dashboard.html"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
-              <li><a href="admin/reservations.html"><i class="bi bi-people"></i><span>Reservations</span></a></li>
-              <li><a href="admin/calendar.html"><i class="bi bi-calendar3"></i><span>Booking Calendar</span></a></li>
+              <li><a href="admin/reservations.html"><i class="bi bi-people"></i><span>Reservations <em>(sessions, quotations &amp; discounts)</em></span></a></li>
+              <li><a href="admin/calendar.html"><i class="bi bi-calendar3"></i><span>Booking Calendar <em>(multi-day stays block every date)</em></span></a></li>
               <li><a href="admin/payments.html"><i class="bi bi-qr-code-scan"></i><span>Payment Verification</span></a></li>
               <li><a href="admin/site-content.html?tab=reviews"><i class="bi bi-star"></i><span>Reviews</span></a></li>
               <li><a href="admin/live-chat.html"><i class="bi bi-chat-dots"></i><span>Live Chat</span></a></li>
@@ -221,8 +239,8 @@
             <p class="small text-muted-brand mb-3">Day-to-day operations &mdash; event-manager staff accounts (Payment Verification is available; Packages, Reviews &amp; Reports are view-only here)</p>
             <ul class="sitemap-link-list">
               <li><a href="admin/dashboard.html"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
-              <li><a href="admin/reservations.html"><i class="bi bi-people"></i><span>Reservations</span></a></li>
-              <li><a href="admin/calendar.html"><i class="bi bi-calendar3"></i><span>Booking Calendar</span></a></li>
+              <li><a href="admin/reservations.html"><i class="bi bi-people"></i><span>Reservations <em>(sessions, quotations &amp; discounts)</em></span></a></li>
+              <li><a href="admin/calendar.html"><i class="bi bi-calendar3"></i><span>Booking Calendar <em>(multi-day stays block every date)</em></span></a></li>
               <li><a href="admin/payments.html"><i class="bi bi-qr-code-scan"></i><span>Payment Verification <em>(approve / reject)</em></span></a></li>
               <li><a href="admin/site-content.html?tab=reviews"><i class="bi bi-star"></i><span>Reviews <em>(view only)</em></span></a></li>
               <li><a href="admin/live-chat.html"><i class="bi bi-chat-dots"></i><span>Live Chat</span></a></li>
