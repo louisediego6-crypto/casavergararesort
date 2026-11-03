@@ -185,7 +185,11 @@ function cv_render_room_packages_block(): string
 
 function cv_render_event_packages_block(): string
 {
+<<<<<<< HEAD
     $out = "All event bookings use a fixed morning, night, or whole-day session; the Others and Team Building events also offer an optional multi-day stay (2 to 7 days) with fixed resort check-in 8:00 AM and check-out 5:00 AM. Optional buffet catering is PHP 250 per guest, up to 200 guests.\n";
+=======
+    $out = "All event bookings use a fixed morning, night, or whole-day session; the Others event also offers an optional multi-day stay (2 to 7 days) with fixed resort check-in 8:00 AM and check-out 5:00 AM. Optional buffet catering is PHP 250 per guest, up to 200 guests.\n";
+>>>>>>> 0747235791934c884030b10c9dc2b4dc889a5d17
     foreach (cv_event_packages() as $e) {
         $out .= '- ' . $e['name'] . ': PHP ' . number_format($e['price'], 2) . ' base, includes 50 guests; non-birthday events add PHP 1,500 per additional 50-guest band, maximum 200 guests. Inclusions: '
             . implode(', ', $e['inclusions']) . '. Motif choices: ' . implode(', ', $e['motifs']) . '. '
