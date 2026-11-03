@@ -120,7 +120,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="../../js/main.js?v=20261102c"></script>
+  <script src="../../js/main.js?v=20261106a"></script>
   <script src="../../js/admin-export.js?v=20261101a"></script>
   <script src="../../js/admin-payments.js?v=20261102b"></script>
   <script src="../../js/admin.js?v=20261024h"></script>

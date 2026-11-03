@@ -152,7 +152,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="../js/main.js?v=20261102c"></script>
+  <script src="../js/main.js?v=20261106a"></script>
   <script>applySiteText(); applySiteImages();</script>
 
   <script src="../js/forgot-password.js?v=20260830i"></script>

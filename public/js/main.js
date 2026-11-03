@@ -3102,7 +3102,9 @@ function buildCustomerQuotationExportDataset(record) {
   const quotation = ensureReservationQuotation(record);
   if (!quotation) return null;
   const formatMoney = (value) => window.CVRBookingCatalog?.formatMoney(value, quotation.currency || record.currency || "PHP") ?? String(value ?? "—");
-  const eventSchedule = record.bookingType === "event"
+  const eventSchedule = isMultiDayEventRecord(record)
+    ? `${record.durationLabel || "Multi-day stay"} · ${formatEventStayDate(record.checkIn || record.preferredDate)} ${record.checkInLabel ? `at ${record.checkInLabel} ` : ""}to ${formatEventStayDate(record.scheduledCheckOut || record.checkOut)}${record.checkOutLabel ? ` at ${record.checkOutLabel}` : ""}`
+    : record.bookingType === "event"
     ? `Single-day event · ${formatDateReserved(record.preferredDate || record.checkIn)}`
     : `${record.durationLabel ? `${record.durationLabel} · ` : ""}${formatDateReserved(record.checkIn || record.preferredDate)}${record.checkInLabel ? ` at ${record.checkInLabel}` : ""}${record.checkOut ? ` to ${formatDateReserved(record.checkOut)}` : ""}${record.checkOutLabel ? ` at ${record.checkOutLabel}` : ""}`;
   const columns = [
@@ -3401,6 +3403,18 @@ function formatDateReserved(rawDate = "") {
   if (!rawDate) return new Date().toLocaleDateString();
   const date = new Date(rawDate);
   return Number.isNaN(date.getTime()) ? rawDate : date.toLocaleDateString();
+}
+
+/** Optional multi-day event stay (check-in / check-out are fixed by the resort's session times). */
+function isMultiDayEventRecord(record) {
+  return Boolean(record && record.bookingType === "event" && record.eventSession === "multi-day");
+}
+
+/** "Mon, Nov 10, 2026" for a YYYY-MM-DD or ISO value. */
+function formatEventStayDate(raw) {
+  if (!raw) return "";
+  const d = new Date(String(raw).length === 10 ? `${raw}T00:00:00` : raw);
+  return Number.isNaN(d.getTime()) ? String(raw) : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatMemberSince(rawDate = "") {
@@ -4132,6 +4146,7 @@ function reservationToPending(record) {
     checkOutLabel: record.checkOutLabel || "",
     packageOption: record.packageOption,
     eventSession: record.eventSession || null,
+    eventDays: record.eventDays || null,
     additionalNotes: record.eventNotes || "",
     motif: record.motif || null,
     selectedAddOns: record.selectedAddOns || [],
@@ -4403,14 +4418,19 @@ function updateEventFormSummary(cat, pending) {
   const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
   const eventSessionKey = fixedSchedule ? null : (pending.eventSession || null);
   const durationKey = fixedSchedule?.durationKey || cat.getEventSession?.(eventSessionKey)?.durationKey || "12hr";
+  const isMultiDay = Boolean(cat.isMultiDaySession?.(eventSessionKey));
+  const eventDays = isMultiDay ? cat.clampEventDays(pending.eventDays) : null;
   pending.preferredDate = eventDate;
   pending.durationKey = durationKey;
   pending.eventSession = eventSessionKey;
-  pending.durationLabel = cat.getEventSession?.(eventSessionKey)?.name || "Single-day event";
+  pending.eventDays = eventDays;
+  pending.durationLabel = isMultiDay
+    ? `${cat.getEventSession(eventSessionKey).name} · ${eventDays} days`
+    : cat.getEventSession?.(eventSessionKey)?.name || "Single-day event";
 
   const selectedAddOns = getSelectedAddOnIds();
   const totals = eventDate
-    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, null, null, null, guests, eventSessionKey, pending.eventType || "")
+    ? cat.calculateDurationEventTotal(eventDate, durationKey, pending.packageOption || "", selectedAddOns, null, null, null, guests, eventSessionKey, pending.eventType || "", eventDays)
     : null;
   const durLabelEl = document.getElementById("resDurationLabel");
   const scheduleEl = document.getElementById("resScheduleTimes");
@@ -4426,13 +4446,14 @@ function updateEventFormSummary(cat, pending) {
     return;
   }
 
-  const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
+  const allDayWindow = isMultiDay ? totals : window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
   pending.eventTime = totals.eventTime || "";
   pending.scheduledCheckIn = allDayWindow?.scheduledCheckIn || totals.scheduledCheckIn;
   pending.scheduledCheckOut = allDayWindow?.scheduledCheckOut || totals.scheduledCheckOut;
-  pending.checkInLabel = "";
-  pending.checkOutLabel = "";
-  pending.checkOutDate = eventDate;
+  pending.checkInLabel = isMultiDay ? totals.checkInLabel : "";
+  pending.checkOutLabel = isMultiDay ? totals.checkOutLabel : "";
+  pending.checkOutDate = isMultiDay ? totals.eventLastDay : eventDate;
+  pending.nights = isMultiDay ? eventDays : 1;
   pending.customCheckInTime = null;
   pending.customCheckOutTime = null;
   pending.extendedNights = null;
@@ -4446,7 +4467,15 @@ function updateEventFormSummary(cat, pending) {
 
   const list = document.getElementById("eventSummaryList");
   if (list) {
-    list.innerHTML = `
+    list.innerHTML = isMultiDay
+      ? `
+      <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
+      <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
+      <li><strong>Stay:</strong> ${escapeHtml(String(eventDays))} days (${escapeHtml(formatEventStayDate(eventDate))} to ${escapeHtml(formatEventStayDate(totals.eventLastDay))})</li>
+      <li><strong>Check-in:</strong> ${escapeHtml(formatEventStayDate(eventDate))} at ${escapeHtml(totals.checkInLabel)}</li>
+      <li><strong>Check-out:</strong> ${escapeHtml(formatEventStayDate(totals.checkOutDateOnly))} at ${escapeHtml(totals.checkOutLabel)}</li>
+    `
+      : `
       <li><strong>Type:</strong> ${escapeHtml(pending.eventType)}</li>
       <li><strong>Package:</strong> ${escapeHtml(pending.packageOption || "—")}</li>
       <li><strong>Event date:</strong> ${formatDateReserved(pending.preferredDate)}</li>
@@ -4454,10 +4483,14 @@ function updateEventFormSummary(cat, pending) {
   }
 
   if (durLabelEl) durLabelEl.textContent = totals.durationLabel || "Single-day event";
-  if (scheduleEl) scheduleEl.textContent = `Event date: ${formatDateReserved(eventDate)}${totals.eventTime ? ` · ${totals.eventTime}` : ""}`;
+  if (scheduleEl) scheduleEl.textContent = isMultiDay
+    ? `Check-in ${formatEventStayDate(eventDate)} at ${totals.checkInLabel} → Check-out ${formatEventStayDate(totals.checkOutDateOnly)} at ${totals.checkOutLabel}`
+    : `Event date: ${formatDateReserved(eventDate)}${totals.eventTime ? ` · ${totals.eventTime}` : ""}`;
 
   document.getElementById("summarySidebarTitle").textContent = `Event: ${pending.eventType}`;
-  document.getElementById("summarySidebarDates").textContent = `${formatDateReserved(eventDate)} · ${guests} guest${guests !== 1 ? "s" : ""}`;
+  document.getElementById("summarySidebarDates").textContent = isMultiDay
+    ? `${formatEventStayDate(eventDate)} – ${formatEventStayDate(totals.eventLastDay)} · ${guests} guest${guests !== 1 ? "s" : ""}`
+    : `${formatDateReserved(eventDate)} · ${guests} guest${guests !== 1 ? "s" : ""}`;
   document.getElementById("summaryLineRoom").textContent = fmt(totals.roomSubtotal);
   document.getElementById("summaryLineTotal").textContent = fmt(totals.total);
   renderSummaryAddOnLines(cat, totals.addOnLines, pending.currency || "PHP");
@@ -4660,6 +4693,8 @@ function buildReservationFromForm(cat, pending, flow) {
     const fixedSchedule = cat.getFixedEventSchedule?.(pending.packageOption || "");
     const eventSessionKey = fixedSchedule ? null : (pending.eventSession || null);
     const eventDuration = fixedSchedule?.durationKey || cat.getEventSession?.(eventSessionKey)?.durationKey || "12hr";
+    const isMultiDay = Boolean(cat.isMultiDaySession?.(eventSessionKey));
+    const eventDays = isMultiDay ? cat.clampEventDays(pending.eventDays) : null;
     if (pending.packageOption && cat.isEventPackageActive && !cat.isEventPackageActive(pending.packageOption)) {
       return { error: "This package is no longer available for booking. Please choose another." };
     }
@@ -4677,13 +4712,16 @@ function buildReservationFromForm(cat, pending, flow) {
       null,
       guestsNum,
       eventSessionKey,
-      pending.eventType || ""
+      pending.eventType || "",
+      eventDays
     );
     if (!totals) return { error: "Invalid event duration." };
-    const allDayWindow = window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
+    const allDayWindow = isMultiDay ? totals : window.CVRDuration.buildFixedWindow(eventDate, "00:00", "00:00", "Single-day event");
     if (!allDayWindow) return { error: "Please choose a valid event date." };
-    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(allDayWindow.scheduledCheckIn, allDayWindow.scheduledCheckOut, excludeId, window.cvrEventSlotsFor?.(pending.packageOption, eventSessionKey))) {
-      return { error: "Sorry, that event date is already booked or unavailable. Please choose another date." };
+    if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(allDayWindow.scheduledCheckIn, allDayWindow.scheduledCheckOut, excludeId, window.cvrEventSlotsFor?.(pending.packageOption, eventSessionKey), eventDays || 1)) {
+      return { error: isMultiDay
+        ? `Sorry, ${eventDays} days from that start date are not all available. Please choose another start date or fewer days.`
+        : "Sorry, that event date is already booked or unavailable. Please choose another date." };
     }
     const maxGuests = cat.EVENT_MAX_GUESTS || 200;
 
@@ -4691,7 +4729,8 @@ function buildReservationFromForm(cat, pending, flow) {
     if (guestsNum > maxGuests) return { error: `Guest count cannot exceed ${maxGuests} for an event.` };
 
     reservation.checkIn = eventDate;
-    reservation.checkOut = eventDate;
+    // Multi-day stays occupy every date up to the last day (the 5:00 AM check-out falls the morning after).
+    reservation.checkOut = isMultiDay ? totals.eventLastDay : eventDate;
     reservation.eventType = pending.eventType;
     reservation.preferredDate = eventDate;
     reservation.eventTime = totals.eventTime || "";
@@ -4700,19 +4739,20 @@ function buildReservationFromForm(cat, pending, flow) {
     reservation.extendedNights = null;
     reservation.scheduledCheckIn = allDayWindow.scheduledCheckIn;
     reservation.scheduledCheckOut = allDayWindow.scheduledCheckOut;
-    reservation.checkInLabel = "";
-    reservation.checkOutLabel = "";
+    reservation.checkInLabel = isMultiDay ? totals.checkInLabel : "";
+    reservation.checkOutLabel = isMultiDay ? totals.checkOutLabel : "";
     reservation.customCheckInTime = null;
     reservation.customCheckOutTime = null;
     reservation.packageOption = pending.packageOption;
     reservation.eventSession = totals.eventSession || null;
+    reservation.eventDays = eventDays;
     reservation.eventNotes = pending.additionalNotes || specialRequests;
     reservation.motif = motif;
     reservation.roomName = `Event — ${pending.eventType}`;
     reservation.roomImage = cat.getEventPackageCatalog?.(pending.packageOption)?.image || "../images/booking-photo-3.png";
     reservation.roomTagline = pending.packageOption || "Resort event";
     reservation.currency = pending.currency || "PHP";
-    reservation.nights = 1;
+    reservation.nights = isMultiDay ? eventDays : 1;
     reservation.roomSubtotal = totals.roomSubtotal;
     reservation.addOnsTotal = totals.addOnsTotal;
     reservation.addOnLines = totals.addOnLines;
@@ -5110,7 +5150,11 @@ function initReservationFormPage() {
 
     pending.eventSession = cat.getFixedEventSchedule?.(pending.packageOption || "") ? null : (pending.eventSession || null);
     pending.durationKey = cat.getFixedEventSchedule?.(pending.packageOption || "")?.durationKey || cat.getEventSession?.(pending.eventSession)?.durationKey || "12hr";
-    pending.durationLabel = cat.getEventSession?.(pending.eventSession)?.name || "Single-day event";
+    const initMultiDay = Boolean(cat.isMultiDaySession?.(pending.eventSession));
+    pending.eventDays = initMultiDay ? cat.clampEventDays(pending.eventDays || editRecord?.eventDays) : null;
+    pending.durationLabel = initMultiDay
+      ? `${cat.getEventSession(pending.eventSession).name} · ${pending.eventDays} days`
+      : cat.getEventSession?.(pending.eventSession)?.name || "Single-day event";
     pending.eventTime = cat.getEventSession?.(pending.eventSession)?.label || "";
     pending.extendedNights = null;
 
@@ -5121,7 +5165,7 @@ function initReservationFormPage() {
     populateResGuestSplit(editRecord || pending);
 
     document.getElementById("resCheckIn").value = pending.preferredDate;
-    document.getElementById("resCheckOut").value = pending.preferredDate;
+    document.getElementById("resCheckOut").value = initMultiDay ? (pending.checkOutDate || pending.preferredDate) : pending.preferredDate;
     document.getElementById("roomDateCalendarsWrap")?.classList.add("d-none");
     document.getElementById("stayDatesHint")?.classList.add("d-none");
 
@@ -5134,12 +5178,19 @@ function initReservationFormPage() {
     if (evDateWrap && evDateHidden) {
       evDateWrap.classList.remove("d-none");
       evDateHidden.value = pending.preferredDate || "";
+      if (initMultiDay) {
+        const evLabel = document.getElementById("eventDateRescheduleLabel");
+        const evHint = document.getElementById("eventDateRescheduleHint");
+        if (evLabel?.firstChild) evLabel.firstChild.textContent = "Start date ";
+        if (evHint) evHint.textContent = `Pick a start date. All ${pending.eventDays} days of your stay must be free. Check-in and check-out times are fixed by the resort.`;
+      }
       if (typeof window.initEventPreferredDateCalendar === "function") {
         window.initEventPreferredDateCalendar({
           excludeReservationId: excludeId,
           mountId: "cvrEventRescheduleMount",
           hiddenId: "resEventDate",
           getSlots: () => window.cvrEventSlotsFor?.(pending.packageOption, pending.eventSession) || null,
+          getDays: () => (initMultiDay ? pending.eventDays : 1),
           onChange: recalc,
         });
       }
@@ -5776,19 +5827,24 @@ async function initReservationStatusView() {
     if (el) el.textContent = val;
   };
   const isEventBooking = target.bookingType === "event";
-  setIf("statusCheckIn", isEventBooking
+  const isMultiDayBooking = isMultiDayEventRecord(target);
+  setIf("statusCheckIn", isMultiDayBooking
+    ? `${formatEventStayDate(target.checkIn || target.preferredDate)}${target.checkInLabel ? ` at ${target.checkInLabel}` : ""}`
+    : isEventBooking
     ? formatDateReserved(target.checkIn || target.preferredDate)
     : target.checkInLabel
       ? `${formatDateReserved(target.checkIn || target.preferredDate)} at ${target.checkInLabel}`
       : formatDateReserved(target.checkIn || target.preferredDate));
   const checkInLabel = document.getElementById("statusCheckInRow")?.querySelector("strong");
-  if (checkInLabel) checkInLabel.textContent = isEventBooking ? "Event date:" : "Check-in / event date:";
-  document.getElementById("statusCheckOutRow")?.classList.toggle("d-none", isEventBooking);
+  if (checkInLabel) checkInLabel.textContent = isMultiDayBooking ? "Check-in:" : isEventBooking ? "Event date:" : "Check-in / event date:";
+  document.getElementById("statusCheckOutRow")?.classList.toggle("d-none", isEventBooking && !isMultiDayBooking);
   document.getElementById("statusEventTimeRow")?.classList.toggle("d-none", isEventBooking);
   setIf(
     "statusCheckOut",
     target.checkedOutAt
       ? `Checked out ${formatMemberSince(target.checkedOutAt)}${target.penaltyAmount > 0 ? ` — overtime penalty applied` : ""}`
+      : isMultiDayBooking
+        ? `${formatEventStayDate(target.scheduledCheckOut || target.checkOut)}${target.checkOutLabel ? ` at ${target.checkOutLabel}` : ""} (fixed)`
       : isEventBooking
         ? "Single-day event"
       : target.checkOutLabel
@@ -7175,7 +7231,9 @@ function cvrRenderDashNextStay(list) {
   const { r, d } = upcoming;
   const days = Math.round((d - today) / 86400000);
   const when = days === 0 ? "Today" : days === 1 ? "Tomorrow" : `In ${days} days`;
-  const timeText = r.bookingType === "event"
+  const timeText = isMultiDayEventRecord(r)
+    ? `${r.durationLabel || "Multi-day stay"}${r.checkInLabel ? ` · Check-in ${r.checkInLabel}` : ""}`
+    : r.bookingType === "event"
     ? "Single-day event"
     : r.checkInLabel ? `Check-in ${r.checkInLabel}` : "";
   el.innerHTML = `
