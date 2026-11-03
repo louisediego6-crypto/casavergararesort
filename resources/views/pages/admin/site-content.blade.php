@@ -851,11 +851,7 @@
   <script src="../../js/main.js?v=20261106a"></script>
   <script src="../../js/legal-doc.js?v=20260830i"></script>
   <script src="../../js/admin-site-content.js?v=20260926a"></script>
-<<<<<<< HEAD
   <script src="../../js/booking-data.js?v=20261106b"></script>
-=======
-  <script src="../../js/booking-data.js?v=20261106a"></script>
->>>>>>> 0747235791934c884030b10c9dc2b4dc889a5d17
   <script src="../../js/admin-packages.js?v=20261031c"></script>
   <script src="../../js/admin-faqs.js?v=20260830i"></script>
   <script src="../../js/admin-legal.js?v=20260830i"></script>
