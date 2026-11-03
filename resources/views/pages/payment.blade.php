@@ -149,11 +149,7 @@
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/duration-pricing.js?v=20261105a"></script>
-<<<<<<< HEAD
   <script src="../js/booking-data.js?v=20261106b"></script>
-=======
-  <script src="../js/booking-data.js?v=20261106a"></script>
->>>>>>> 0747235791934c884030b10c9dc2b4dc889a5d17
   <script src="../js/main.js?v=20261106a"></script>
   <script src="../js/legal-doc.js?v=20260830i"></script>
   <script>renderNavbar("booking"); renderFooter();</script>

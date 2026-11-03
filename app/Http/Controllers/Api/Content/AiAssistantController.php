@@ -96,11 +96,7 @@ class AiAssistantController extends Controller
             $eventDbRows = null;
         }
         if ($eventDbRows !== null && count($eventDbRows) > 0) {
-<<<<<<< HEAD
             $eventBlock = "All event bookings use a fixed morning, night, or whole-day session; the Others and Team Building events also offer an optional multi-day stay (2 to 7 days) with fixed resort check-in 8:00 AM and check-out 5:00 AM. Optional buffet catering is PHP 250 per guest, up to 200 guests.\n";
-=======
-            $eventBlock = "All event bookings use a fixed morning, night, or whole-day session; the Others event also offers an optional multi-day stay (2 to 7 days) with fixed resort check-in 8:00 AM and check-out 5:00 AM. Optional buffet catering is PHP 250 per guest, up to 200 guests.\n";
->>>>>>> 0747235791934c884030b10c9dc2b4dc889a5d17
             foreach ($eventDbRows as $e) {
                 $inclusions = json_decode((string) $e['inclusions_json'], true) ?: [];
                 $motifs = json_decode((string) $e['motifs_json'], true) ?: [];
