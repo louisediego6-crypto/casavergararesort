@@ -405,7 +405,7 @@ function initBookingPage() {
   const ensureEventPreferredCalendar = () => {
     if (eventPreferredCalendarReady) return;
     if (typeof window.initEventPreferredDateCalendar === "function") {
-      window.initEventPreferredDateCalendar();
+      window.initEventPreferredDateCalendar({ onChange: () => window.cvrEventDateChanged?.() });
       eventPreferredCalendarReady = true;
     }
   };
@@ -482,50 +482,104 @@ function initBookingPage() {
     const sessionEl = document.getElementById("eventSession");
     const sessionHintEl = document.getElementById("eventSessionHint");
 
-    // Session picker (Morning / Night / Whole day) for events that are not Private Venue packages.
+    // Session picker for events that are not Private Venue packages: Morning / Night / Whole day,
+    // plus an optional Multi-day stay for "Others". Each session is a Bootstrap card showing the
+    // resort's fixed check-in and check-out times.
+    const multiDayWrapEl = document.getElementById("eventMultiDayWrap");
+    const daysEl = document.getElementById("eventDays");
+    const SESSION_ICONS = { morning: "bi-sunrise", night: "bi-moon-stars", "whole-day": "bi-brightness-high", "multi-day": "bi-calendar-range" };
+    const fmt12 = (hhmm) => window.CVRDuration?.formatTime12?.(hhmm) || hhmm;
+    const toMinutes = (hhmm) => { const [h, m] = String(hhmm).split(":").map(Number); return h * 60 + (m || 0); };
+    const getDays = () => (cat.isMultiDaySession?.(sessionEl?.value) ? cat.clampEventDays(daysEl?.value) : 1);
+    const fmtLongDate = (ymd) => {
+      if (!ymd) return "";
+      const d = new Date(`${ymd}T00:00:00`);
+      return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    };
+
+    const sessionCardHtml = (o, packageKey, colClass) => {
+      const multi = Boolean(o.multiDay);
+      const price = cat.formatMoney(cat.getEventSessionRate(packageKey, o.key), "PHP");
+      const nextDay = toMinutes(o.checkOutTime) <= toMinutes(o.checkInTime);
+      const outNote = multi ? "after the last day" : nextDay ? "next day" : "";
+      const id = `eventSession_${escapeHtml(o.key)}`;
+      return `<div class="${colClass}">
+        <input type="radio" class="btn-check" name="eventSessionChoice" id="${id}" value="${escapeHtml(o.key)}" autocomplete="off">
+        <label class="card cvr-session-card cvr-session-${escapeHtml(o.key)} h-100" for="${id}">
+          <span class="card-body">
+            <span class="d-flex align-items-start justify-content-between gap-2">
+              <span class="cvr-session-icon" aria-hidden="true"><i class="bi ${SESSION_ICONS[o.key] || "bi-clock"}"></i></span>
+              ${multi
+                ? `<span class="badge rounded-pill cvr-session-badge">Optional</span>`
+                : `<span class="cvr-session-tick" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>`}
+            </span>
+            <span class="card-title h6 d-block mt-3 mb-2">${escapeHtml(o.name)}</span>
+            <span class="cvr-session-times">
+              <span class="cvr-session-time"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span class="cvr-session-time-label">Check-in</span><strong>${escapeHtml(fmt12(o.checkInTime))}</strong></span>
+              <span class="cvr-session-time"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span class="cvr-session-time-label">Check-out</span><strong>${escapeHtml(fmt12(o.checkOutTime))}</strong>${outNote ? `<small class="cvr-session-next">${escapeHtml(outNote)}</small>` : ""}</span>
+            </span>
+            ${multi ? `<span class="cvr-session-note"><i class="bi bi-lock-fill" aria-hidden="true"></i>Times fixed by the resort · stay ${cat.CVR_MULTI_DAY_LIMITS.min}–${cat.CVR_MULTI_DAY_LIMITS.max} days</span>` : ""}
+          </span>
+          <span class="card-footer cvr-session-footer">
+            <span class="cvr-session-price">${escapeHtml(price)}</span>
+            <small class="cvr-session-unit">${multi ? "per day" : "per event"}</small>
+            <span class="cvr-session-picked"><i class="bi bi-check2"></i> Selected</span>
+          </span>
+        </label>
+      </div>`;
+    };
+
+    // Multi-day panel: number of days + the fixed check-in / check-out, with real dates once a start date is picked.
+    const updateMultiDayPanel = () => {
+      const isMulti = Boolean(cat.isMultiDaySession?.(sessionEl?.value));
+      multiDayWrapEl?.classList.toggle("d-none", !isMulti);
+      const dateLabelEl = document.getElementById("eventDateLabel");
+      const dateHelpEl = document.getElementById("eventDateHelp");
+      const dateSecEl = document.getElementById("eventDateSecHint");
+      if (dateLabelEl) dateLabelEl.firstChild.textContent = isMulti ? "Start date (check-in day) " : "Preferred Date ";
+      if (dateSecEl) dateSecEl.textContent = isMulti ? "Choose the day your multi-day stay begins." : "Choose the date of your single-day event.";
+      if (dateHelpEl) dateHelpEl.textContent = isMulti
+        ? "Every day of your stay must be free, so start dates that can't fit your stay are disabled."
+        : "Dates with another event booking or a resort closure cannot be selected.";
+      if (!isMulti || !daysEl) return;
+      const days = cat.clampEventDays(daysEl.value);
+      daysEl.value = String(days);
+      const sess = cat.getEventSession("multi-day");
+      const start = document.getElementById("eventDate")?.value || "";
+      const win = start ? cat.getMultiDayWindow(start, days) : null;
+      const inEl = document.getElementById("eventMultiDayIn");
+      const outEl = document.getElementById("eventMultiDayOut");
+      const sumEl = document.getElementById("eventMultiDaySummary");
+      if (inEl) inEl.innerHTML = `<strong>${escapeHtml(fmt12(sess.checkInTime))}</strong><span>${escapeHtml(start ? fmtLongDate(start) : "On your start date")}</span>`;
+      if (outEl) outEl.innerHTML = `<strong>${escapeHtml(fmt12(sess.checkOutTime))}</strong><span>${escapeHtml(win ? fmtLongDate(win.checkOutDateOnly) : "Morning after your last day")}</span>`;
+      if (sumEl) sumEl.textContent = win
+        ? `${days} days · ${fmtLongDate(start)} to ${fmtLongDate(win.eventLastDay)}`
+        : `${days} days · pick your start date on the calendar below`;
+      const minus = document.querySelector('[data-days-step="-1"]');
+      const plus = document.querySelector('[data-days-step="1"]');
+      if (minus) minus.disabled = days <= cat.CVR_MULTI_DAY_LIMITS.min;
+      if (plus) plus.disabled = days >= cat.CVR_MULTI_DAY_LIMITS.max;
+    };
+
     const syncSessionOptions = (packageKey) => {
       if (!sessionWrapEl || !sessionEl) return [];
       const options = packageKey && cat.getEventSessionOptions ? cat.getEventSessionOptions(packageKey) : [];
       if (!options.length) {
         sessionWrapEl.classList.add("d-none");
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
         sessionEl.value = "";
         sessionEl.dataset.pkg = "";
         const clearCards = document.getElementById("eventSessionCards");
         if (clearCards) clearCards.innerHTML = "";
-<<<<<<< HEAD
-=======
-=======
-        sessionEl.innerHTML = "";
-        sessionEl.dataset.pkg = "";
->>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
         if (sessionHintEl) sessionHintEl.textContent = "";
+        updateMultiDayPanel();
         return [];
       }
       sessionWrapEl.classList.remove("d-none");
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
       const cardsEl = document.getElementById("eventSessionCards");
       if (sessionEl.dataset.pkg !== packageKey && cardsEl) {
         const previous = sessionEl.value;
-        const icons = { morning: "bi-sunrise", night: "bi-moon-stars", "whole-day": "bi-calendar-day" };
-        cardsEl.innerHTML = options.map((o) => {
-          const price = cat.formatMoney(cat.getEventSessionRate(packageKey, o.key), "PHP");
-          return `<div class="col-12 col-md-4">
-            <input type="radio" class="btn-check" name="eventSessionChoice" id="eventSession_${escapeHtml(o.key)}" value="${escapeHtml(o.key)}" autocomplete="off">
-            <label class="btn btn-outline-primary cvr-session-card w-100 text-start" for="eventSession_${escapeHtml(o.key)}">
-              <span class="d-flex align-items-center gap-2 mb-1"><i class="bi ${icons[o.key] || "bi-clock"} fs-5"></i><span class="fw-semibold">${escapeHtml(o.name)}</span></span>
-              <span class="d-block small">${escapeHtml(o.label)}</span>
-              <span class="d-block fw-bold mt-1">${escapeHtml(price)}</span>
-            </label>
-          </div>`;
-        }).join("");
+        const colClass = options.length > 3 ? "col-12 col-sm-6 col-xl-3" : "col-12 col-md-4";
+        cardsEl.innerHTML = options.map((o) => sessionCardHtml(o, packageKey, colClass)).join("");
         sessionEl.dataset.pkg = packageKey;
         sessionEl.value = options.some((o) => o.key === previous) ? previous : "";
         cardsEl.querySelectorAll('input[name="eventSessionChoice"]').forEach((radio) => {
@@ -535,22 +589,12 @@ function initBookingPage() {
             sessionEl.dispatchEvent(new Event("change", { bubbles: true }));
           });
         });
-<<<<<<< HEAD
-=======
-=======
-      if (sessionEl.dataset.pkg !== packageKey) {
-        const previous = sessionEl.value;
-        sessionEl.innerHTML = `<option value="">Select session</option>` + options.map((o) => {
-          const price = cat.formatMoney(cat.getEventSessionRate(packageKey, o.key), "PHP");
-          return `<option value="${escapeHtml(o.key)}">${escapeHtml(o.name)} · ${escapeHtml(o.label)} — ${escapeHtml(price)}</option>`;
-        }).join("");
-        sessionEl.dataset.pkg = packageKey;
-        if (options.some((o) => o.key === previous)) sessionEl.value = previous;
->>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
       }
       const chosen = cat.getEventSession?.(sessionEl.value);
-      if (sessionHintEl) sessionHintEl.textContent = chosen ? `${chosen.name}: ${chosen.label}` : "Choose the time slot for your event.";
+      if (sessionHintEl) sessionHintEl.textContent = chosen
+        ? (chosen.multiDay ? `${chosen.name}: ${chosen.label} (fixed by the resort)` : `${chosen.name}: ${chosen.label}`)
+        : "Choose the time slot for your event.";
+      updateMultiDayPanel();
       return options;
     };
 
@@ -626,7 +670,7 @@ function initBookingPage() {
       const fixedSchedule = key ? getFixedSchedule(key) : null;
       const durationKey = fixedSchedule?.durationKey || selectedSession?.durationKey || "12hr";
       const durationRate = selectedSession
-        ? cat.getEventSessionRate(key, selectedSession.key)
+        ? cat.getEventSessionRate(key, selectedSession.key, getDays())
         : pkg.flatRate
         ? Math.max(0, Number(pkg.price) || 0)
         : pkg.doubleRateOn24hr && durationKey === "24hr"
@@ -643,6 +687,8 @@ function initBookingPage() {
         : `Includes ${cat.EVENT_INCLUDED_GUESTS || 50} guests · maximum ${cat.EVENT_MAX_GUESTS || 200} · +₱${(cat.EVENT_EXTRA_GUEST_RATE || 1500).toLocaleString()} per additional ${cat.EVENT_INCLUDED_GUESTS || 50}-guest band`;
       const priceLabel = fixedSchedule
         ? `package price · ${fixedSchedule.name} (${fixedSchedule.label})`
+        : selectedSession?.multiDay
+        ? `${cat.formatMoney(cat.getEventSessionRate(key, selectedSession.key), "PHP")} per day × ${getDays()} days · ${selectedSession.label}`
         : selectedSession
         ? `package price · ${selectedSession.name} (${selectedSession.label})`
         : sessionOptions.length
@@ -789,7 +835,23 @@ function initBookingPage() {
       renderPackageDetails();
       playSwitchAnim(eventForm);
     });
+    // (the event calendar listens to this field itself and re-checks availability)
     sessionEl?.addEventListener("change", () => renderPackageDetails());
+    // Multi-day: number of days (+/- stepper or typing) re-checks availability and the price.
+    const onDaysChanged = () => {
+      updateMultiDayPanel();
+      renderPackageDetails();
+      window.cvrRefreshEventAvailability?.();
+    };
+    daysEl?.addEventListener("change", onDaysChanged);
+    document.querySelectorAll("[data-days-step]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        daysEl.value = String(cat.clampEventDays((parseInt(daysEl.value, 10) || cat.CVR_MULTI_DAY_LIMITS.min) + Number(btn.dataset.daysStep)));
+        onDaysChanged();
+      });
+    });
+    window.cvrEventDateChanged = () => updateMultiDayPanel();
+    window.cvrEventRequestedDays = () => getDays();
     // The event calendar asks which slots (morning / night) the selected package + session needs.
     window.cvrEventRequestedSlots = () => {
       const key = getSelectedPackageKey();
@@ -927,9 +989,13 @@ function initBookingPage() {
         return;
       }
       if (sessionOptions.length && !chosenSession) {
-        showMessage("Please select a session (morning, night, or whole day) for your event.", true);
+        showMessage(sessionOptions.some((o) => o.multiDay)
+          ? "Please select a session (morning, night, whole day, or multi-day) for your event."
+          : "Please select a session (morning, night, or whole day) for your event.", true);
         return;
       }
+      const isMultiDay = Boolean(chosenSession?.multiDay);
+      const eventDays = isMultiDay ? cat.clampEventDays(document.getElementById("eventDays")?.value) : null;
       if (!eventDateVal) {
         showMessage("Please choose a preferred date.", true);
         return;
@@ -944,11 +1010,15 @@ function initBookingPage() {
         showMessage("Please select a valid event date.", true);
         return;
       }
-      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "", window.cvrEventSlotsFor?.(packageOption, sessionKey))) {
-        showMessage(sessionKey || fixedSchedule ? "Sorry, that session is already booked on this date. Please choose another session or date." : "Sorry, that event date is already booked or unavailable. Please choose another date.", true);
+      if (typeof window.cvrEventOverlapsExisting === "function" && window.cvrEventOverlapsExisting(win.scheduledCheckIn, win.scheduledCheckOut, "", window.cvrEventSlotsFor?.(packageOption, sessionKey), eventDays || 1)) {
+        showMessage(isMultiDay
+          ? `Sorry, ${eventDays} days from that start date are not all available. Please choose another start date or fewer days.`
+          : sessionKey || fixedSchedule ? "Sorry, that session is already booked on this date. Please choose another session or date." : "Sorry, that event date is already booked or unavailable. Please choose another date.", true);
         return;
       }
-      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], null, null, null, Number(eventGuests), sessionKey || null, rawEventType) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
+      const totals = cat.calculateDurationEventTotal(eventDateVal, durationKey, packageOption, [], null, null, null, Number(eventGuests), sessionKey || null, rawEventType, eventDays) || cat.calculateEventTotal(packageOption, [], Number(eventGuests), rawEventType);
+      // Multi-day stays use the fixed resort check-in / check-out; every other event keeps the all-day window.
+      const sched = isMultiDay && totals ? totals : win;
       const motifSelect = document.getElementById("eventMotifSelect");
       const motifId = motifSelect?.value || "";
       const motifs = cat.getEventMotifs ? cat.getEventMotifs(packageOption) : [];
@@ -964,11 +1034,12 @@ function initBookingPage() {
         durationKey: totals?.durationKey || durationKey,
         durationLabel: totals?.durationLabel || "Single-day event",
         extendedNights: null,
-        scheduledCheckIn: win.scheduledCheckIn,
-        scheduledCheckOut: win.scheduledCheckOut,
-        checkInLabel: "",
-        checkOutLabel: "",
-        checkOutDate: eventDateVal,
+        scheduledCheckIn: sched.scheduledCheckIn,
+        scheduledCheckOut: sched.scheduledCheckOut,
+        checkInLabel: isMultiDay ? totals.checkInLabel : "",
+        checkOutLabel: isMultiDay ? totals.checkOutLabel : "",
+        checkOutDate: isMultiDay ? totals.eventLastDay : eventDateVal,
+        eventDays,
         customCheckInTime: null,
         customCheckOutTime: null,
         eventTime: totals?.eventTime || "",
@@ -979,11 +1050,13 @@ function initBookingPage() {
         ...totals,
         durationLabel: totals?.durationLabel || "Single-day event",
         extendedNights: null,
-        scheduledCheckIn: win.scheduledCheckIn,
-        scheduledCheckOut: win.scheduledCheckOut,
-        checkInLabel: "",
-        checkOutLabel: "",
-        checkOutDate: eventDateVal,
+        scheduledCheckIn: sched.scheduledCheckIn,
+        scheduledCheckOut: sched.scheduledCheckOut,
+        checkInLabel: isMultiDay ? totals.checkInLabel : "",
+        checkOutLabel: isMultiDay ? totals.checkOutLabel : "",
+        checkOutDate: isMultiDay ? totals.eventLastDay : eventDateVal,
+        eventDays,
+        nights: isMultiDay ? eventDays : 1,
         customCheckInTime: null,
         customCheckOutTime: null,
         eventTime: totals?.eventTime || "",

@@ -122,11 +122,12 @@
     return stayOverlaps(checkIn, checkOut, ranges);
   };
 
-  window.cvrEventOverlapsExisting = function (scheduledCheckIn, scheduledCheckOut, excludeReservationId, requestedSlots) {
+  window.cvrEventOverlapsExisting = function (scheduledCheckIn, scheduledCheckOut, excludeReservationId, requestedSlots, days) {
     const dur = window.CVRDuration;
     if (!dur || !scheduledCheckIn || !scheduledCheckOut) return false;
     const newStartYmd = formatYMD(new Date(scheduledCheckIn));
     const slots = Array.isArray(requestedSlots) && requestedSlots.length ? requestedSlots : ALL_SLOTS;
+    if (Number(days) > 1) return isEventRangeUnavailable(newStartYmd, days, excludeReservationId, slots, getBlockedYmdSet());
     return isEventDateTaken(newStartYmd, excludeReservationId, slots);
   };
 
@@ -324,7 +325,7 @@
   function slotsForSession(sessionKey) {
     if (sessionKey === "morning") return ["morning"];
     if (sessionKey === "night") return ["night"];
-    if (sessionKey === "whole-day") return ALL_SLOTS.slice();
+    if (sessionKey === "whole-day" || sessionKey === "multi-day") return ALL_SLOTS.slice();
     return null;
   }
 
@@ -369,6 +370,23 @@
     return ALL_SLOTS.every((slot) => taken.has(slot));
   }
 
+  function addDaysYmd(ymd, n) {
+    const d = new Date(`${ymd}T00:00:00`);
+    d.setDate(d.getDate() + n);
+    return formatYMD(d);
+  }
+
+  /** A multi-day stay needs every day of the range to be open (not booked, not closed, not in the past). */
+  function isEventRangeUnavailable(startYmd, days, excludeReservationId, requestedSlots, blockedSet) {
+    const count = Math.max(1, Number(days) || 1);
+    for (let i = 0; i < count; i += 1) {
+      const ymd = i === 0 ? startYmd : addDaysYmd(startYmd, i);
+      if (blockedSet && blockedSet.has(ymd)) return true;
+      if (isEventDateTaken(ymd, excludeReservationId, requestedSlots)) return true;
+    }
+    return false;
+  }
+
 
   window.initEventPreferredDateCalendar = async function (opts = {}) {
     const excludeReservationId = opts.excludeReservationId || "";
@@ -394,6 +412,15 @@
         return null;
       }
     };
+    const getDays = () => {
+      try {
+        const fn = typeof opts.getDays === "function" ? opts.getDays : window.cvrEventRequestedDays;
+        const n = typeof fn === "function" ? Number(fn()) : 1;
+        return Number.isFinite(n) && n > 1 ? Math.round(n) : 1;
+      } catch {
+        return 1;
+      }
+    };
     const slotLabel = (slot) => (slot === "morning" ? "Morning session" : "Night session");
 
     function styleEventDay(dayElem, d) {
@@ -417,11 +444,31 @@
         dayElem.classList.add("cvr-cal-day-blocked");
         dayElem.setAttribute("title", "Unavailable (closed / maintenance)");
       }
-      if (!isBooked && !isBlocked && !isPast) {
+      const days = getDays();
+      const rangeShort = days > 1 && !isBooked && !isBlocked && !isPast
+        && isEventRangeUnavailable(ymd, days, excludeReservationId, getSlots(), blocked);
+      if (rangeShort) {
+        dayElem.classList.add("cvr-cal-day-stay-short");
+        dayElem.setAttribute("title", `A ${days}-day stay from this date runs into a booked or closed day`);
+      } else if (!isBooked && !isBlocked && !isPast) {
         dayElem.classList.add("cvr-cal-day-available");
-        if (!dayElem.getAttribute("title")) dayElem.setAttribute("title", "Available");
+        if (!dayElem.getAttribute("title")) dayElem.setAttribute("title", days > 1 ? `Available - ${days}-day stay starts here` : "Available");
       }
     }
+
+    // Multi-day: shade every day of the chosen stay.
+    let pickerRef = null;
+    const paintStayRange = (_dates, _str, inst) => {
+      const fp = inst && inst.days ? inst : pickerRef;
+      if (!fp || !fp.days) return;
+      const days = getDays();
+      const start = hidden.value;
+      const end = days > 1 && start ? addDaysYmd(start, days - 1) : "";
+      fp.days.querySelectorAll(".flatpickr-day").forEach((el) => {
+        const inStay = Boolean(end) && el.dateObj && formatYMD(el.dateObj) >= start && formatYMD(el.dateObj) <= end;
+        el.classList.toggle("cvr-cal-day-stay", inStay);
+      });
+    };
 
     const eventDatePicker = flatpickr(mount, {
       disableMobile: true,
@@ -435,13 +482,19 @@
           const ymd = formatYMD(date);
           if (ymd < todayYmd()) return true;
           if (blocked.has(ymd)) return true;
+          const days = getDays();
+          if (days > 1) return isEventRangeUnavailable(ymd, days, excludeReservationId, getSlots(), blocked);
           return isEventDateTaken(ymd, excludeReservationId, getSlots());
         },
       ],
       onChange: function (selectedDates) {
         hidden.value = selectedDates.length ? formatYMD(selectedDates[0]) : "";
+        paintStayRange();
         if (typeof opts.onChange === "function") opts.onChange();
       },
+      onReady: paintStayRange,
+      onMonthChange: paintStayRange,
+      onYearChange: paintStayRange,
       onDayCreate: function (_dObj, _dStr, _fp, dayElem) {
         if (dayElem && dayElem.dateObj) {
           styleEventDay(dayElem, dayElem.dateObj);
@@ -449,14 +502,20 @@
         }
       },
     });
+    pickerRef = eventDatePicker;
     const refreshEventAvailability = () => {
       // The chosen date may no longer be free for the newly chosen session.
-      if (hidden.value && (blocked.has(hidden.value) || isEventDateTaken(hidden.value, excludeReservationId, getSlots()))) {
+      const days = getDays();
+      const unavailable = hidden.value && (days > 1
+        ? isEventRangeUnavailable(hidden.value, days, excludeReservationId, getSlots(), blocked)
+        : (blocked.has(hidden.value) || isEventDateTaken(hidden.value, excludeReservationId, getSlots())));
+      if (unavailable) {
         eventDatePicker.clear();
         hidden.value = "";
         if (typeof opts.onChange === "function") opts.onChange();
       }
       eventDatePicker.redraw();
+      paintStayRange();
     };
     window.cvrRefreshEventAvailability = refreshEventAvailability;
     ["eventType", "eventBirthdayPackage", "eventSession"].forEach((id) => {

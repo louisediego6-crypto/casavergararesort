@@ -1113,28 +1113,179 @@ html:not(.cvr-x):not(.cvr-y) body .booking-cal-pill { padding: 0.25rem 0.6rem; l
   border-color: rgba(245, 183, 49, 0.55);
   box-shadow: inset 0 -3px 0 #f5b731;
 }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
 
-/* Session picker cards (booking page) */
-.cvr-session-cards .cvr-session-card {
-  height: 100%;
-  padding: 0.85rem 1rem;
-  border-radius: 0.9rem;
+/* Session picker: Bootstrap cards (booking page) ------------------------------------ */
+.booking-page .cvr-session-cards .cvr-session-card {
+  --ses-accent: var(--bk-brand, #0b5c85);
+  --ses-tint: rgba(11, 92, 133, .10);
+  position: relative;
+  cursor: pointer;
+  text-align: left;
+  border: 1.5px solid var(--bk-line, #dfe8ef);
+  border-radius: 1rem;
+  background: var(--bk-surface, #fff);
+  color: var(--bk-text, #1d3342);
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.booking-page .cvr-session-cards .cvr-session-card:hover {
+  border-color: var(--ses-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--bk-shadow, 0 6px 24px rgba(11, 60, 90, .08));
+}
+.booking-page .cvr-session-cards .cvr-session-morning { --ses-accent: #c98a00; --ses-tint: rgba(245, 183, 49, .18); }
+.booking-page .cvr-session-cards .cvr-session-night { --ses-accent: #4f5bd5; --ses-tint: rgba(79, 91, 213, .14); }
+.booking-page .cvr-session-cards .cvr-session-whole-day { --ses-accent: #0f8a7e; --ses-tint: rgba(15, 138, 126, .14); }
+.booking-page .cvr-session-cards .cvr-session-multi-day { --ses-accent: #8a3fb4; --ses-tint: rgba(138, 63, 180, .13); border-style: dashed; }
+
+.booking-page .cvr-session-card .card-body {
+  display: block;
+  padding: 1rem 1rem .6rem;
+}
+.booking-page .cvr-session-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: .8rem;
+  background: var(--ses-tint);
+  color: var(--ses-accent);
+  font-size: 1.3rem;
+}
+.booking-page .cvr-session-card .card-title {
+  color: var(--bk-text, #1d3342);
+  font-weight: 700;
+}
+.booking-page .cvr-session-tick {
+  color: var(--ses-accent);
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.booking-page .cvr-session-badge {
+  background: var(--ses-tint);
+  color: var(--ses-accent);
+  border: 1px solid var(--ses-accent);
+  font-weight: 600;
+  font-size: .7rem;
+  letter-spacing: .02em;
+}
+
+.booking-page .cvr-session-times { display: grid; gap: .35rem; }
+.booking-page .cvr-session-time {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .35rem;
+  font-size: .86rem;
+  color: var(--bk-muted, #62788a);
+}
+.booking-page .cvr-session-time > i { color: var(--ses-accent); transform: translateY(1px); }
+.booking-page .cvr-session-time strong { color: var(--bk-text, #1d3342); font-weight: 700; margin-left: auto; }
+.booking-page .cvr-session-next { flex-basis: 100%; text-align: right; font-size: .72rem; opacity: .9; }
+.booking-page .cvr-session-note {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-top: .65rem;
+  padding: .4rem .55rem;
+  border-radius: .6rem;
+  background: var(--ses-tint);
+  color: var(--ses-accent);
+  font-size: .74rem;
+  font-weight: 600;
   line-height: 1.25;
-  white-space: normal;
 }
-.cvr-session-cards .btn-check:checked + .cvr-session-card {
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+
+.booking-page .cvr-session-card .card-footer.cvr-session-footer {
+  display: flex;
+  align-items: baseline;
+  gap: .4rem;
+  margin-top: auto;
+  padding: .7rem 1rem .85rem;
+  background: transparent;
+  border-top: 1px dashed var(--bk-line, #dfe8ef);
 }
-.cvr-session-cards .btn-check:focus-visible + .cvr-session-card {
-  outline: 2px solid currentColor;
+.booking-page .cvr-session-price { font-size: 1.15rem; font-weight: 800; color: var(--bk-brand, #0b5c85); }
+.booking-page .cvr-session-unit { color: var(--bk-muted, #62788a); }
+.booking-page .cvr-session-picked {
+  display: none;
+  margin-left: auto;
+  align-items: center;
+  gap: .2rem;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ses-accent);
+  border-radius: 999px;
+  padding: .12rem .55rem;
+}
+
+/* selected */
+.booking-page .cvr-session-cards .btn-check:checked + .cvr-session-card {
+  border-color: var(--ses-accent);
+  border-style: solid;
+  background: linear-gradient(180deg, var(--ses-tint), transparent 55%), var(--bk-surface, #fff);
+  box-shadow: 0 0 0 .2rem var(--ses-tint), var(--bk-shadow, 0 6px 24px rgba(11, 60, 90, .08));
+}
+.booking-page .cvr-session-cards .btn-check:checked + .cvr-session-card .cvr-session-tick { opacity: 1; transform: none; }
+.booking-page .cvr-session-cards .btn-check:checked + .cvr-session-card .cvr-session-picked { display: inline-flex; }
+.booking-page .cvr-session-cards .btn-check:focus-visible + .cvr-session-card {
+  outline: 2px solid var(--ses-accent);
   outline-offset: 2px;
 }
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
+
+/* multi-day panel */
+.booking-page .cvr-multiday-panel {
+  border: 1.5px dashed #8a3fb4;
+  border-radius: 1rem;
+  background: var(--bk-surface-2, #f4f8fb);
+}
+.booking-page .cvr-multiday-times {
+  display: flex;
+  align-items: stretch;
+  gap: .6rem;
+}
+.booking-page .cvr-multiday-time {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: .6rem .75rem;
+  border: 1px solid var(--bk-line, #dfe8ef);
+  border-radius: .8rem;
+  background: var(--bk-surface, #fff);
+}
+.booking-page .cvr-multiday-time-label { display: block; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--bk-muted, #62788a); }
+.booking-page .cvr-multiday-lock { color: #8a3fb4; font-size: .7rem; }
+.booking-page .cvr-multiday-time-value strong { display: block; font-size: 1.15rem; color: var(--bk-text, #1d3342); }
+.booking-page .cvr-multiday-time-value span { display: block; font-size: .78rem; color: var(--bk-muted, #62788a); }
+.booking-page .cvr-multiday-arrow { align-self: center; color: var(--bk-muted, #62788a); }
+@media (max-width: 575.98px) {
+  .booking-page .cvr-multiday-times { flex-direction: column; }
+  .booking-page .cvr-multiday-arrow { transform: rotate(90deg); align-self: center; }
+}
+
+/* dark mode */
+html[data-theme="dark"] .booking-page .cvr-session-cards .cvr-session-morning { --ses-accent: #f2cf4a; --ses-tint: rgba(242, 207, 74, .14); }
+html[data-theme="dark"] .booking-page .cvr-session-cards .cvr-session-night { --ses-accent: #9aa4ff; --ses-tint: rgba(154, 164, 255, .15); }
+html[data-theme="dark"] .booking-page .cvr-session-cards .cvr-session-whole-day { --ses-accent: #4fd1c2; --ses-tint: rgba(79, 209, 194, .14); }
+html[data-theme="dark"] .booking-page .cvr-session-cards .cvr-session-multi-day { --ses-accent: #d29bf2; --ses-tint: rgba(210, 155, 242, .15); }
+html[data-theme="dark"] .booking-page .cvr-session-picked { color: #0e161e; }
+html[data-theme="dark"] .booking-page .cvr-multiday-panel { border-color: #d29bf2; }
+html[data-theme="dark"] .booking-page .cvr-multiday-lock { color: #d29bf2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-page .cvr-session-cards .cvr-session-card,
+  .booking-page .cvr-session-tick { transition: none; }
+  .booking-page .cvr-session-cards .cvr-session-card:hover { transform: none; }
+}
+
+/* Multi-day: highlight the whole stay on the event calendar */
+.flatpickr-calendar .flatpickr-day.cvr-cal-day-stay:not(.selected) {
+  background: rgba(138, 63, 180, 0.14);
+  border-color: rgba(138, 63, 180, 0.45);
+}
+.flatpickr-calendar .flatpickr-day.cvr-cal-day-stay-short:not(.selected):not(.cvr-cal-day-booked) {
+  opacity: .55;
+}

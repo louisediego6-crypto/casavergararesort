@@ -213,7 +213,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261102c"></script>
+  <script src="../../js/main.js?v=20261106a"></script>
   <script src="../../js/admin-users.js?v=20260830i"></script>
   <script>renderAdminSidebar("users"); initAdminUsersPage();</script>
 </body>

@@ -165,6 +165,63 @@ const CVR_EVENT_SESSIONS = {
   },
 };
 
+// Optional multi-day stay (offered for the "Others" event only). Check-in and check-out follow the
+// resort's session times and are fixed: in at the start of the Morning session on the first day,
+// out at the end of the Night session (5:00 AM) after the last day. Guests only choose the start date
+// and how many days; they cannot change the times. Edit these constants to change the schedule.
+const CVR_MULTI_DAY_PACKAGES = ["Others"];
+const CVR_MULTI_DAY_LIMITS = { min: 2, max: 7 };
+CVR_EVENT_SESSIONS["multi-day"] = {
+  key: "multi-day",
+  name: "Multi-day stay",
+  checkInTime: CVR_EVENT_SESSIONS.morning.checkInTime,
+  checkOutTime: CVR_EVENT_SESSIONS.night.checkOutTime,
+  label: "Check-in 8:00 AM · Check-out 5:00 AM",
+  durationKey: "24hr",
+  privateKey: "Private Venue – Whole Day (2 Sessions)",
+  multiDay: true,
+  optional: true,
+};
+
+function isMultiDaySession(sessionKey) {
+  return Boolean(CVR_EVENT_SESSIONS[sessionKey]?.multiDay);
+}
+
+function clampEventDays(days) {
+  const n = Math.round(Number(days));
+  if (!Number.isFinite(n)) return CVR_MULTI_DAY_LIMITS.min;
+  return Math.min(CVR_MULTI_DAY_LIMITS.max, Math.max(CVR_MULTI_DAY_LIMITS.min, n));
+}
+
+function cvrAddDaysYmd(ymd, days) {
+  const d = new Date(`${ymd}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${dd}`;
+}
+
+/** Fixed check-in / check-out window of a multi-day stay that starts on `startYmd` and lasts `days` days. */
+function getMultiDayWindow(startYmd, days) {
+  const dur = window.CVRDuration;
+  const sess = CVR_EVENT_SESSIONS["multi-day"];
+  if (!dur || !startYmd) return null;
+  const count = clampEventDays(days);
+  const lastYmd = cvrAddDaysYmd(startYmd, count - 1);
+  const first = dur.buildFixedWindow(startYmd, sess.checkInTime, sess.checkOutTime);
+  const last = dur.buildFixedWindow(lastYmd, sess.checkInTime, sess.checkOutTime);
+  if (!first || !last) return null;
+  return {
+    ...first,
+    nights: count,
+    eventDays: count,
+    eventLastDay: lastYmd,
+    checkOutDateOnly: last.checkOutDateOnly,
+    scheduledCheckOut: last.scheduledCheckOut,
+    checkOutLabel: last.checkOutLabel,
+  };
+}
+
 function getEventSession(sessionKey) {
   return CVR_EVENT_SESSIONS[sessionKey] || null;
 }
@@ -174,27 +231,21 @@ function getEventSessionOptions(packageOption) {
   if (!packageOption || getFixedEventSchedule(packageOption)) return [];
   const pkg = getEventPackageCatalog(packageOption);
   if (!pkg) return [];
-<<<<<<< HEAD
-  return ["morning", "night", "whole-day"].map((key) => CVR_EVENT_SESSIONS[key]);
-=======
-<<<<<<< HEAD
-  return ["morning", "night", "whole-day"].map((key) => CVR_EVENT_SESSIONS[key]);
-=======
-  const keys = pkg.doubleRateOn24hr ? ["morning", "night", "whole-day"] : ["morning", "night"];
+  const keys = ["morning", "night", "whole-day"];
+  if (CVR_MULTI_DAY_PACKAGES.includes(packageOption)) keys.push("multi-day");
   return keys.map((key) => CVR_EVENT_SESSIONS[key]);
->>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
 }
 
 /** Package price for a session. Open-venue events follow the Private Venue session prices; fixed packages keep their price. */
-function getEventSessionRate(packageOption, sessionKey) {
+function getEventSessionRate(packageOption, sessionKey, days = 1) {
   const pkg = getEventPackageCatalog(packageOption);
   const base = Math.max(0, Number(pkg?.price) || 0);
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
   if (!pkg || !CVR_EVENT_SESSIONS[sessionKey]) return base;
+  // Multi-day stay: the whole-day (2 sessions) rate for every day of the stay.
+  if (isMultiDaySession(sessionKey)) {
+    const perDay = pkg.doubleRateOn24hr ? cvrWholeDayRate(pkg) : getEventSessionRate(packageOption, "whole-day");
+    return perDay * (days > 1 ? clampEventDays(days) : 1);
+  }
   if (!pkg.doubleRateOn24hr) {
     // Birthday / Wedding / Debut: Morning and Night keep the package price; Whole Day adds the
     // Private Venue whole-day premium (whole-day price minus a single session).
@@ -205,12 +256,6 @@ function getEventSessionRate(packageOption, sessionKey) {
     }
     return base;
   }
-<<<<<<< HEAD
-=======
-=======
-  if (!pkg || !CVR_EVENT_SESSIONS[sessionKey] || !pkg.doubleRateOn24hr) return base;
->>>>>>> 5e658af493732b6c58daf423aa329e2c7aed3155
->>>>>>> 77e2a2e377378c8957528aefecef283726089e1e
   if (sessionKey === "whole-day") return cvrWholeDayRate(pkg);
   if (sessionKey === "night") {
     const morning = Number(getEventPackageCatalog(CVR_EVENT_SESSIONS.morning.privateKey)?.price);
@@ -944,7 +989,7 @@ function cvrWholeDayRate(pkg) {
   return whole > 0 ? whole : Math.max(0, Number(pkg?.price) || 0) * 2;
 }
 
-function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null, eventType = "") {
+function calculateDurationEventTotal(dateStr, durationKey, packageOption, selectedAddOnIds = [], customCheckInTime = null, nights = null, customCheckOutTime = null, guestCount = null, sessionKey = null, eventType = "", eventDays = null) {
   const dur = window.CVRDuration;
   if (!dur || !dateStr || !dur.get(durationKey)) return null;
 
@@ -953,15 +998,19 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
     ? CVR_EVENT_SESSIONS[sessionKey]
     : null;
   const effectiveDurationKey = fixedSchedule?.durationKey || session?.durationKey || "12hr";
+  const multiDay = Boolean(session?.multiDay);
+  const dayCount = multiDay ? clampEventDays(eventDays) : 1;
   const window_ = fixedSchedule
     ? dur.buildFixedWindow(dateStr, fixedSchedule.checkInTime, fixedSchedule.checkOutTime, fixedSchedule.label)
+    : multiDay
+    ? getMultiDayWindow(dateStr, dayCount)
     : dur.buildFixedWindow(dateStr, "00:00", "00:00", "Single-day event");
   if (!window_) return null;
   const pkg = getEventPackageCatalog(packageOption);
   const basePrice = pkg?.price ?? 0;
 
   const rate = session
-    ? getEventSessionRate(packageOption, session.key)
+    ? getEventSessionRate(packageOption, session.key, dayCount)
     : pkg?.flatRate
     ? Math.max(0, Number(basePrice) || 0)
     : pkg?.doubleRateOn24hr && effectiveDurationKey === "24hr"
@@ -977,12 +1026,13 @@ function calculateDurationEventTotal(dateStr, durationKey, packageOption, select
   const total = Math.round((subRounded + addOns.total) * 100) / 100;
   return {
     durationKey: effectiveDurationKey,
-    durationLabel: session ? session.name : "Single-day event",
+    durationLabel: multiDay ? `${session.name} · ${dayCount} days` : session ? session.name : "Single-day event",
     eventSession: session ? session.key : null,
     eventTime: session ? session.label : "",
+    eventDays: multiDay ? dayCount : null,
     ...window_,
-    checkInLabel: "",
-    checkOutLabel: "",
+    checkInLabel: multiDay ? window_.checkInLabel : "",
+    checkOutLabel: multiDay ? window_.checkOutLabel.replace(" (next day)", "") : "",
     roomSubtotal: subRounded,
     addOnsTotal: addOns.total,
     addOnLines: addOns.lines,
@@ -1469,6 +1519,10 @@ window.CVRBookingCatalog = {
   getEventPackageCatalog,
   getFixedEventSchedule,
   getEventSession,
+  isMultiDaySession,
+  clampEventDays,
+  getMultiDayWindow,
+  CVR_MULTI_DAY_LIMITS,
   getEventSessionOptions,
   getEventSessionRate,
   isBirthdayPackage,

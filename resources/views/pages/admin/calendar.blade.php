@@ -212,9 +212,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../../js/main.js?v=20261102c"></script>
+  <script src="../../js/main.js?v=20261106a"></script>
   <script src="../../js/duration-pricing.js?v=20261105a"></script>
-  <script src="../../js/booking-data.js?v=20261102b"></script>
+  <script src="../../js/booking-data.js?v=20261106a"></script>
   <script src="../../js/ph-holidays.js?v=20260830i"></script>
   <script src="../../js/admin-calendar.js?v=20261024a"></script>
   <script>
